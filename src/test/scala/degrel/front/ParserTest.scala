@@ -9,7 +9,7 @@ object ParseTestUtils {
 
   def mkEdges(edges: Iterable[(String, AstVertex)]): Seq[AstEdge] = {
     edges.map {
-      case (l, v) => AstEdge(AstName(None, Some(AstLabel(l))), v)
+      case (l, v) => AstEdge(AstLabel(l), v)
     }.toSeq
   }
 

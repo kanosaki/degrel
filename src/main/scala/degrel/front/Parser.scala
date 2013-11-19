@@ -29,7 +29,7 @@ object DefaultTermParser extends RegexParsers {
         case l => AstName(None, Some(l))
       }
 
-  def edge: Parser[AstEdge] = name ~ ":" ~ vertex ^^ {
+  def edge: Parser[AstEdge] = label ~ ":" ~ vertex ^^ {
     case n ~ _ ~ v => AstEdge(n, v)
   }
 
@@ -59,7 +59,6 @@ object DefaultTermParser extends RegexParsers {
     parseAll(graph, expr) match {
       case Success(gr, _) => new Ast(gr)
       case fail: NoSuccess => {
-        println(fail.msg)
         throw new SyntaxError(fail.msg)
       }
     }

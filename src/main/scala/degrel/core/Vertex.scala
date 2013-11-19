@@ -1,6 +1,13 @@
 package degrel.core
 
-case class Vertex(all_edges: Seq[Edge]) {
+trait Vertex {
+
+}
+
+object Vertex {
+}
+
+case class VertexBody(label: Label, all_edges: Seq[Edge]) {
   private val _edge_cache : Map[Label, Seq[Edge]] = all_edges.groupBy(e => e.label)
 
   def edges(label: Label = null): Seq[Edge] = {
