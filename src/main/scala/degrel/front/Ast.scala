@@ -7,6 +7,11 @@ class Ast(val root: AstNode) {
 }
 
 trait AstNode {
+
+}
+
+class CodeException(msg: String) extends Exception {
+
 }
 
 case class AstGraph(roots: Seq[AstRoot]) extends AstNode {
@@ -19,29 +24,64 @@ trait AstRoot extends AstNode {
 
 case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
   def toGraph(context: LexicalContext): core.Vertex = {
-    throw new NotImplementedError()
+    // Capture lhs variables
+    val lhsCapture = lhs match {
+      case v: AstVertex => v.capture(context)
+      case _ => throw new CodeException("A rule only can take vertex on its left hand.")
+    }
+    val rhsContext = new RhsContext(parent = context)(lhsCapture)
+    val lhsContext = new LhsContext(parent = context)
+    core.Vertex(
+      label = "->",
+      edges = Map(
+        "lhs" -> lhs.toGraph(lhsContext),
+        "rhs" -> rhs.toGraph(rhsContext)
+      )
+    )
   }
 }
 
 case class AstVertex(name: AstName, edges: Seq[AstEdge]) extends AstRoot {
   def toGraph(context: LexicalContext): core.Vertex = {
-    throw new NotImplementedError()
-  }
-
-  def capture: List[(String, AstVertex)] = {
-    name match {
-      case AstName(Some(AstCapture(e)), _) => (e, this) :: this.captureEdges
-      case _ => this.captureEdges
+    (name, context.isPattern) match {
+      case (AstName(Some(AstCapture(cap)), _), false) =>
+        core.Vertex(
+          label = "@",
+          edges = Map(
+            "_ref" -> context.resolveExact[core.Vertex](cap)
+          )
+        )
+      case _ => {
+        core.Vertex(
+          label = this.labelExpr,
+          edges = edges.map(_.toEdge(context)).toMap
+        )
+      }
     }
   }
 
-  private def captureEdges: List[(String, AstVertex)] = {
-    this.edges.map(_.capture).flatten.toList
+  def labelExpr: String = name match {
+    case AstName(_, Some(AstLabel(l))) => l
+    case AstName(_, None) => "*"
+  }
+
+  def capture(context: LexicalContext): List[(String, core.Vertex)] = {
+    name match {
+      case AstName(Some(AstCapture(e)), _) => (e, this.toGraph(context)) :: this.captureEdges(context)
+      case _ => this.captureEdges(context)
+    }
+  }
+
+  private def captureEdges(context: LexicalContext): List[(String, core.Vertex)] = {
+    this.edges.map(_.capture(context)).flatten.toList
   }
 }
 
 case class AstEdge(label: AstLabel, dst: AstVertex) extends AstNode {
-  def capture = dst.capture
+  def capture(context: LexicalContext) = dst.capture(context)
+  def toEdge(context: LexicalContext) : (String, core.Vertex) = {
+    (label.expr, dst.toGraph(context))
+  }
 }
 
 trait AstLiteral extends AstNode {

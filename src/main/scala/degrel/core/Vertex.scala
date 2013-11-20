@@ -5,6 +5,9 @@ trait Vertex {
 }
 
 object Vertex {
+  def apply(label: String, edges: Map[String, Vertex]) : Vertex = {
+    throw new NotImplementedError()
+  }
 }
 
 case class VertexBody(label: Label, all_edges: Seq[Edge]) {

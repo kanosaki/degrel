@@ -1,18 +1,32 @@
 package degrel.front
 
 import scala.collection.mutable
+import degrel.core
+
+class NameError(expr: String) extends Exception {
+
+}
 
 trait LexicalContext {
   val parent: LexicalContext
-  protected val symbolMap: mutable.MultiMap[Symbol, Any] =
-    new mutable.HashMap[Symbol, mutable.Set[Any]] with mutable.MultiMap[Symbol, Any]
+  def isPattern = false
 
-  def resolve(sym: Symbol): List[Any] = {
-    resolveInThis(sym) :: parent.resolve(sym)
+  protected val symbolMap: mutable.MultiMap[String, Any] =
+    new mutable.HashMap[String, mutable.Set[Any]] with mutable.MultiMap[String, Any]
+
+  def resolve(expr: String) : List[Any] = {
+    resolveInThis(expr) :: parent.resolve(expr)
   }
 
-  protected def resolveInThis(sym: Symbol): List[Any] = {
-    symbolMap(sym).toList
+  def resolveExact[T](expr: String) : T = {
+    this.resolve(expr) match {
+      case (value: T) :: Nil => value
+      case _ => throw new NameError(expr)
+    }
+  }
+
+  protected def resolveInThis(expr: String): List[Any] = {
+    symbolMap(expr).toList
   }
 }
 
@@ -20,5 +34,10 @@ class FileContext(val parent: LexicalContext) extends LexicalContext {
 
 }
 
-class RuleContext(val parent: LexicalContext)(rule: AstRule) extends LexicalContext {
+class RhsContext(val parent: LexicalContext)(captures: List[(String, core.Vertex)]) extends LexicalContext {
+
+}
+
+class LhsContext(val parent: LexicalContext) extends LexicalContext {
+  override def isPattern = true
 }
