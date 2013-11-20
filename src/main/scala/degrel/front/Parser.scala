@@ -12,14 +12,10 @@ object RegrelParser {
 }
 
 object DefaultTermParser extends RegexParsers {
-  def capture: Parser[AstCapture] = """[A-Z][a-zA-Z0-9]*""".r ^^ {
-    AstCapture(_)
-  }
+  def capture: Parser[AstCapture] = """[A-Z][a-zA-Z0-9]*""".r ^^ AstCapture
 
   def label: Parser[AstLabel] =
-    """[_~=.+\-*a-z0-9][_~=.+\-*a-z0-9A-Z]*""".r ^^ {
-      AstLabel(_)
-    }
+    """[_~=.+\-*a-z0-9][_~=.+\-*a-z0-9A-Z]*""".r ^^ AstLabel
 
   def name: Parser[AstName] =
     (capture ~ opt("[" ~> label <~ "]")) ^^ {
