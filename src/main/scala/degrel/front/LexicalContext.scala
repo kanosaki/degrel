@@ -1,6 +1,7 @@
 package degrel.front
 
 import scala.collection.mutable
+import scala.reflect.ClassTag
 import degrel.core
 
 class NameError(expr: String) extends Exception {
@@ -18,9 +19,12 @@ trait LexicalContext {
     resolveInThis(expr) :: parent.resolve(expr)
   }
 
-  def resolveExact[T](expr: String) : T = {
+  def resolveExact[T : ClassTag](expr: String) : T = {
+    val klass = implicitly[ClassTag[T]].runtimeClass
     this.resolve(expr) match {
-      case (value: T) :: Nil => value
+      case v :: Nil => v match {
+        case value if klass.isInstance(value) => value.asInstanceOf[T] // asInstanceOf is for compiling type check
+      }
       case _ => throw new NameError(expr)
     }
   }
