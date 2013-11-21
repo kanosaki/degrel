@@ -32,10 +32,10 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
     val rhsContext = new RhsContext(parent = context)(lhsCapture)
     val lhsContext = new LhsContext(parent = context)
     core.Vertex(
-      label = "->",
+      label = BinOp.rule,
       edges = Map(
-        "lhs" -> lhs.toGraph(lhsContext),
-        "rhs" -> rhs.toGraph(rhsContext)
+        SpecialLabel.Edge.lhs -> lhs.toGraph(lhsContext),
+        SpecialLabel.Edge.rhs -> rhs.toGraph(rhsContext)
       )
     )
   }
@@ -46,9 +46,9 @@ case class AstVertex(name: AstName, edges: Seq[AstEdge]) extends AstRoot {
     (name, context.isPattern) match {
       case (AstName(Some(AstCapture(cap)), _), false) =>
         core.Vertex(
-          label = "@",
+          label = SpecialLabel.Vertex.reference,
           edges = Map(
-            "_ref" -> context.resolveExact[core.Vertex](cap)
+            SpecialLabel.Edge.ref -> context.resolveExact[core.Vertex](cap)
           )
         )
       case _ => {
@@ -62,7 +62,7 @@ case class AstVertex(name: AstName, edges: Seq[AstEdge]) extends AstRoot {
 
   def labelExpr: String = name match {
     case AstName(_, Some(AstLabel(l))) => l
-    case AstName(_, None) => "*"
+    case AstName(_, None) => SpecialLabel.Vertex.wildcard
   }
 
   def capture(context: LexicalContext): List[(String, core.Vertex)] = {
