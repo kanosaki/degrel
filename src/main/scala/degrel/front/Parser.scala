@@ -43,7 +43,7 @@ object DefaultTermParser extends RegexParsers {
     case v ~ Some(r) => AstRule(v, r)
   }
 
-  def rule_ : Parser[AstRoot] = "->" ~> root
+  def rule_ : Parser[AstRoot] = BinOp.rule ~> root
 
   def graph: Parser[AstGraph] = root ^^ {
     case r => AstGraph(Seq(r))
@@ -54,9 +54,8 @@ object DefaultTermParser extends RegexParsers {
   def apply(expr: String): Ast = {
     parseAll(graph, expr) match {
       case Success(gr, _) => new Ast(gr)
-      case fail: NoSuccess => {
+      case fail: NoSuccess =>
         throw new SyntaxError(fail.msg)
-      }
     }
   }
 }
