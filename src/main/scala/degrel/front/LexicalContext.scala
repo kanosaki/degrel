@@ -9,7 +9,7 @@ class NameError(expr: String) extends Exception {
 }
 
 trait LexicalContext {
-  val parent: LexicalContext
+  protected val parent: LexicalContext
   def isPattern = false
 
   protected val symbolMap: mutable.MultiMap[String, Any] =
@@ -22,15 +22,27 @@ trait LexicalContext {
   def resolveExact[T : ClassTag](expr: String) : T = {
     val klass = implicitly[ClassTag[T]].runtimeClass
     this.resolve(expr) match {
-      case v :: Nil => v match {
-        case value if klass.isInstance(value) => value.asInstanceOf[T] // asInstanceOf is for compiling type check
-      }
+      case value :: Nil if klass.isInstance(value) => value.asInstanceOf[T]
       case _ => throw new NameError(expr)
     }
   }
 
   protected def resolveInThis(expr: String): List[Any] = {
     symbolMap(expr).toList
+  }
+}
+
+object LexicalContext {
+  def empty : LexicalContext = {
+    new RootContext()
+  }
+}
+
+class RootContext extends LexicalContext {
+  val parent: LexicalContext = null
+
+  override def resolve(expr: String) : List[Any] = {
+    Nil
   }
 }
 
