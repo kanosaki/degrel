@@ -1,5 +1,5 @@
 package degrel.core
 
-class VertexHeader {
+class VertexHeader(body: VertexBody) extends Vertex {
 
 }

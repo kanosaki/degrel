@@ -5,21 +5,13 @@ trait Vertex {
 }
 
 object Vertex {
-  def apply(label: String, edges: Map[String, Vertex]) : Vertex = {
-    throw new NotImplementedError()
+  def apply(label: String, edges: Iterable[(String, Vertex)]): Vertex = {
+    val coreEdges = edges.
+      map {
+      case (s, v) => Edge(Label(s), v.asInstanceOf[VertexHeader])
+    }.toSeq
+    val body = VertexBody(Label(label), coreEdges)
+    new VertexHeader(body)
   }
 }
 
-case class VertexBody(label: Label, all_edges: Seq[Edge]) {
-  private val _edge_cache : Map[Label, Seq[Edge]] = all_edges.groupBy(e => e.label)
-
-  def edges(label: Label = null): Seq[Edge] = {
-    if(label == null)
-      all_edges
-    else
-      _edge_cache.get(label) match {
-        case None => Seq()
-        case Some(a) => a
-      }
-  }
-}
