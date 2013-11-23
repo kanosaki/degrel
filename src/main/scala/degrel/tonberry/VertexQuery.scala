@@ -1,0 +1,27 @@
+package degrel.tonberry
+
+import degrel.core
+import degrel.core.Vertex
+
+class VertexQuery(val src : Iterable[core.Vertex], val expr: String) extends Query[core.Vertex] {
+  val pattern = this.mkPattern(expr)
+
+  lazy val matched = src.filter(v => v.label.expr match {
+    case pattern() => true
+    case _ => false
+  })
+
+  lazy val matchedItor = matched.iterator
+
+  def hasNext: Boolean = matchedItor.hasNext
+
+  def next(): Vertex = matchedItor.next()
+
+  def nextV(expr: String = Query.any): VertexQuery = {
+    this.nextE(Query.any).nextV(expr)
+  }
+
+  def nextE(expr: String = Query.any): EdgeQuery = {
+    new EdgeQuery(matched.flatMap(_.edges()), expr)
+  }
+}

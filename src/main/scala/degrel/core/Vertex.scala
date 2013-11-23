@@ -1,6 +1,6 @@
 package degrel.core
 
-trait Vertex {
+trait Vertex extends Element {
   def edges(label: Label = Label.wildcard): Iterable[Edge]
   def label : Label
 

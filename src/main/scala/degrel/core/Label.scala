@@ -1,5 +1,7 @@
 package degrel.core
 
+import scala.language.implicitConversions
+
 trait Label {
   def expr: String
 }

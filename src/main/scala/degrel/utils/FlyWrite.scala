@@ -1,6 +1,7 @@
 package degrel.utils
 
 
+import scala.language.implicitConversions
 import degrel.core
 import degrel.front
 
