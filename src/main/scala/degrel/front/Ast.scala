@@ -1,6 +1,7 @@
 package degrel.front
 
 import degrel.core
+import degrel.utils.FlyWrite._
 
 class Ast(val root: AstNode) {
 
@@ -25,39 +26,43 @@ trait AstRoot extends AstNode {
 case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
   def toGraph(context: LexicalContext): core.Vertex = {
     // Capture lhs variables
+    val lhsContext = new LhsContext(parent = context)
     val lhsCapture = lhs match {
-      case v: AstVertex => v.capture(context)
+      case v: AstVertex => v.capture(lhsContext)
       case _ => throw new CodeException("A rule only can take vertex on its left hand.")
     }
     val rhsContext = new RhsContext(parent = context)(lhsCapture)
-    val lhsContext = new LhsContext(parent = context)
-    core.Vertex(
-      label = BinOp.rule,
-      edges = Map(
-        SpecialLabel.Edge.lhs -> lhs.toGraph(lhsContext),
-        SpecialLabel.Edge.rhs -> rhs.toGraph(rhsContext)
-      )
-    )
+    lhs.toGraph(lhsContext) |->| (rhs.toGraph(rhsContext))
   }
 }
 
 case class AstVertex(name: AstName, edges: Seq[AstEdge]) extends AstRoot {
   def toGraph(context: LexicalContext): core.Vertex = {
     (name, context.isPattern) match {
-      case (AstName(Some(AstCapture(cap)), _), false) =>
-        core.Vertex(
-          label = SpecialLabel.Vertex.reference,
-          edges = Map(
-            SpecialLabel.Edge.ref -> context.resolveExact[core.Vertex](cap)
-          )
-        )
-      case _ => {
-        core.Vertex(
-          label = this.labelExpr,
-          edges = edges.map(_.toEdge(context)).toMap
-        )
+      // Make reference vertex
+      case (AstName(Some(AstCapture(cap)), _), false) => this.mkReferenceVertex(cap, context)
+      case _ => context match {
+        // Make vertex
+        case lhsContext: LhsContext => this.mkLhsGraph(lhsContext)
+        case _ => this.mkGraph(context)
       }
     }
+  }
+
+  def mkReferenceVertex(cap: String, context: LexicalContext): core.Vertex = {
+    SpecialLabel.Vertex.reference |^|
+    (SpecialLabel.Edge.ref |:| context.resolveExact[core.Vertex](cap))
+  }
+
+  def mkLhsGraph(lhsContext: LhsContext): core.Vertex = {
+    lhsContext.fromCaptureCache(this) match {
+      case Some(v) => v
+      case None => this.mkGraph(lhsContext)
+    }
+  }
+
+  def mkGraph(context: LexicalContext): core.Vertex = {
+    this.labelExpr |^| (edges.map(_.toEdge(context)))
   }
 
   def labelExpr: String = name match {
@@ -67,7 +72,14 @@ case class AstVertex(name: AstName, edges: Seq[AstEdge]) extends AstRoot {
 
   def capture(context: LexicalContext): List[(String, core.Vertex)] = {
     name match {
-      case AstName(Some(AstCapture(e)), _) => (e, this.toGraph(context)) :: this.captureEdges(context)
+      case AstName(Some(AstCapture(e)), _) => context match {
+        case lhsContext: LhsContext => {
+          val graph = this.toGraph(lhsContext)
+          lhsContext.storeCaptureCache(this, graph)
+          (e, graph) :: this.captureEdges(lhsContext)
+        }
+        case _ => (e, this.toGraph(context)) :: this.captureEdges(context)
+      }
       case _ => this.captureEdges(context)
     }
   }
@@ -79,8 +91,9 @@ case class AstVertex(name: AstName, edges: Seq[AstEdge]) extends AstRoot {
 
 case class AstEdge(label: AstLabel, dst: AstVertex) extends AstNode {
   def capture(context: LexicalContext) = dst.capture(context)
-  def toEdge(context: LexicalContext) : (String, core.Vertex) = {
-    (label.expr, dst.toGraph(context))
+
+  def toEdge(context: LexicalContext): core.Edge = {
+    label.expr |:| dst.toGraph(context)
   }
 }
 

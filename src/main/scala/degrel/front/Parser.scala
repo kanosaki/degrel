@@ -2,11 +2,6 @@ package degrel.front
 
 import scala.util.parsing.combinator.RegexParsers
 
-class SyntaxError(msg: String) extends Exception {
-  override def toString = {
-    msg
-  }
-}
 
 object RegrelParser {
 }
