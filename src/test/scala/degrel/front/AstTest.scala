@@ -4,6 +4,7 @@ import degrel.core
 import degrel.utils.FlyWrite._
 import org.scalatest.FlatSpec
 import degrel.core.Label
+import degrel.Query._
 
 class AstTest extends FlatSpec {
   val parser = DefaultTermParser
@@ -109,6 +110,8 @@ class AstTest extends FlatSpec {
     val expectedRhs = "x" |^| ("y" |:| mkRefVertex(capAsA), "z" |:| mkRefVertex(capAsB))
     val expectedGraph = expectedLhs |->| expectedRhs
     assert(expectedGraph === actualGraph)
+    assert(actualGraph.path(":_lhs/hoge/foo").exact eq actualGraph.path(":_rhs/x:y/@/*").exact)
+    assert(actualGraph.path(":_lhs/hoge:piyo/*").exact eq actualGraph.path(":_rhs/x:z/@/*").exact)
   }
 
 
