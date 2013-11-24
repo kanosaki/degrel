@@ -2,7 +2,7 @@ package degrel.tonberry
 
 import degrel.core
 
-class EdgeQuery(val src: Iterable[core.Edge], val expr: String) extends Query[core.Edge] {
+class EdgeQuery(val src: Iterable[core.Edge], val expr: String, val parent: Query[core.Element] = null) extends Query[core.Edge] {
   private lazy val pattern = this.mkPattern(expr)
 
   private lazy val matched = src.filter(e => e.label.expr match {
@@ -22,10 +22,18 @@ class EdgeQuery(val src: Iterable[core.Edge], val expr: String) extends Query[co
   }
 
   def nextV(expr: String = Query.any): VertexQuery = {
-    new VertexQuery(matched.map(_.dst), expr)
+    new VertexQuery(matched.map(_.dst), expr, this)
   }
 
   def nextE(expr: String = Query.any): EdgeQuery = {
     this.nextV(Query.any).nextE(expr)
+  }
+
+  override def toString = {
+    val parentStr = parent match {
+      case null => ""
+      case _ => parent.toString()
+    }
+    parentStr + s":$expr/"
   }
 }

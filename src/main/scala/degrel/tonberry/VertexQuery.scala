@@ -3,7 +3,7 @@ package degrel.tonberry
 import degrel.core
 import degrel.core.Vertex
 
-class VertexQuery(val src : Iterable[core.Vertex], val expr: String) extends Query[core.Vertex] {
+class VertexQuery(val src : Iterable[core.Vertex], val expr: String, val parent: Query[core.Element] = null) extends Query[core.Vertex] {
   val pattern = this.mkPattern(expr)
 
   lazy val matched = src.filter(v => v.label.expr match {
@@ -22,6 +22,14 @@ class VertexQuery(val src : Iterable[core.Vertex], val expr: String) extends Que
   }
 
   def nextE(expr: String = Query.any): EdgeQuery = {
-    new EdgeQuery(matched.flatMap(_.edges()), expr)
+    new EdgeQuery(matched.flatMap(_.edges()), expr, this)
+  }
+
+  override def toString = {
+    val parentStr = parent match {
+      case null => ""
+      case _ => parent.toString()
+    }
+    parentStr + expr
   }
 }

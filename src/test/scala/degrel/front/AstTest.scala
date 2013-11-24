@@ -1,9 +1,10 @@
 package degrel.front
 
-import degrel.core
-import degrel.utils.FlyWrite._
 import org.scalatest.FlatSpec
+
+import degrel.core
 import degrel.core.Label
+import degrel.utils.FlyWrite._
 import degrel.Query._
 
 class AstTest extends FlatSpec {
@@ -111,8 +112,6 @@ class AstTest extends FlatSpec {
     val expectedGraph = expectedLhs |->| expectedRhs
     assert(expectedGraph === actualGraph)
     assert(actualGraph.path(":_lhs/hoge/foo").exact eq actualGraph.path(":_rhs/x:y/@/*").exact)
-    assert(actualGraph.path(":_lhs/hoge:piyo/*").exact eq actualGraph.path(":_rhs/x:z/@/*").exact)
+    assert(actualGraph.path("/->:_lhs/hoge:piyo/*").exact eq actualGraph.path("/->:_rhs/x:z/@/*").exact)
   }
-
-
 }

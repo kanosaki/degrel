@@ -13,26 +13,6 @@ class VertexExtension(v: core.Vertex) {
   }
 
   def path(expr: String) : Query[core.Element] = {
-    var ret : Query[core.Element] = new VertexQuery(Seq(v), Query.any)
-    for(block <- expr.split('/').filter(_ != "")) {
-      block.split(":", 2) match {
-        case Array(vExpr) => {
-          if(vExpr != "")
-            ret = ret.nextV(vExpr)
-        }
-        case Array(vExpr, eExpr) => {
-          if(vExpr != "")
-            ret = ret.nextV(vExpr)
-          if(eExpr != "")
-            ret = ret.nextE(eExpr)
-        }
-        case _ => throw new Exception("Invalid path")
-      }
-    }
-    if(ret == null){
-      throw new Exception("Invalid path")
-    } else {
-      ret
-    }
+    TPath.select(v, expr)
   }
 }

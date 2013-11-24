@@ -9,8 +9,9 @@ object RegrelParser {
 object DefaultTermParser extends RegexParsers {
   def capture: Parser[AstCapture] = """[A-Z][a-zA-Z0-9]*""".r ^^ AstCapture
 
-  def label: Parser[AstLabel] =
-    """[_~=.+\-*a-z0-9][_~=.+\-*a-z0-9A-Z]*""".r ^^ AstLabel
+  val PAT_LABEL = """([_~=.+\-*a-z0-9][_~=.+\-*a-z0-9A-Z]*)|@|(->)""".r
+
+  def label: Parser[AstLabel] = PAT_LABEL ^^ AstLabel
 
   def name: Parser[AstName] =
     (capture ~ opt("[" ~> label <~ "]")) ^^ {
@@ -50,7 +51,7 @@ object DefaultTermParser extends RegexParsers {
     parseAll(graph, expr) match {
       case Success(gr, _) => new Ast(gr)
       case fail: NoSuccess =>
-        throw new SyntaxError(fail.msg)
+        throw new SyntaxError(fail.msg + s" in '$expr'")
     }
   }
 }

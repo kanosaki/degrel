@@ -1,14 +1,11 @@
 package degrel.front
 
-class FrontException extends Exception {
+class FrontException(msg: String) extends Exception(msg) {
 
 }
 
-class SyntaxError(msg: String) extends FrontException {
-  override def toString = {
-    msg
-  }
+class SyntaxError(msg: String) extends FrontException(msg) {
 }
 
-class ResolveError(resolveTarget: String) extends FrontException {
+class ResolveError(resolveTarget: String, msg: String) extends FrontException(msg) {
 }

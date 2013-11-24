@@ -11,11 +11,11 @@ trait Query[+E] extends Iterator[E] {
     if (this.hasNext) {
       val ret = this.next()
       if (this.hasNext) {
-        throw new QueryException("This query has two or more results.")
+        throw new QueryException(s"This query(${this.toString()}) has two or more results.")
       }
       ret
     } else {
-      throw new QueryException("This query has no result.")
+      throw new QueryException(s"This query(${this.toString()}) has no result.")
     }
   }
 
