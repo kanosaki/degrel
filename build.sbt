@@ -7,6 +7,8 @@ scalacOptions ++= Seq("-feature")
 
 resolvers += "Twitter Repository" at "http://maven.twitter.com"
 
+resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/releases/"
+
 val scalazVersion = "7.0.4"
 
 libraryDependencies ++= Seq(
@@ -15,7 +17,11 @@ libraryDependencies ++= Seq(
     "org.scalaz" %% "scalaz-core" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
-    "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test"
-    )
+    "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test",
+    "com.typesafe.akka" % "akka-actor_2.10" % "2.2.3",
+    "com.typesafe.akka" % "akka-testkit_2.10" % "2.2.3",
+    "com.typesafe.akka" % "akka-slf4j_2.10" % "2.2.3",
+    "com.typesafe.akka" % "akka-remote_2.10" % "2.2.3",
+    "com.typesafe.akka" % "akka-agent_2.10" % "2.2.3")
 
 initialCommands in console := "import scalaz._, Scalaz._"
