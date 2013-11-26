@@ -2,7 +2,6 @@ package degrel.tonberry
 
 import degrel.core
 import scala.util.parsing.combinator.RegexParsers
-import degrel.front
 import degrel.core.Element
 
 object TPath {
@@ -56,7 +55,11 @@ object TPathParser extends RegexParsers {
         blocks.foldLeft(init)((q, ast) => ast.chain(q))
       }
       case fail: NoSuccess =>
-        throw new front.SyntaxError(fail.msg + s" in '$expr'")
+        throw new TPathSyntaxError(fail.msg + s" in '$expr'")
     }
   }
+}
+
+class TPathSyntaxError(msg: String) extends TonberryException(msg: String) {
+
 }

@@ -29,6 +29,6 @@ object Query {
   val any: String = "*"
 }
 
-class QueryException(msg: String) extends Exception(msg) {
+class QueryException(msg: String) extends TonberryException(msg) {
 
 }

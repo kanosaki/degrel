@@ -1,6 +1,8 @@
 package degrel.front
 
-class FrontException(msg: String) extends Exception(msg) {
+import degrel.DegrelException
+
+class FrontException(msg: String) extends DegrelException(msg) {
 
 }
 
