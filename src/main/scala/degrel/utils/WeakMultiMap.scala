@@ -3,9 +3,10 @@ package degrel.utils
 import scala.collection.mutable
 import java.lang.ref.{ReferenceQueue, WeakReference, Reference}
 
-// TODO: Make threadsafe
+// TODO: May need performance improvement.
 class WeakMultiMap[K, V <: AnyRef] extends mutable.Map[K, mutable.Set[V]] with mutable.MultiMap[K, V] {
   private final val CLEANUP_RATIO = 10
+  private val lock = new ResourceGurard()
   private val cleanupCounter = new CyclicCounter(CLEANUP_RATIO)
   private val _map = new mutable.HashMap[K, mutable.Set[WeakReference[V]]]()
   private val _reverseMap = new mutable.HashMap[WeakReference[V], K]()
@@ -17,23 +18,25 @@ class WeakMultiMap[K, V <: AnyRef] extends mutable.Map[K, mutable.Set[V]] with m
     ref
   }
 
-  override def addBinding(k: K, v: V) = {
+  override def addBinding(k: K, v: V) = lock.write {
     if (cleanupCounter.next())
       this.removeDeadEntries()
     val wref = this.mkWeakRef(k, v)
     _map.get(k) match {
-      case None => {
-        val newset = new mutable.HashSet[WeakReference[V]]()
-        newset += wref
-        _map += (k -> newset)
-      }
+      case None => this.makeNewEntry(k, wref)
       case Some(set) => set += wref
     }
     this
   }
 
+  def makeNewEntry(k: K, v: WeakReference[V]) = lock.write {
+    val newset = new mutable.HashSet[WeakReference[V]]()
+    newset += v
+    _map += (k -> newset)
+  }
+
   def addBindings(kvs: Iterable[(K, V)]) = {
-    for((k, v) <- kvs) {
+    for ((k, v) <- kvs) {
       this.addBinding(k, v)
     }
   }
@@ -41,11 +44,13 @@ class WeakMultiMap[K, V <: AnyRef] extends mutable.Map[K, mutable.Set[V]] with m
   override def entryExists(key: K, p: V => Boolean): Boolean = {
     this.get(key) match {
       case None => false
-      case Some(set) => set.exists(p)
+      case Some(set) => lock.read {
+        set.exists(p)
+      }
     }
   }
 
-  override def removeBinding(key: K, value: V): this.type = {
+  override def removeBinding(key: K, value: V): this.type = lock.read {
     _map.get(key) match {
       case Some(set) => set.retain(_.get != value)
       case _ =>
@@ -57,7 +62,7 @@ class WeakMultiMap[K, V <: AnyRef] extends mutable.Map[K, mutable.Set[V]] with m
     vs.retain(_.get != null)
   }
 
-  def removeDeadEntries() = {
+  def removeDeadEntries() = lock.write {
     val keysWhichHasDeads = this.refQueueToList
       .map(_.asInstanceOf[WeakReference[V]])
       .map(_reverseMap.apply).distinct
@@ -82,19 +87,23 @@ class WeakMultiMap[K, V <: AnyRef] extends mutable.Map[K, mutable.Set[V]] with m
     val values = kv._2.map(v => {
       this.mkWeakRef(key, v)
     })
-    _map += (key -> values)
+    lock.write {
+      _map += (key -> values)
+    }
     this
   }
 
-  override def -=(key: K) = {
+  override def -=(key: K) = lock.write {
     _map.get(key) match {
-      case Some(values) => values.foreach(_reverseMap -= _)
+      case Some(values) => {
+        values.foreach(_reverseMap -= _)
+      }
       case _ =>
     }
     this
   }
 
-  override def get(key: K) = {
+  override def get(key: K) = lock.read {
     _map.get(key) match {
       case Some(values) => {
         val retvalues = values.map(_.get).filter(_ != null)
@@ -107,9 +116,9 @@ class WeakMultiMap[K, V <: AnyRef] extends mutable.Map[K, mutable.Set[V]] with m
     }
   }
 
-  override def iterator = {
+  override def iterator = lock.read {
     _map.iterator.map({
-                        case (k, vs) => k -> vs.map(_.get).filter(_ != null)
-                      })
+      case (k, vs) => k -> vs.map(_.get).filter(_ != null)
+    })
   }
 }
