@@ -11,6 +11,8 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 val scalazVersion = "7.0.4"
 
+val akkaVersion = "2.2.3"
+
 libraryDependencies ++= Seq(
     "org.scalatest" % "scalatest_2.10" % "2.0" % "test",
     "com.typesafe" %% "scalalogging-slf4j" % "1.0.1", 
@@ -18,10 +20,10 @@ libraryDependencies ++= Seq(
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
     "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test",
-    "com.typesafe.akka" % "akka-actor_2.10" % "2.2.3",
-    "com.typesafe.akka" % "akka-testkit_2.10" % "2.2.3",
-    "com.typesafe.akka" % "akka-slf4j_2.10" % "2.2.3",
-    "com.typesafe.akka" % "akka-remote_2.10" % "2.2.3",
-    "com.typesafe.akka" % "akka-agent_2.10" % "2.2.3")
+    "com.typesafe.akka" % "akka-actor_2.10" % akkaVersion,
+    "com.typesafe.akka" % "akka-testkit_2.10" % akkaVersion,
+    "com.typesafe.akka" % "akka-slf4j_2.10" % akkaVersion,
+    "com.typesafe.akka" % "akka-remote_2.10" % akkaVersion,
+    "com.typesafe.akka" % "akka-agent_2.10" % akkaVersion)
 
 initialCommands in console := "import scalaz._, Scalaz._"
