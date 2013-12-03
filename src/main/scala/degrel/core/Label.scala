@@ -13,6 +13,13 @@ trait Label {
   override def hashCode(): Int = {
     expr.hashCode()
   }
+
+  def matches(pattern: Label) = {
+    if(pattern.expr == "*")
+      true
+    else
+      this.expr == pattern.expr
+  }
 }
 
 object Label {

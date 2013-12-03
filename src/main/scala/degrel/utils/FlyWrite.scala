@@ -27,6 +27,7 @@ object FlyWrite {
     def |:|(v: core.Vertex) = {
       core.Edge(core.Label(s), v)
     }
+
   }
 
   class VertexExtensions(v: core.Vertex) {
@@ -37,6 +38,10 @@ object FlyWrite {
       )
     }
 
+  }
+
+  def v(s: String) = {
+    core.Vertex(s, List())
   }
 
   implicit def coreStringExtension(s: String) = new StringExtensions(s)

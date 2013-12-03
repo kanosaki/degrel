@@ -1,5 +1,7 @@
 package degrel.core
 
+import degrel.engine.{MatchedVertex, MatchedEdge, MatchedGraph, MatchingContext}
+
 class VertexHeader(protected var body: VertexBody) extends Vertex {
 
   override def equals(other: Any) = other match {
@@ -16,4 +18,13 @@ class VertexHeader(protected var body: VertexBody) extends Vertex {
     s"<$id#$body>"
   }
 
+  def matches(pattern: Vertex, context: MatchingContext): MatchedVertex = {
+    // capture two vertex body
+    val targetVertex = this.body
+    val patternVertex = pattern match {
+      case v: VertexHeader => v.body
+      case _ => throw new Exception("VertexHeader required")
+    }
+    targetVertex.matches(patternVertex, context)
+  }
 }
