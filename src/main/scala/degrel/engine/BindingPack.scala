@@ -46,11 +46,18 @@ case class PolyBindingPack(bindings: Iterable[BindingPack]) extends BindingPack 
 class PickOption {
 }
 
-class Binding(bridges: Seq[MatchBridge[Element]]) {
-  private val map = bridges.map(br => (br._1, br._2)).toMap
-  def resolve(elem: Element) = {
-    map.get(elem)
+object Binding {
+  def apply(bridges: Seq[MatchBridge[Element]]) = {
+    new Binding(bridges.map(br => (br._1, br._2)).toMap)
   }
+}
 
-  def size = map.size
+class Binding(private val map: Map[Element, Element]) extends Map[Element, Element] {
+  def get(key: Element): Option[Element] = map.get(key)
+
+  def iterator: Iterator[(Element, Element)] = map.iterator
+
+  def -(key: Element): Map[Element, Element] = map - key
+
+  def +[B1 >: Element](kv: (Element, B1)): Map[Element, B1] = map + kv
 }
