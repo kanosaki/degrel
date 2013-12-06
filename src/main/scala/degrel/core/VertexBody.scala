@@ -47,7 +47,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
     s"${this.repr}($edgesExpr)"
   }
 
-  def matches(pattern: Vertex, context: MatchingContext): MatchedVertex = {
+  def matches(pattern: Vertex, context: MatchingContext): VertexMatching = {
     if (!this.label.matches(pattern.label))
       return NoMatching
     if (pattern.edges().size == 0) {
@@ -61,7 +61,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
     }
   }
 
-  private def matchEdges(pattern: Vertex, context: MatchingContext): Iterable[MatchedVertex] = {
+  private def matchEdges(pattern: Vertex, context: MatchingContext): Iterable[VertexMatching] = {
     if (pattern.edges().size > this.edges().size)
       return Seq()
     val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_ , context)).toList
@@ -83,7 +83,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
    * @return List of edge matching
    */
   private def matchEdgeGroup(patternEdgesIt: Iterable[Edge],
-                             context: MatchingContext): List[Seq[MatchedEdge]] = {
+                             context: MatchingContext): List[Seq[EdgeMatching]] = {
     val patternEdges = patternEdgesIt.toSeq
     val targetLabel = patternEdges.head.label
     val dataEdges = this.edges(targetLabel).toSet
@@ -95,11 +95,11 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
   }
 
   private def matchEdgesSequential(patternEdges: Iterable[Edge], context: MatchingContext)
-                                  (thisEdges: Iterable[Edge]): Option[Seq[MatchedEdge]] = {
+                                  (thisEdges: Iterable[Edge]): Option[Seq[EdgeMatching]] = {
     thisEdges.zip(patternEdges).mapAllOrNone {
       case (thisE, patE) => thisE.matches(patE, context) match {
         case NoMatching => None
-        case v: MatchedEdge => Some(v)
+        case v: EdgeMatching => Some(v)
       }
     }
   }

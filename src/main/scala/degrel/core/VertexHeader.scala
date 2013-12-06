@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.engine.{MatchedVertex, MatchedEdge, MatchedGraph, MatchingContext}
+import degrel.engine.{VertexMatching, EdgeMatching, MatchedGraph, MatchingContext}
 
 class VertexHeader(protected var body: VertexBody) extends Vertex {
 
@@ -25,7 +25,7 @@ class VertexHeader(protected var body: VertexBody) extends Vertex {
     s"<${body.reprRecursive}>"
   }
 
-  def matches(pattern: Vertex, context: MatchingContext): MatchedVertex = {
+  def matches(pattern: Vertex, context: MatchingContext): VertexMatching = {
     // capture two vertex body
     val targetVertex = this.body
     val patternVertex = pattern match {
