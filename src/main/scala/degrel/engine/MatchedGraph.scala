@@ -11,7 +11,7 @@ trait MatchedVertex extends MatchedGraph {
 
 }
 
-case class MonoVertexMatching(vBind: VertexBind, eMatches: Iterable[MatchedEdge]) extends MatchedVertex {
+case class MonoVertexMatching(vBind: VertexBridge, eMatches: Iterable[MatchedEdge]) extends MatchedVertex {
   def iterator: Iterator[Binding] = ???
 
   private lazy val _success: Boolean = eMatches.isEmpty || eMatches.forall(_.success)
@@ -31,7 +31,7 @@ trait MatchedEdge extends MatchedGraph {
 
 }
 
-case class MonoEdgeMatching(eBind: EdgeBind, vMatch: MatchedVertex) extends MatchedEdge {
+case class MonoEdgeMatching(eBind: EdgeBridge, vMatch: MatchedVertex) extends MatchedEdge {
   def iterator: Iterator[Binding] = ???
 
   override def success = vMatch.success

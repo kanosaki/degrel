@@ -21,7 +21,7 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
     if (this.label.matches(pattern.label))
       dst.matches(pattern.dst, context) match {
         case NoMatching => NoMatching
-        case v: MatchedVertex => MonoEdgeMatching(EdgeBind(pattern, this), v)
+        case v: MatchedVertex => MonoEdgeMatching(EdgeBridge(pattern, this), v)
       }
     else
       NoMatching

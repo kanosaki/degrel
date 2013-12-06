@@ -51,7 +51,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
     if (!this.label.matches(pattern.label))
       return NoMatching
     if (pattern.edges().size == 0) {
-      return MonoVertexMatching(VertexBind(pattern, this), Seq())
+      return MonoVertexMatching(VertexBridge(pattern, this), Seq())
     }
     val matchCombinations = this.matchEdges(pattern, context)
     if (matchCombinations.isEmpty) {
@@ -68,7 +68,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
     if (edgeGroups.forall(_ != Nil)) {
       // sequence([1,2], [3,4], [5,6]]) -> [[1,3,4], [1,3,6], [1,4,5], [1,4,6], ...]
       val edgeMatches = edgeGroups.sequence.toList
-      val vertexMatch = VertexBind(this, pattern)
+      val vertexMatch = VertexBridge(this, pattern)
       edgeMatches.map(e => {
         val matchSeq = e.flatten
         MonoVertexMatching(vertexMatch, matchSeq)

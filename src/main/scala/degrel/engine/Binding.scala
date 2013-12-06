@@ -1,5 +1,5 @@
 package degrel.engine
 
-class Binding {
+trait Binding {
 
 }
