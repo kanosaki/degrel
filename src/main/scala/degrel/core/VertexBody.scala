@@ -57,7 +57,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
     if (matchCombinations.isEmpty) {
       NoMatching
     } else {
-      PloyVertexMatching(matchCombinations)
+      PolyVertexMatching(matchCombinations)
     }
   }
 

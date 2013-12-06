@@ -19,7 +19,7 @@ case class MonoVertexMatching(vBind: VertexBridge, eMatches: Iterable[EdgeMatchi
   override def success = _success
 }
 
-case class PloyVertexMatching(matches: Iterable[VertexMatching]) extends VertexMatching {
+case class PolyVertexMatching(matches: Iterable[VertexMatching]) extends VertexMatching {
   def iterator: Iterator[Binding] = ???
 
   private lazy val _success: Boolean = matches.exists(_.success)
