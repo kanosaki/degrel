@@ -49,15 +49,15 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
 
   def matches(pattern: Vertex, context: MatchingContext): MatchedVertex = {
     if (!this.label.matches(pattern.label))
-      return NoMatch
+      return NoMatching
     if (pattern.edges().size == 0) {
-      return SingleMatchedVertex(VertexBind(pattern, this), Seq())
+      return MonoVertexMatching(VertexBind(pattern, this), Seq())
     }
     val matchCombinations = this.matchEdges(pattern, context)
     if (matchCombinations.isEmpty) {
-      NoMatch
+      NoMatching
     } else {
-      MultiplexVertexMatch(matchCombinations)
+      PloyVertexMatching(matchCombinations)
     }
   }
 
@@ -71,7 +71,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
       val vertexMatch = VertexBind(this, pattern)
       edgeMatches.map(e => {
         val matchSeq = e.flatten
-        SingleMatchedVertex(vertexMatch, matchSeq)
+        MonoVertexMatching(vertexMatch, matchSeq)
       })
     } else {
       Seq()
@@ -98,7 +98,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
                                   (thisEdges: Iterable[Edge]): Option[Seq[MatchedEdge]] = {
     thisEdges.zip(patternEdges).mapAllOrNone {
       case (thisE, patE) => thisE.matches(patE, context) match {
-        case NoMatch => None
+        case NoMatching => None
         case v: MatchedEdge => Some(v)
       }
     }

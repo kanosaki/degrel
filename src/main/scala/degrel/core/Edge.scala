@@ -20,11 +20,11 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
   def matches(pattern: Edge, context: MatchingContext): MatchedEdge = {
     if (this.label.matches(pattern.label))
       dst.matches(pattern.dst, context) match {
-        case NoMatch => NoMatch
-        case v: MatchedVertex => SingleMatchedEdge(EdgeBind(pattern, this), v)
+        case NoMatching => NoMatching
+        case v: MatchedVertex => MonoEdgeMatching(EdgeBind(pattern, this), v)
       }
     else
-      NoMatch
+      NoMatching
   }
 }
 

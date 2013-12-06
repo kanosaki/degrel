@@ -4,7 +4,6 @@ import org.scalatest.FlatSpec
 
 
 import degrel.utils.FlyWrite._
-import degrel.engine.MatchingContext
 import degrel.core
 import degrel.front
 import degrel.front.ParserUtils
@@ -15,7 +14,7 @@ class MatchingTest extends FlatSpec {
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 
   it should "match single vertex" in {
-    val a = v("foo").matches(v("foo"), MatchingContext.empty)
+    val a = v("foo").matches(v("foo"))
     assert(a.success)
   }
 
@@ -25,7 +24,7 @@ class MatchingTest extends FlatSpec {
                          v("bar"),
                          "baz" |^|("piyo", v("hoge")))
     for (v <- verticies) {
-      val mch = v.matches(pattern, MatchingContext.empty)
+      val mch = v.matches(pattern)
       assert(!mch.success)
     }
   }
@@ -36,7 +35,7 @@ class MatchingTest extends FlatSpec {
                          v("bar"),
                          "baz" |^|("foo", v("hoge")))
     for (v <- verticies) {
-      val mch = v.matches(pattern, MatchingContext.empty)
+      val mch = v.matches(pattern)
       assert(mch.success)
     }
   }
@@ -46,7 +45,7 @@ class MatchingTest extends FlatSpec {
     val verticies = Seq("foo(bar: baz)",
                          "foo(hoge: fuga, bar: baz)").map(parse)
     for (v <- verticies) {
-      val mch = v.matches(pattern, MatchingContext.empty)
+      val mch = v.matches(pattern)
       assert(mch.success)
     }
   }
@@ -56,7 +55,7 @@ class MatchingTest extends FlatSpec {
     val verticies = Seq("foo(bar: baz)",
                          "foo(hoge: fuga, bar: baz)").map(parse)
     for (v <- verticies) {
-      val mch = v.matches(pattern, MatchingContext.empty)
+      val mch = v.matches(pattern)
       assert(!mch.success)
     }
   }
@@ -66,7 +65,7 @@ class MatchingTest extends FlatSpec {
     val verticies = Seq("foo(bar: baz, piyo: bazbaz(hoge: fuga))",
                          "foo(hoge: fuga, bar: baz)").map(parse)
     for (v <- verticies) {
-      val mch = v.matches(pattern, MatchingContext.empty)
+      val mch = v.matches(pattern)
       assert(!mch.success)
     }
   }

@@ -18,7 +18,7 @@ trait Vertex extends Element {
     LocalID(System.identityHashCode(this))
   }
 
-  def matches(pattern: Vertex, context: MatchingContext) : MatchedVertex
+  def matches(pattern: Vertex, context: MatchingContext = MatchingContext.empty) : MatchedVertex
 }
 
 object Vertex {
