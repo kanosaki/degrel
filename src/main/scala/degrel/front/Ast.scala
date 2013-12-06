@@ -5,6 +5,13 @@ import degrel.utils.FlyWrite._
 
 class Ast(val root: AstNode) {
 
+  def toGraph(context: LexicalContext = LexicalContext.empty) = {
+    root match {
+      case rt: AstRoot => rt.toGraph(context)
+      case gr: AstGraph => gr.roots.head.toGraph(context)
+      case _ => throw new RuntimeException("This ast is not represents a graph")
+    }
+  }
 }
 
 trait AstNode {

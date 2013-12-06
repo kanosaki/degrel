@@ -7,17 +7,12 @@ import degrel.utils.FlyWrite._
 import degrel.engine.MatchingContext
 import degrel.core
 import degrel.front
+import degrel.front.ParserUtils
 
 class MatchingTest extends FlatSpec {
   val parser = front.DefaultTermParser
 
-  def parseVertex(s: String): core.Vertex = {
-    parser(s).root.asInstanceOf[front.AstRoot].toGraph(front.LexicalContext.empty)
-  }
-
-  def parseGraph(s: String): core.Vertex = {
-    parser(s).root.asInstanceOf[front.AstGraph].roots.head.toGraph(front.LexicalContext.empty)
-  }
+  def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 
   it should "match single vertex" in {
     val a = v("foo").matches(v("foo"), MatchingContext.empty)
@@ -47,13 +42,32 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "matches by partial pattern" in {
-    val pattern = parseGraph("foo(bar: *)")
+    val pattern = parse("foo(bar: *)")
     val verticies = Seq("foo(bar: baz)",
-                         "foo(hoge: fuga, bar: baz)").map(parseGraph)
+                         "foo(hoge: fuga, bar: baz)").map(parse)
     for (v <- verticies) {
       val mch = v.matches(pattern, MatchingContext.empty)
       assert(mch.success)
     }
   }
 
+  it should "reject composite pattern with difference edge name" in {
+    val pattern = parse("foo(piyo: *)")
+    val verticies = Seq("foo(bar: baz)",
+                         "foo(hoge: fuga, bar: baz)").map(parse)
+    for (v <- verticies) {
+      val mch = v.matches(pattern, MatchingContext.empty)
+      assert(!mch.success)
+    }
+  }
+
+  it should "reject composite pattern with difference child vertex" in {
+    val pattern = parse("foo(piyo: baz(hoge: fuga), bar: *)")
+    val verticies = Seq("foo(bar: baz, piyo: bazbaz(hoge: fuga))",
+                         "foo(hoge: fuga, bar: baz)").map(parse)
+    for (v <- verticies) {
+      val mch = v.matches(pattern, MatchingContext.empty)
+      assert(!mch.success)
+    }
+  }
 }

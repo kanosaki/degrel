@@ -35,28 +35,44 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
     _edge_cache.values
   }
 
-  override def toString: String = {
+  override def toString = this.repr
+
+
+  def repr: String = {
+    s"${label.expr}"
+  }
+
+  def reprRecursive: String = {
     val edgesExpr = all_edges.map(_.toString).mkString(", ")
-    s"${label.expr}($edgesExpr)"
+    s"${this.repr}($edgesExpr)"
   }
 
   def matches(pattern: Vertex, context: MatchingContext): MatchedVertex = {
-    if (this.label.matches(pattern.label)) {
-      MultiplexVertexMatch(this.matchEdges(pattern, context))
-    } else {
+    if (!this.label.matches(pattern.label))
+      return NoMatch
+    if (pattern.edges().size == 0) {
+      return SingleMatchedVertex(VertexBind(pattern, this), Seq())
+    }
+    val matchCombinations = this.matchEdges(pattern, context)
+    if (matchCombinations.isEmpty) {
       NoMatch
+    } else {
+      MultiplexVertexMatch(matchCombinations)
     }
   }
 
   private def matchEdges(pattern: Vertex, context: MatchingContext): Iterable[MatchedVertex] = {
     if (pattern.edges().size > this.edges().size)
       return Seq()
-    val edgeGroups = this.groupedEdges.map(this.matchEdgeGroup(_, pattern, context)).toList
-    if (edgeGroups.all(_ != Nil)) {
+    val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_ , context)).toList
+    if (edgeGroups.forall(_ != Nil)) {
       // sequence([1,2], [3,4], [5,6]]) -> [[1,3,4], [1,3,6], [1,4,5], [1,4,6], ...]
       val edgeMatches = edgeGroups.sequence.toList
       val vertexMatch = VertexBind(this, pattern)
-      edgeMatches.map(e => SingleMatchedVertex(vertexMatch, e.flatten))
+      edgeMatches.map(e => {
+        val matchSeq = e.flatten
+        SingleMatchedVertex(vertexMatch, matchSeq)
+      })
     } else {
       Seq()
     }
@@ -66,13 +82,16 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
    *
    * @return List of edge matching
    */
-  private def matchEdgeGroup(targetEdgeGroup: Iterable[Edge],
-                             pattern: Vertex,
+  private def matchEdgeGroup(patternEdgesIt: Iterable[Edge],
                              context: MatchingContext): List[Seq[MatchedEdge]] = {
-    val dataEdges = targetEdgeGroup.toSet
-    val targetLabel = targetEdgeGroup.head.label
-    val patternEdges = pattern.edges(targetLabel)
-    dataEdges.subsets(patternEdges.size).mapFilter(this.matchEdgesSequential(patternEdges, context)).toList
+    val patternEdges = patternEdgesIt.toSeq
+    val targetLabel = patternEdges.head.label
+    val dataEdges = this.edges(targetLabel).toSet
+    if (dataEdges.size == 0 || dataEdges.size < patternEdges.size)
+      return Nil
+    val combination = dataEdges.subsets(patternEdges.size).flatMap(_.toSeq.permutations).toSeq
+    val filtered = combination.mapFilter(this.matchEdgesSequential(patternEdges, context)).toList
+    filtered
   }
 
   private def matchEdgesSequential(patternEdges: Iterable[Edge], context: MatchingContext)

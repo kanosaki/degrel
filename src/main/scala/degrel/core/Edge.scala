@@ -7,8 +7,14 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
 
   def _2: Vertex = dst
 
-  override def toString: String = {
-    s"${label.expr}: $dst"
+  override def toString: String = this.repr
+
+  def repr: String = {
+    s"${label.expr}:"
+  }
+
+  def reprRecursive = {
+    s"${label.expr}:"
   }
 
   def matches(pattern: Edge, context: MatchingContext): MatchedEdge = {

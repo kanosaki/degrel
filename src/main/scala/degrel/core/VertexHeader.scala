@@ -11,11 +11,18 @@ class VertexHeader(protected var body: VertexBody) extends Vertex {
   }
 
   def edges(label: Label): Iterable[Edge] = body.edges(label)
+  def groupedEdges: Iterable[Iterable[Edge]] = body.groupedEdges
 
   def label : Label = body.label
 
-  override def toString: String = {
-    s"<$id#$body>"
+  override def toString: String = this.repr
+
+  def repr: String = {
+    s"<${body.repr}>"
+  }
+
+  def reprRecursive = {
+    s"<${body.reprRecursive}>"
   }
 
   def matches(pattern: Vertex, context: MatchingContext): MatchedVertex = {
