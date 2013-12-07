@@ -57,6 +57,6 @@ case object NoMatching extends MatchedGraph with VertexMatching with EdgeMatchin
   override def success: Boolean = false
 
   def pack: BindingPack = {
-    MonoBindingPack(Seq())
+    MonoBindingPack(Stream())
   }
 }

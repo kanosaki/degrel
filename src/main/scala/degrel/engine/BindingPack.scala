@@ -33,7 +33,7 @@ case class PolyBindingPack(bindings: Iterable[BindingPack]) extends BindingPack 
     other match {
       case mb: MonoBindingPack => PolyBindingPack(bindings.map(_ ++ mb))
       case pb: PolyBindingPack => {
-        val src = List(this.bindings.toStream, pb.bindings.toStream).sequence.map(PolyBindingPack).toStream
+        val src = List(this.bindings.toStream, pb.bindings.toStream).sequence.toStream.map(PolyBindingPack)
         PolyBindingPack(src)
       }
     }
