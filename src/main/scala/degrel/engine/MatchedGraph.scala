@@ -21,14 +21,14 @@ case class MonoVertexMatching(vBind: VertexBridge, eMatches: Iterable[EdgeMatchi
   override def success = _success
 
   def pack: BindingPack = {
-     eMatches.map(_.pack).fold(MonoBindingPack(Stream(vBind)))(_ ++ _)
+    eMatches.map(_.pack).fold(MonoBindingPack(Stream(vBind)))(_ ++ _)
   }
 }
 
 case class PolyVertexMatching(matches: Iterable[VertexMatching]) extends VertexMatching {
   def iterator: Iterator[BindingPack] = ???
 
-  private lazy val _success: Boolean = matches.exists(_.success)
+  private lazy val _success: Boolean = !matches.isEmpty
 
   override def success = _success
 
