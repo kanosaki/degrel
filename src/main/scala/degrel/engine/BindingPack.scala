@@ -11,7 +11,7 @@ trait BindingPack {
   def ++(other: BindingPack) = this.join(other)
 
   def pick: Binding = {
-    new Binding(this.pickBranch(new PickOption()))
+    Binding(this.pickBranch(new PickOption()))
   }
 
   def pickBranch(pickOpt: PickOption) : Seq[MatchBridge[Element]]
