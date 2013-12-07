@@ -1,14 +1,14 @@
 package degrel.core
 
-import scalaz._
-import Scalaz._
 
-import degrel.engine.{VertexMatching, MatchedGraph, MatchingContext}
+import degrel.engine.{VertexMatching, MatchingContext}
 
 trait Vertex extends Element {
   def edges(label: Label = Label.wildcard): Iterable[Edge]
+
   def groupedEdges: Iterable[Iterable[Edge]]
-  def label : Label
+
+  def label: Label
 
   def id: ID = {
     this.localID
@@ -18,7 +18,7 @@ trait Vertex extends Element {
     LocalID(System.identityHashCode(this))
   }
 
-  def matches(pattern: Vertex, context: MatchingContext = MatchingContext.empty) : VertexMatching
+  def matches(pattern: Vertex, context: MatchingContext = MatchingContext.empty): VertexMatching
 }
 
 object Vertex {

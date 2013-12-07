@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.engine.{VertexMatching, EdgeMatching, MatchedGraph, MatchingContext}
+import degrel.engine.{VertexMatching, MatchingContext}
 
 class VertexHeader(protected var body: VertexBody) extends Vertex {
 
@@ -11,9 +11,10 @@ class VertexHeader(protected var body: VertexBody) extends Vertex {
   }
 
   def edges(label: Label): Iterable[Edge] = body.edges(label)
+
   def groupedEdges: Iterable[Iterable[Edge]] = body.groupedEdges
 
-  def label : Label = body.label
+  def label: Label = body.label
 
   override def toString: String = this.repr
 

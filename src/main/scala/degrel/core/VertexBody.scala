@@ -64,7 +64,7 @@ case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
   private def matchEdges(pattern: Vertex, context: MatchingContext): Iterable[VertexMatching] = {
     if (pattern.edges().size > this.edges().size)
       return Stream()
-    val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_ , context)).toList
+    val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_, context)).toList
     if (edgeGroups.forall(!_.isEmpty)) {
       // sequence([1,2], [3,4], [5,6]]) -> [[1,3,4], [1,3,6], [1,4,5], [1,4,6], ...]
       val edgeMatches = edgeGroups.sequence.toStream

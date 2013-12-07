@@ -14,7 +14,7 @@ trait BindingPack {
     Binding(this.pickBranch(new PickOption()))
   }
 
-  def pickBranch(pickOpt: PickOption) : Seq[MatchBridge[Element]]
+  def pickBranch(pickOpt: PickOption): Seq[MatchBridge[Element]]
 }
 
 case class MonoBindingPack(bridges: Seq[MatchBridge[Element]]) extends BindingPack {
@@ -43,6 +43,7 @@ case class PolyBindingPack(bindings: Iterable[BindingPack]) extends BindingPack 
     bindings.head.pickBranch(pickOpt)
   }
 }
+
 class PickOption {
 }
 
