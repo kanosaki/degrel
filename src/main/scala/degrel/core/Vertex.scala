@@ -1,7 +1,7 @@
 package degrel.core
 
 
-import degrel.engine.{VertexMatching, MatchingContext}
+import degrel.engine.{BuildingContext, VertexMatching, MatchingContext}
 
 trait Vertex extends Element {
   def edges(label: Label = Label.wildcard): Iterable[Edge]
@@ -35,6 +35,34 @@ trait Vertex extends Element {
   }
 
   def matches(pattern: Vertex, context: MatchingContext = MatchingContext.empty): VertexMatching
+
+  def build(context: BuildingContext): Vertex
+
+  def isReference: Boolean = this.label == Label.reference
+
+  // TODO: Move other location
+  def referenceTarget: Vertex = {
+    assert(this.label == Label.reference)
+    val refEdges = this.edges("_ref")
+    assert(refEdges.size == 1)
+    refEdges.head.dst
+  }
+
+  def thru(label: Label): Vertex = {
+    val candidates = this.edges(label)
+    candidates.size match {
+      case 1 => candidates.head.dst
+      case 0 => throw new Exception("No edge found.")
+      case _ => throw new Exception("Too many edge found.")
+    }
+  }
+
+  def asRule: Rule = {
+    assert(this.label.expr == "->")
+    val rhs = this.thru("_rhs")
+    val lhs = this.thru("_lhs")
+    Rule(lhs, rhs)
+  }
 }
 
 object Vertex {
@@ -43,4 +71,3 @@ object Vertex {
     new VertexHeader(body)
   }
 }
-

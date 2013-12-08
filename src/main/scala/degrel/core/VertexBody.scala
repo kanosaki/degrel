@@ -52,6 +52,7 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
     s"${this.repr}($edgesExpr)"
   }
 
+  // Perform as LhsVertex
   def matches(pattern: Vertex, context: MatchingContext): VertexMatching = {
     if (!this.label.matches(pattern.label))
       return NoMatching
@@ -106,6 +107,16 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
         case NoMatching => None
         case v: EdgeMatching => Some(v)
       }
+    }
+  }
+
+  // Perform as RhsVertex
+  def build(context: BuildingContext): Vertex = {
+    if(this.isReference) {
+      context.matchOf(this.referenceTarget)
+    } else {
+      val buildEdges = this.edges().map(_.build(context))
+      Vertex(this.label.expr, buildEdges, this.attributes)
     }
   }
 }

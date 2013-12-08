@@ -26,5 +26,9 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
     else
       NoMatching
   }
+
+  def build(context: BuildingContext): Edge = {
+    Edge(this.label, dst.build(context))
+  }
 }
 

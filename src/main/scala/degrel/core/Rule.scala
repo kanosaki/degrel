@@ -1,5 +1,5 @@
 package degrel.core
 
-class Rule(val root: Vertex) {
+case class Rule(lhs: Vertex, rhs: Vertex) {
 
 }
