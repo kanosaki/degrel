@@ -7,6 +7,8 @@ trait Label {
 
   override def equals(other: Any) = other match {
     case l: Label => l.expr == this.expr
+    case s: String => s == this.expr
+    case s: Symbol => s.name == this.expr
     case _ => false
   }
 
