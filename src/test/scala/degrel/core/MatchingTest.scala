@@ -4,25 +4,29 @@ import org.scalatest.FlatSpec
 
 
 import degrel.utils.FlyWrite._
+import degrel.utils.VertexExtensions._
 import degrel.core
 import degrel.front
 import degrel.front.ParserUtils
 
+/**
+ * Around matching and (Mono)binding
+ */
 class MatchingTest extends FlatSpec {
   val parser = front.DefaultTermParser
 
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 
   it should "match single vertex" in {
-    val a = v("foo").matches(v("foo"))
+    val a = vHead("foo").matches(vHead("foo"))
     assert(a.success)
   }
 
   it should "not matches different labeled vertex" in {
-    val pattern = v("foo")
-    val verticies = Seq(v("hoge"),
-                         v("bar"),
-                         "baz" |^|("piyo", v("hoge")))
+    val pattern = vHead("foo")
+    val verticies = Seq(vHead("hoge"),
+                         vHead("bar"),
+                         "baz" |^|("piyo", vHead("hoge")))
     for (v <- verticies) {
       val mch = v.matches(pattern)
       assert(!mch.success)
@@ -30,10 +34,10 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "all vertex matches with wildcard vertex" in {
-    val pattern = v("*")
-    val verticies = Seq(v("foo"),
-                         v("bar"),
-                         "baz" |^|("foo", v("hoge")))
+    val pattern = vHead("*")
+    val verticies = Seq(vHead("foo"),
+                         vHead("bar"),
+                         "baz" |^|("foo", vHead("hoge")))
     for (v <- verticies) {
       val mch = v.matches(pattern)
       assert(mch.success)
@@ -68,5 +72,44 @@ class MatchingTest extends FlatSpec {
       val mch = v.matches(pattern)
       assert(!mch.success)
     }
+  }
+
+  it should "bridge a vertex" in {
+    val pattern = parse("foo(bar: baz, hoge: *)")
+    val vertex = parse("foo(bar: baz, hoge: fuga)")
+    val mch = vertex.matches(pattern)
+    assert(mch.success)
+    val pack = mch.pack
+    val binding = pack.pickFirst.asQueryable
+    val (patV, dataV) = binding.query(_.label == "*").head
+    assert(patV.label === "*")
+    assert(dataV.label === "fuga")
+  }
+
+  it should "lookup vertex by attribute" in {
+    val pattern = parse("foo{id: 0}(bar: baz, hoge: *{id: 1})")
+    val vertex = parse("foo(bar: baz, hoge: fuga)")
+    val mch = vertex.matches(pattern)
+    assert(mch.success)
+    val pack = mch.pack
+    val binding = pack.pickFirst.asQueryable
+    val (_, dataV) = binding.query(_.hasId("1")).head
+    assert(dataV.label === "fuga")
+  }
+
+  it should "bridge vertices" in {
+    val pattern = parse("foo(bar: *{id: 1}, joe: hoge(fuga: *{id: 2}, piyo: *{id: 3}))")
+    val vertex = parse("foo(bar: baz, joe: hoge(fuga: a, piyo: b))")
+    val mch = vertex.matches(pattern)
+    assert(mch.success)
+    val pack = mch.pack
+    val binding = pack.pickFirst.asQueryable
+    val assertData = Seq("1" -> "baz", "2" -> "a", "3" -> "b")
+    for ((id, targetLabel) <- assertData) {
+      val it = binding.query(_.hasId(id))
+      val (_, dataV) = it.head
+      assert(dataV.label === targetLabel)
+    }
+
   }
 }

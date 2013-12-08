@@ -1,20 +1,25 @@
 package degrel.engine
 
 import degrel.core.Element
+import degrel.core
 
 import scalaz._
 import Scalaz._
 
-trait BindingPack {
+trait BindingPack extends Iterable[Binding] {
   def join(other: BindingPack): BindingPack
 
   def ++(other: BindingPack) = this.join(other)
 
-  def pick: Binding = {
-    Binding(this.pickBranch(new PickOption()))
+  def pickFirst: Binding = {
+    Binding(this.pick(new PickOption()))
   }
 
-  def pickBranch(pickOpt: PickOption): Seq[MatchBridge[Element]]
+  def pick(pickOpt: PickOption): Seq[MatchBridge[Element]]
+
+  def unpack: Iterable[Binding]
+
+  def iterator: Iterator[Binding] = this.unpack.iterator
 }
 
 case class MonoBindingPack(bridges: Seq[MatchBridge[Element]]) extends BindingPack {
@@ -25,7 +30,11 @@ case class MonoBindingPack(bridges: Seq[MatchBridge[Element]]) extends BindingPa
     }
   }
 
-  def pickBranch(pickOpt: PickOption): Seq[MatchBridge[Element]] = this.bridges
+  def pick(pickOpt: PickOption): Seq[MatchBridge[Element]] = this.bridges
+
+  def unpack: Iterable[Binding] = {
+    Stream(Binding(this.pick(new PickOption())))
+  }
 }
 
 case class PolyBindingPack(bindings: Iterable[BindingPack]) extends BindingPack {
@@ -39,8 +48,12 @@ case class PolyBindingPack(bindings: Iterable[BindingPack]) extends BindingPack 
     }
   }
 
-  def pickBranch(pickOpt: PickOption): Seq[MatchBridge[Element]] = {
-    bindings.head.pickBranch(pickOpt)
+  def pick(pickOpt: PickOption): Seq[MatchBridge[Element]] = {
+    bindings.head.pick(pickOpt)
+  }
+
+  def unpack = {
+    ???
   }
 }
 
@@ -53,7 +66,7 @@ object Binding {
   }
 }
 
-class Binding(private val map: Map[Element, Element]) extends Map[Element, Element] {
+class Binding(protected val map: Map[Element, Element]) extends Map[Element, Element] {
   def get(key: Element): Option[Element] = map.get(key)
 
   def iterator: Iterator[(Element, Element)] = map.iterator
@@ -61,4 +74,47 @@ class Binding(private val map: Map[Element, Element]) extends Map[Element, Eleme
   def -(key: Element): Map[Element, Element] = map - key
 
   def +[B1 >: Element](kv: (Element, B1)): Map[Element, B1] = map + kv
+
+  def asQueryable: QueryableBinding = {
+    new QueryableBinding(map)
+  }
+}
+
+/**
+ * For debugging
+ */
+class QueryableBinding(protected val _map: Map[Element, Element]) extends Binding(_map) {
+
+  def queryPatternVertices(f: core.Vertex => Boolean): Iterable[core.Vertex] = {
+    _map.filter {
+      case (v: core.Vertex, _) => f(v)
+      case _ => false
+    }.map {
+      case (v: core.Vertex, _) => v
+      case _ => throw new Exception("Illegal state")
+    }
+  }
+
+  def queryDataVertices(f: core.Vertex => Boolean): Iterable[core.Vertex] = {
+    _map.filter {
+      case (_, v: core.Vertex) => f(v)
+      case _ => false
+    }.map {
+      case (_, v: core.Vertex) => v
+      case _ => throw new Exception("Illegal state")
+    }
+  }
+
+  def query(patternPredicate: core.Vertex => Boolean): Iterable[(core.Vertex, core.Vertex)] = {
+    _map.filter {
+      case (v: core.Vertex, _) => patternPredicate(v)
+      case _ => false
+    }.map {
+      case (pat: core.Vertex, data: core.Vertex) => (pat, data)
+      case _ => throw new Exception("Illegal state")
+    }
+  }
+
+
+  override def asQueryable: QueryableBinding = this
 }
