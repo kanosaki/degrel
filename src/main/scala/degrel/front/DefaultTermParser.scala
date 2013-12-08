@@ -7,6 +7,9 @@ object DefaultTermParser extends RegexParsers {
 
   val PAT_LABEL = """([_~=.+\-*a-z0-9][_~=.+\-*a-z0-9A-Z]*)|@|(->)""".r
 
+  val PAT_ATTR_VALUE = """[^,}]*""".r
+  val PAT_ATTR_KEY = """[^:]+""".r
+
   def label: Parser[AstLabel] = PAT_LABEL ^^ AstLabel
 
   def name: Parser[AstName] =
@@ -25,9 +28,17 @@ object DefaultTermParser extends RegexParsers {
     _.toSeq
   }
 
-  def vertex: Parser[AstVertex] = name ~ opt(edges) ^^ {
-    case n ~ Some(es) => AstVertex(n, es)
-    case n ~ None => AstVertex(n, Seq())
+  def attribute: Parser[AstAttribute] = PAT_ATTR_KEY ~ ":" ~ PAT_ATTR_VALUE ^^ {
+    case key ~ _ ~ value => AstAttribute(key, value)
+  }
+
+  def attributes: Parser[Seq[AstAttribute]] = "{" ~> repsep(attribute, ",") <~ "}" ^^ {
+    _.toSeq
+  }
+
+  def vertex: Parser[AstVertex] = name ~ opt(attributes) ~ opt(edges) ^^ {
+    case n ~ attrs ~ Some(es) => AstVertex(n, attrs, es)
+    case n ~ attrs ~ None => AstVertex(n, attrs, Seq())
   }
 
   def root: Parser[AstRoot] = "(" ~> root <~ ")" | vertex ~ opt(rule_) ^^ {

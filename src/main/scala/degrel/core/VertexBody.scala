@@ -7,7 +7,7 @@ import Scalaz._
 import degrel.engine._
 import degrel.utils.IterableExtensions._
 
-case class VertexBody(_label: Label, all_edges: Iterable[Edge]) extends Vertex {
+case class VertexBody(_label: Label, attributes: Map[String, String], all_edges: Iterable[Edge]) extends Vertex {
   def label: Label = _label
 
   private val _edge_cache: Map[Label, Iterable[Edge]] = all_edges.groupBy(e => e.label)

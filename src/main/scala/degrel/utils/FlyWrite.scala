@@ -33,18 +33,23 @@ object FlyWrite {
   class VertexExtensions(v: core.Vertex) {
     def |->|(rhs: core.Vertex) = {
       core.Vertex(front.SpecialLabel.Vertex.rule,
-        Seq(core.Edge(core.Label(front.SpecialLabel.Edge.lhs), v),
-          core.Edge(core.Label(front.SpecialLabel.Edge.rhs), rhs))
-      )
+                   Seq(core.Edge(core.Label(front.SpecialLabel.Edge.lhs), v),
+                        core.Edge(core.Label(front.SpecialLabel.Edge.rhs), rhs))
+                 )
     }
 
   }
 
-  def v(s: String) = {
-    core.Vertex(s, List())
+  def vHead(s: String, attributes: Map[String, String] = Map()) = {
+    core.Vertex(s, List(), attributes)
+  }
+
+  def vAll(s: String, attributes: Map[String, String], edges: Iterable[core.Edge]) = {
+    core.Vertex(s, edges, attributes)
   }
 
   implicit def flywriteCoreStringExtension(s: String) = new StringExtensions(s)
+
   implicit def flywriteCoreVertexExtension(v: core.Vertex) = new VertexExtensions(v)
 }
 

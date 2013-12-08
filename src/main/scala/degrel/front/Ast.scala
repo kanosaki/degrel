@@ -43,7 +43,7 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
   }
 }
 
-case class AstVertex(name: AstName, edges: Seq[AstEdge]) extends AstRoot {
+case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges: Seq[AstEdge]) extends AstRoot {
   def toGraph(context: LexicalContext): core.Vertex = {
     (name, context.isPattern) match {
       // Make reference vertex
@@ -94,6 +94,13 @@ case class AstVertex(name: AstName, edges: Seq[AstEdge]) extends AstRoot {
   private def captureEdges(context: LexicalContext): List[(String, core.Vertex)] = {
     this.edges.map(_.capture(context)).flatten.toList
   }
+
+  def mkAttributesMap: Map[String, String] = {
+    this.attributes match {
+      case Some(attrs) => attrs.map(ast => (ast.key, ast.value)).toMap
+      case None => Map()
+    }
+  }
 }
 
 case class AstEdge(label: AstLabel, dst: AstVertex) extends AstNode {
@@ -117,5 +124,9 @@ case class AstCapture(expr: String) extends AstLiteral {
 }
 
 case class AstName(capture: Option[AstCapture], label: Option[AstLabel]) {
+
+}
+
+case class AstAttribute(key: String, value: String) {
 
 }
