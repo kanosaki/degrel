@@ -31,6 +31,11 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
       }
   }
 
+  def attr(key: String): Option[String] = {
+    attributes.get(key)
+  }
+
+
   def groupedEdges: Iterable[Iterable[Edge]] = {
     _edge_cache.values
   }

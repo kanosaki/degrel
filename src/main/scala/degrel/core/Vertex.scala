@@ -6,6 +6,18 @@ import degrel.engine.{VertexMatching, MatchingContext}
 trait Vertex extends Element {
   def edges(label: Label = Label.wildcard): Iterable[Edge]
 
+  def attr(key: String): Option[String]
+
+  def hasAttr(key: String, value: String = null) = {
+    value match {
+      case null => this.attr(key).isDefined
+      case v => this.attr(key) match {
+        case None => false
+        case Some(actualValue) => actualValue == v
+      }
+    }
+  }
+
   def groupedEdges: Iterable[Iterable[Edge]]
 
   def label: Label

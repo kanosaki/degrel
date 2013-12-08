@@ -35,4 +35,6 @@ class VertexHeader(protected var body: VertexBody) extends Vertex {
     }
     targetVertex.matches(patternVertex, context)
   }
+
+  def attr(key: String): Option[String] = body.attr(key)
 }
