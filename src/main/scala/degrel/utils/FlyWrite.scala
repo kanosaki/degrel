@@ -44,7 +44,7 @@ object FlyWrite {
     core.Vertex(s, List())
   }
 
-  implicit def coreStringExtension(s: String) = new StringExtensions(s)
-  implicit def coreVertexExtension(v: core.Vertex) = new VertexExtensions(v)
+  implicit def flywriteCoreStringExtension(s: String) = new StringExtensions(s)
+  implicit def flywriteCoreVertexExtension(v: core.Vertex) = new VertexExtensions(v)
 }
 
