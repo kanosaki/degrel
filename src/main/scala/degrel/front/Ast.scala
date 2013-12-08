@@ -39,7 +39,7 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
       case _ => throw new CodeException("A rule only can take vertex on its left hand.")
     }
     val rhsContext = new RhsContext(parent = context)(lhsCapture)
-    lhs.toGraph(lhsContext) |->| (rhs.toGraph(rhsContext))
+    lhs.toGraph(lhsContext) |->| rhs.toGraph(rhsContext)
   }
 }
 
@@ -57,8 +57,9 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
   }
 
   def mkReferenceVertex(cap: String, context: LexicalContext): core.Vertex = {
-    SpecialLabel.Vertex.reference |^|
-    (SpecialLabel.Edge.ref |:| context.resolveExact[core.Vertex](cap))
+    val label = SpecialLabel.Vertex.reference
+    val edges = SpecialLabel.Edge.ref |:| context.resolveExact[core.Vertex](cap)
+    core.Vertex(label, Stream(edges), this.mkAttributesMap)
   }
 
   def mkLhsGraph(lhsContext: LhsContext): core.Vertex = {
@@ -69,7 +70,9 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
   }
 
   def mkGraph(context: LexicalContext): core.Vertex = {
-    this.labelExpr |^| (edges.map(_.toEdge(context)))
+    val label = this.labelExpr
+    val eds = edges.map(_.toEdge(context))
+    core.Vertex(label, eds.toStream, this.mkAttributesMap)
   }
 
   def labelExpr: String = name match {
