@@ -47,7 +47,7 @@ object DefaultTermParser extends RegexParsers {
     parseAll(graph, expr) match {
       case Success(gr, _) => new Ast(gr)
       case fail: NoSuccess =>
-        throw new SyntaxError(fail.msg + s" in '$expr'")
+        throw new SyntaxError(fail.msg + s" in '$expr'} at ${fail.next.offset}")
     }
   }
 }
