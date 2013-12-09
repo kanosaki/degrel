@@ -3,8 +3,10 @@ package degrel.front
 import degrel.core
 import degrel.utils.FlyWrite._
 
+/**
+ * 抽象構文木のコンテナクラス
+ */
 class Ast(val root: AstNode) {
-
   def toGraph(context: LexicalContext = LexicalContext.empty) = {
     root match {
       case rt: AstRoot => rt.toGraph(context)
@@ -14,23 +16,54 @@ class Ast(val root: AstNode) {
   }
 }
 
+/**
+ * すべての抽象構文木要素の親となる型
+ */
 trait AstNode {
 
 }
 
-class CodeException(msg: String) extends Exception {
+/**
+ * プログラム上の制約違反
+ * @param msg
+ */
+class CodeException(msg: String) extends FrontException(msg) {
 
 }
 
+/**
+ * グラフを表すAST
+ */
 case class AstGraph(roots: Seq[AstRoot]) extends AstNode {
 
 }
 
+/**
+ * 根のAST
+ */
 trait AstRoot extends AstNode {
+  /**
+   * この抽象構文木からグラフを構成します
+   * @param context 現在このグラフが存在するContext
+   * @return 構成された頂点
+   */
   def toGraph(context: LexicalContext): core.Vertex
 }
 
+/**
+ * ルールのAST
+ * @param lhs 左辺を表すグラフの根
+ * @param rhs 右辺を表すグラフの根
+ */
 case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
+  /**
+   * ルールを表すASTを構成します．ルールのグラフの構成手順は
+   * 1. LhsContextを生成する
+   * 2. LhsContextを元に左辺の変数を束縛しRhsContextを作成する
+   * 3. 両方のContextでグラフを構成する
+   * @param context 現在このグラフが存在するContext
+   * @return 構成された頂点
+   */
   def toGraph(context: LexicalContext): core.Vertex = {
     // Capture lhs variables
     val lhsContext = new LhsContext(parent = context)
@@ -43,7 +76,16 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
   }
 }
 
+
+/**
+ * 頂点を表すAST
+ */
 case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges: Seq[AstEdge]) extends AstRoot {
+  /**
+   * 頂点を表すVertexを作成します．参照頂点の場合はContextから探索し見つかったものを参照します
+   * @param context 現在このグラフが存在するContext
+   * @return 構成された頂点
+   */
   def toGraph(context: LexicalContext): core.Vertex = {
     (name, context.isPattern) match {
       // Make reference vertex
@@ -80,6 +122,10 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
     case AstName(_, None) => SpecialLabel.Vertex.wildcard
   }
 
+  /**
+   * 頂点が変数を持つ場合はその変数を返します，その際に構成されたGraphは
+   * 後で参照の整合性を保つためにContextへキャッシュされます
+   */
   def capture(context: LexicalContext): List[(String, core.Vertex)] = {
     name match {
       case AstName(Some(AstCapture(e)), _) => context match {
