@@ -15,8 +15,8 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
   def checkEquals(other: VertexBody): Boolean = {
     if (this.label != other.label) return false
     if (this.attributes != other.attributes) return false
-    val thisEdges = this.edges().toSet()
-    val otherEdges = this.edges().toSet()
+    val thisEdges = this.edges().toSet
+    val otherEdges = other.edges().toSet
     thisEdges == otherEdges
   }
 
