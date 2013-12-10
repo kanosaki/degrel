@@ -1,11 +1,7 @@
 package degrel.core
 
 
-import scalaz._
-import Scalaz._
-
 import degrel.engine._
-import degrel.utils.IterableExtensions._
 
 case class VertexBody(_label: Label, attributes: Map[String, String], all_edges: Iterable[Edge]) extends Vertex {
   def label: Label = _label
@@ -17,11 +13,20 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
   }
 
   def checkEquals(other: VertexBody): Boolean = {
-    true
+    if (this.label != other.label) return false
+    if (this.attributes != other.attributes) return false
+    val thisEdges = this.edges().toSet()
+    val otherEdges = this.edges().toSet()
+    thisEdges == otherEdges
   }
 
   override def hashCode = {
-    System.identityHashCode(this)
+    val prime = 41
+    var result = 1
+    result = prime * result + label.hashCode()
+    result = prime * result + attributes.hashCode()
+    result = prime * result + all_edges.hashCode()
+    result
   }
 
   private val _edge_cache: Map[Label, Iterable[Edge]] = all_edges.groupBy(e => e.label)
@@ -58,7 +63,8 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
 
 
   def repr: String = {
-    s"${label.expr}"
+    val attrsExpr = if (attributes.isEmpty) "" else this.reprAttrs
+    s"${label.expr}$attrsExpr"
   }
 
   def reprRecursive: String = {
@@ -66,67 +72,14 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
     s"${this.repr}($edgesExpr)"
   }
 
-  // Perform as LhsVertex
-  def matches(pattern: Vertex, context: MatchingContext): VertexMatching = {
-    if (!this.label.matches(pattern.label))
-      return NoMatching
-    if (pattern.edges().size == 0) {
-      return MonoVertexMatching(VertexBridge(pattern, this), Stream())
-    }
-    val matchCombinations = this.matchEdges(pattern, context)
-    if (matchCombinations.isEmpty) {
-      NoMatching
-    } else {
-      PolyVertexMatching(matchCombinations)
-    }
-  }
-
-  private def matchEdges(pattern: Vertex, context: MatchingContext): Iterable[VertexMatching] = {
-    if (pattern.edges().size > this.edges().size)
-      return Stream()
-    val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_, context)).toList
-    if (edgeGroups.forall(!_.isEmpty)) {
-      // sequence([1,2], [3,4], [5,6]]) -> [[1,3,4], [1,3,6], [1,4,5], [1,4,6], ...]
-      val edgeMatches = edgeGroups.sequence.toStream
-      val vertexMatch = VertexBridge(this, pattern)
-      edgeMatches.map(e => {
-        val matchSeq = e.flatten
-        MonoVertexMatching(vertexMatch, matchSeq)
-      })
-    } else {
-      Stream()
-    }
-  }
-
-  /**
-   *
-   * @return List of edge matching
-   */
-  private def matchEdgeGroup(patternEdgesIt: Iterable[Edge],
-                             context: MatchingContext): List[Seq[EdgeMatching]] = {
-    val patternEdges = patternEdgesIt.toSeq
-    val targetLabel = patternEdges.head.label
-    val dataEdges = this.edges(targetLabel).toSet
-    if (dataEdges.size == 0 || dataEdges.size < patternEdges.size)
-      return Nil
-    val combination = dataEdges.subsets(patternEdges.size).toStream.flatMap(_.toSeq.permutations)
-    val filtered = combination.mapFilter(this.matchEdgesSequential(patternEdges, context)).toList
-    filtered
-  }
-
-  private def matchEdgesSequential(patternEdges: Iterable[Edge], context: MatchingContext)
-                                  (thisEdges: Iterable[Edge]): Option[Seq[EdgeMatching]] = {
-    thisEdges.zip(patternEdges).mapAllOrNone {
-      case (thisE, patE) => thisE.matches(patE, context) match {
-        case NoMatching => None
-        case v: EdgeMatching => Some(v)
-      }
-    }
+  def reprAttrs: String = {
+    val kvsExpr = attributes.map {case (k, v) => s"$k:$v"}.mkString(", ")
+    s"{$kvsExpr}"
   }
 
   // Perform as RhsVertex
   def build(context: BuildingContext): Vertex = {
-    if(this.isReference) {
+    if (this.isReference) {
       context.matchOf(this.referenceTarget)
     } else {
       val buildEdges = this.edges().map(_.build(context))

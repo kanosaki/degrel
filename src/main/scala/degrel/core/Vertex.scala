@@ -34,7 +34,9 @@ trait Vertex extends Element {
     this.edges(label).size > 0
   }
 
-  def matches(pattern: Vertex, context: MatchingContext = MatchingContext.empty): VertexMatching
+  def matches(pattern: Vertex, context: MatchingContext = MatchingContext.empty): VertexMatching = {
+    Matcher(this).matches(pattern, context)
+  }
 
   def build(context: BuildingContext): Vertex
 

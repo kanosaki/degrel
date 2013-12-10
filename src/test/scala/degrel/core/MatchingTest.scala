@@ -98,6 +98,21 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "bridge vertices" in {
+    val pattern = parse("foo(bar: baz{id: 1}, joe: hoge(fuga: *{id: 2}, piyo: *{id: 3}))")
+    val vertex = parse("foo(bar: baz, joe: hoge(fuga: a, piyo: b))")
+    val mch = vertex.matches(pattern)
+    assert(mch.success)
+    val pack = mch.pack
+    val binding = pack.pickFirst.asQueryable
+    val assertData = Seq("1" -> "baz", "2" -> "a", "3" -> "b")
+    for ((id, targetLabel) <- assertData) {
+      val it = binding.query(_.hasId(id))
+      val (_, dataV) = it.head
+      assert(dataV.label === targetLabel)
+    }
+  }
+
+  it should "bridge vertices with more complex graph with many wildcard vertex" in {
     val pattern = parse("foo(bar: *{id: 1}, joe: hoge(fuga: *{id: 2}, piyo: *{id: 3}))")
     val vertex = parse("foo(bar: baz, joe: hoge(fuga: a, piyo: b))")
     val mch = vertex.matches(pattern)
@@ -110,6 +125,5 @@ class MatchingTest extends FlatSpec {
       val (_, dataV) = it.head
       assert(dataV.label === targetLabel)
     }
-
   }
 }

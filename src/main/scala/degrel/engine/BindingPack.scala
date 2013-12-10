@@ -6,13 +6,14 @@ import degrel.core
 import scalaz._
 import Scalaz._
 
-trait BindingPack extends Iterable[Binding] {
+trait BindingPack /* extends Iterable[Binding] */ {
   def join(other: BindingPack): BindingPack
 
   def ++(other: BindingPack) = this.join(other)
 
   def pickFirst: Binding = {
-    Binding(this.pick(new PickOption()))
+    val picked = this.pick(new PickOption())
+    Binding(picked)
   }
 
   def pick(pickOpt: PickOption): Seq[MatchBridge[Element]]
