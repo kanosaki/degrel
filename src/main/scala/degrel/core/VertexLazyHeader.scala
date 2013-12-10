@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.engine.{BuildingContext, Binding, VertexMatching, MatchingContext}
+import degrel.engine.{BuildingContext, VertexMatching, MatchingContext}
 
 class VertexLazyHeader(f: Unit => VertexBody) extends Vertex {
   lazy val body = f()
@@ -9,6 +9,10 @@ class VertexLazyHeader(f: Unit => VertexBody) extends Vertex {
     case vh: VertexHeader => vh.body == this.body
     case vb: VertexBody => vb == this.body
     case _ => false
+  }
+
+  override def hashCode = {
+    System.identityHashCode(this)
   }
 
   def edges(label: Label): Iterable[Edge] = body.edges(label)

@@ -10,6 +10,20 @@ import degrel.utils.IterableExtensions._
 case class VertexBody(_label: Label, attributes: Map[String, String], all_edges: Iterable[Edge]) extends Vertex {
   def label: Label = _label
 
+  override def equals(other: Any) = other match {
+    case vh: VertexHeader => vh.body == this
+    case vb: VertexBody => this.checkEquals(vb)
+    case _ => false
+  }
+
+  def checkEquals(other: VertexBody): Boolean = {
+    true
+  }
+
+  override def hashCode = {
+    System.identityHashCode(this)
+  }
+
   private val _edge_cache: Map[Label, Iterable[Edge]] = all_edges.groupBy(e => e.label)
   protected val hasPolyvalentEdge = all_edges.size != _edge_cache.size
 
