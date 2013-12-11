@@ -7,14 +7,12 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
 
   def _2: Vertex = dst
 
-  override def toString: String = this.repr
-
   def repr: String = {
     s"${label.expr}:"
   }
 
   def reprRecursive = {
-    s"${label.expr}:"
+    s"${label.expr}:${dst.reprRecursive}"
   }
 
   def matches(pattern: Edge, context: MatchingContext): EdgeMatching = {
@@ -30,5 +28,22 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
   def build(context: BuildingContext): Edge = {
     Edge(this.label, dst.build(context))
   }
+
+  def isSameElement(other: Element): Boolean = other match {
+    case e: Edge => (this.label == e.label) || (this.dst ==~ e.dst)
+    case _ => false
+  }
+
+  def freeze: Edge = Edge(this.label, this.dst.freeze)
+}
+
+class EdgeEqualityAdapter(val target: Edge) {
+  override def equals(other: Any) = other match {
+    case e: Element => e ==~ target
+    case eqAdapter: EdgeEqualityAdapter => eqAdapter.target ==~ this.target
+    case _ => false
+  }
+
+  override def hashCode() = target.hashCode()
 }
 

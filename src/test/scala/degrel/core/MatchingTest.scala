@@ -126,4 +126,19 @@ class MatchingTest extends FlatSpec {
       assert(dataV.label === targetLabel)
     }
   }
+
+  it should "bridge vertex and following graph" in {
+    val pattern = parse("foo(bar: *{id: 1}, joe: hoge(fuga: *{id: 2}, piyo: *{id: 3}))")
+    val vertex = parse("foo(bar: a(a: b), joe: hoge(fuga: a(b: c), piyo: a))")
+    val mch = vertex.matches(pattern)
+    assert(mch.success)
+    val pack = mch.pack
+    val binding = pack.pickFirst.asQueryable
+    val assertData = Seq("1" -> "a(a: b)", "2" -> "a(b: c)", "3" -> "a")
+    for ((id, target) <- assertData) {
+      val it = binding.query(_.hasId(id))
+      val (_, dataV) = it.head
+      assert(dataV ==~ parse(target))
+    }
+  }
 }

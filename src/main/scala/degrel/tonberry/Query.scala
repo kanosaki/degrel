@@ -19,6 +19,8 @@ trait Query[+E] extends Iterator[E] {
     }
   }
 
+  def freeze: Query[E]
+
   def mkPattern(expr: String): Regex = {
     expr.replace("*", ".*?").r
   }

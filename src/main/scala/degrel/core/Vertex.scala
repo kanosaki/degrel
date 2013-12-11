@@ -65,6 +65,8 @@ trait Vertex extends Element {
     val lhs = this.thru("_lhs")
     Rule(lhs, rhs)
   }
+
+  def freeze: Vertex
 }
 
 object Vertex {

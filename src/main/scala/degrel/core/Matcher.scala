@@ -19,12 +19,14 @@ case class Matcher(self: Vertex) {
     val matchCombinations = this.matchEdges(pattern, context)
     if (matchCombinations.isEmpty) {
       NoMatching
+    } else if(matchCombinations.size == 1) {
+      matchCombinations.head
     } else {
       PolyVertexMatching(matchCombinations)
     }
   }
 
-  private def matchEdges(pattern: Vertex, context: MatchingContext): Iterable[VertexMatching] = {
+  private def matchEdges(pattern: Vertex, context: MatchingContext): Seq[VertexMatching] = {
     if (pattern.edges().size > self.edges().size)
       return Stream()
     val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_, context)).toList

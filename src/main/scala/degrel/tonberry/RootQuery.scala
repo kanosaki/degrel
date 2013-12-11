@@ -16,5 +16,9 @@ class RootQuery(val rootVertex: core.Vertex) extends Query[core.Element] {
     this.nextV(Query.any).nextE(expr)
   }
 
+  def freeze: RootQuery = {
+    new RootQuery(rootVertex.freeze)
+  }
+
   override def toString = "/"
 }

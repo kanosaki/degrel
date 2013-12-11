@@ -14,26 +14,26 @@ class TonberryTest extends FlatSpec {
   }
 
   def V(expr: String) = {
-    core.Vertex(expr, Nil)
+    core.Vertex(expr, Nil).freeze
   }
 
   it should "select a child node thru edge" in {
     val v = parse("foo(bar: baz)")
-    assert(v.nextE("bar").dst.exact === V("baz"))
+    assert(v.nextE("bar").dst.freeze.exact == V("baz").freeze)
   }
 
   it should "select child nodes thru edge" in {
     val v = parse("foo(x: bar, x: baz)")
-    assert(v.nextE("x").dst.toSet === Set(V("bar"), V("baz")))
+    assert(v.nextE("x").dst.freeze.toSet === Set(V("bar").freeze, V("baz").freeze))
   }
 
   it should "select a child node as neigbor" in {
     val v = parse("foo(bar: baz)")
     val byquery = v.nextV("baz").exact
     val bypath = v.path("baz").exact
-    val expected = V("baz")
-    assert(byquery === expected)
-    assert(bypath === expected)
+    val expected = V("baz").freeze
+    assert(byquery.freeze === expected)
+    assert(bypath.freeze === expected)
   }
 
   it should "select children by multi step thru edge" in {
@@ -75,9 +75,9 @@ class TonberryTest extends FlatSpec {
                       v.path("bar/x")/* ,
                       v.find("x"),
                       v.find("baz/x") */)
-    val expected = Set(V("x"), V("x"), V("x"))
+    val expected = Set(V("x"), V("x"), V("x")).map(_.freeze)
     for (q <- queries) {
-      assert(expected === q.toSet)
+      assert(expected === q.freeze.toSet)
     }
   }
 }

@@ -6,6 +6,20 @@ import degrel.engine._
 case class VertexBody(_label: Label, attributes: Map[String, String], all_edges: Iterable[Edge]) extends Vertex {
   def label: Label = _label
 
+  def isSameElement(other: Element): Boolean = other match {
+    case vh: VertexHeader => vh.body ==~ this
+    case vb: VertexBody => this.checkIsSame(vb)
+    case _ => false
+  }
+
+  def checkIsSame(other: VertexBody): Boolean = {
+    if (this.label != other.label) return false
+    if (this.attributes != other.attributes) return false
+    val thisEdges = this.edges().map(new EdgeEqualityAdapter(_)).toSet
+    val otherEdges = other.edges().map(new EdgeEqualityAdapter(_)).toSet
+    thisEdges == otherEdges
+  }
+
   override def equals(other: Any) = other match {
     case vh: VertexHeader => vh.body == this
     case vb: VertexBody => this.checkEquals(vb)
@@ -59,9 +73,6 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
     _edge_cache.values
   }
 
-  override def toString = this.repr
-
-
   def repr: String = {
     val attrsExpr = if (attributes.isEmpty) "" else this.reprAttrs
     s"${label.expr}$attrsExpr"
@@ -84,6 +95,15 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
     } else {
       val buildEdges = this.edges().map(_.build(context))
       Vertex(this.label.expr, buildEdges, this.attributes)
+    }
+  }
+
+  def freeze = {
+    if (this.label.expr == "@") {
+      this
+    } else {
+      val frozenEdges = all_edges.map(_.freeze)
+      VertexBody(label, attributes, frozenEdges)
     }
   }
 }

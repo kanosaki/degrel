@@ -29,6 +29,10 @@ class EdgeQuery(val src: Iterable[core.Edge], val expr: String, val parent: Quer
     this.nextV(Query.any).nextE(expr)
   }
 
+  def freeze: EdgeQuery = {
+    new EdgeQuery(src.map(_.freeze), expr, this)
+  }
+
   override def toString = {
     val parentStr = parent match {
       case null => ""
