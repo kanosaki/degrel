@@ -32,6 +32,7 @@ class Traverser(val start: Vertex, val maxHops: Option[Int] = None) extends Iter
     def next(): Vertex = {
       val nextV = vQueue.dequeue()
       vQueue ++= nextV.edges().map(_.dst).filter(!vHistory.contains(_))
+      vHistory += nextV
       nextV
     }
   }
@@ -46,13 +47,14 @@ class Traverser(val start: Vertex, val maxHops: Option[Int] = None) extends Iter
     def next(): Vertex = {
       val (nextV, depth) = vQueue.dequeue()
       val nextDepth = depth + 1
-      if (nextDepth < hopLimit) {
+      if (nextDepth <= hopLimit) {
         val nextEntries = nextV.edges()
           .map(_.dst)
           .filter(!vHistory.contains(_))
           .map(_ -> nextDepth)
         vQueue ++= nextEntries
       }
+      vHistory += nextV
       nextV
     }
   }
