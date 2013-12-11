@@ -9,9 +9,9 @@ trait Element extends PrettyPrintable {
     (other eq this) || this.isSameElement(other)
   }
 
-  def ==~(other: Element): Boolean = this.isSame(other)
+  def ==~(other: Element): Boolean = this.freeze == other.freeze
 
-  def =/~(other: Element): Boolean = !this.isSame(other)
+  def =/~(other: Element): Boolean = !(this ==~ other)
 
   override def toString = this.reprRecursive
 

@@ -5,6 +5,7 @@ import org.scalatest.FlatSpec
 
 import degrel.utils.FlyWrite._
 import degrel.utils.VertexExtensions._
+import degrel.utils.TestUtils._
 import degrel.core
 import degrel.front
 import degrel.front.ParserUtils
@@ -138,7 +139,7 @@ class MatchingTest extends FlatSpec {
     for ((id, target) <- assertData) {
       val it = binding.query(_.hasId(id))
       val (_, dataV) = it.head
-      assert(dataV ==~ parse(target))
+      assert(dataV ===~ parse(target))
     }
   }
 }

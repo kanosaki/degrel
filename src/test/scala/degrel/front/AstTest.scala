@@ -5,6 +5,7 @@ import org.scalatest.FlatSpec
 import degrel.core
 import degrel.core.Label
 import degrel.utils.FlyWrite._
+import degrel.utils.TestUtils._
 import degrel.Query._
 
 class AstTest extends FlatSpec {
@@ -94,7 +95,7 @@ class AstTest extends FlatSpec {
     assert(rhs.label === Label("foobar"))
     val expectedCapturedV = "foo" |^| ("bar" |:| ("baz" |^|()))
     val expectedValue = "foobar" |^| ("baz" |:| core.Vertex("@", Seq(core.Edge(core.Label("_ref"), expectedCapturedV))))
-    assert(rhs.freeze ==~ expectedValue)
+    assert(rhs.freeze === expectedValue.freeze)
   }
 
   it should "captured vertex has same reference" in {
@@ -118,7 +119,7 @@ class AstTest extends FlatSpec {
     val expectedLhs = "hoge" |^|("fuga" |:| capAsA, "piyo" |:| capAsB)
     val expectedRhs = "x" |^|("y" |:| mkRefVertex(capAsA), "z" |:| mkRefVertex(capAsB))
     val expectedGraph = expectedLhs |->| expectedRhs
-    assert(expectedGraph ==~ actualGraph)
+    assert(expectedGraph ===~ actualGraph)
     assert(actualGraph.path(":_lhs/hoge/foo").exact eq actualGraph.path(":_rhs/x:y/@/*").exact)
     assert(actualGraph.path("/->:_lhs/hoge:piyo/*").exact eq actualGraph.path("/->:_rhs/x:z/@/*").exact)
   }

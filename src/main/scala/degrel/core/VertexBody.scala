@@ -99,11 +99,7 @@ case class VertexBody(_label: Label, attributes: Map[String, String], all_edges:
   }
 
   def freeze = {
-    if (this.label.expr == "@") {
-      this
-    } else {
-      val frozenEdges = all_edges.map(_.freeze)
-      VertexBody(label, attributes, frozenEdges)
-    }
+    val frozenEdges = all_edges.map(_.freeze)
+    VertexBody(label, attributes, frozenEdges)
   }
 }
