@@ -1,6 +1,8 @@
 package degrel.rewriting
 
 import org.scalatest.FlatSpec
+import org.scalatest.time.SpanSugar._
+import org.scalatest.concurrent.Timeouts._
 import degrel.front
 import degrel.core
 import degrel.front.ParserUtils
@@ -74,6 +76,21 @@ class RewriterTest extends FlatSpec {
     val rewrote = reserve.rewriteStep()
     assert(rewrote, "should be written")
     val expected = Set(parse("x(y: z(c: b(c: foo(bar: baz))))")).map(_.freeze)
+    val actual = reserve.freeze.roots.toSet
+    assert(expected === actual)
+  }
+
+  it should "rewrite in multi steps" in {
+    val reserve = new LocalReserve()
+    reserve.addRule(parseR("a(x: X) -> c(d: b(y: X))"))
+    reserve.addRule(parseR("b(y: X) -> foo(bar: X)"))
+    reserve.addVertex(parse("a(x: foo)"))
+    reserve.addVertex(parse("x(y: a(x: hoge(fuga: piyo)), b: c)"))
+    failAfter(1 seconds) {
+      reserve.rewriteUntilStop()
+    }
+    val expected = Set(parse("x(y: c(d: foo(bar: hoge(fuga: piyo))), b: c)"),
+                        parse("c(d: foo(bar: foo))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
     assert(expected === actual)
   }

@@ -20,7 +20,7 @@ trait Reserve {
     rewrote
   }
 
-  def rewriteUntilStop = {
+  def rewriteUntilStop() = {
     while (this.rewriteStep()) {}
   }
 
