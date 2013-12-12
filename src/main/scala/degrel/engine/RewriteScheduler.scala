@@ -1,5 +1,7 @@
 package degrel.engine
 
-class RewriteScheduler(val reserve: LocalReserve) {
+class RewriteScheduler(val reserve: Reserve) {
+  def run() = {
 
+  }
 }
