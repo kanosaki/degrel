@@ -1,6 +1,7 @@
 package degrel.core
 
 import degrel.engine._
+import degrel.rewriting.BuildingContext
 
 
 class VertexHeader(f: Unit => VertexBody) extends Vertex {

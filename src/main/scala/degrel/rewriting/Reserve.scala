@@ -1,4 +1,4 @@
-package degrel.engine
+package degrel.rewriting
 
 import degrel.core.{Vertex, Rule, Traverser}
 import scala.collection.mutable

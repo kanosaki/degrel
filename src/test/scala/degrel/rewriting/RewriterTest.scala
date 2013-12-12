@@ -1,4 +1,4 @@
-package degrel.engine
+package degrel.rewriting
 
 import org.scalatest.FlatSpec
 import degrel.front

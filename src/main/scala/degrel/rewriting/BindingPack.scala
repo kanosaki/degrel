@@ -1,4 +1,4 @@
-package degrel.engine
+package degrel.rewriting
 
 import degrel.core.Element
 import degrel.core

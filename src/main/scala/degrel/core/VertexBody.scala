@@ -2,6 +2,7 @@ package degrel.core
 
 
 import degrel.engine._
+import degrel.rewriting.BuildingContext
 
 class VertexBody(val _label: Label, val attributes: Map[String, String], val all_edges: Iterable[Edge]) extends Vertex {
   def label: Label = _label

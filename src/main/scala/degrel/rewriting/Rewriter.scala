@@ -1,4 +1,4 @@
-package degrel.engine
+package degrel.rewriting
 
 import scala.util.control.Breaks
 import degrel.core.{VertexHeader, Rule, Vertex}

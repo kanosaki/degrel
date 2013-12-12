@@ -1,7 +1,7 @@
 package degrel.core
 
 
-import degrel.engine.{BuildingContext, VertexMatching, MatchingContext}
+import degrel.rewriting.{MatchingContext, VertexMatching, BuildingContext}
 
 trait Vertex extends Element {
   def edges(label: Label = Label.wildcard): Iterable[Edge]

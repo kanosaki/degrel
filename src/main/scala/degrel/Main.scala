@@ -1,7 +1,7 @@
 package degrel
 
 import degrel.front.ParserUtils
-import degrel.engine.MatchingContext
+import degrel.rewriting.MatchingContext
 
 object Main {
 
