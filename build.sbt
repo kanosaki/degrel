@@ -15,6 +15,7 @@ val akkaVersion = "2.2.3"
 
 libraryDependencies ++= Seq(
     "org.scalatest" % "scalatest_2.10" % "2.0" % "test",
+    "org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test",
     "com.typesafe" %% "scalalogging-slf4j" % "1.0.1", 
     "org.scalaz" %% "scalaz-core" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,

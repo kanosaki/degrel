@@ -10,6 +10,7 @@ class RewriterTest extends FlatSpec {
   val parser = front.DefaultTermParser
 
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
+
   def parseR(s: String): core.Rule = ParserUtils.parseRule(s)
 
   it should "build simple vertex" in {
@@ -48,6 +49,31 @@ class RewriterTest extends FlatSpec {
     val rewrote = reserve.rewriteStep()
     assert(rewrote, "should be written")
     val expected = Set(parse("x(y: z(c: b))")).map(_.freeze)
+    val actual = reserve.freeze.roots.toSet
+    assert(expected === actual)
+  }
+
+  it should "rewrite single vertex if there are no rules which have nothing to do with" in {
+    val reserve = new LocalReserve()
+    reserve.addRule(parseR("a -> b(c: d)"))
+    reserve.addRule(parseR("z -> y"))
+    reserve.addVertex(parse("x(y: z(c: a))"))
+    reserve.addVertex(parse("hoge(fuga: piyo)"))
+    val rewrote = reserve.rewriteStep()
+    assert(rewrote, "should be written")
+    val expected = Set(parse("x(y: z(c: b(c: d)))"),
+                        parse("hoge(fuga: piyo)")).map(_.freeze)
+    val actual = reserve.freeze.roots.toSet
+    assert(expected === actual)
+  }
+
+  it should "rewrite single vertex with capturing" in {
+    val reserve = new LocalReserve()
+    reserve.addRule(parseR("a(b: X) -> b(c: X)"))
+    reserve.addVertex(parse("x(y: z(c: a(b: foo(bar: baz))))"))
+    val rewrote = reserve.rewriteStep()
+    assert(rewrote, "should be written")
+    val expected = Set(parse("x(y: z(c: b(c: foo(bar: baz))))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
     assert(expected === actual)
   }

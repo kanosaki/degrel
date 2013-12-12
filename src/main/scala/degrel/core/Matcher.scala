@@ -1,17 +1,12 @@
 package degrel.core
 
-import degrel.engine._
-import scala.Some
-
 import scalaz._
 import Scalaz._
 import degrel.utils.IterableExtensions._
 import degrel.rewriting._
 import degrel.rewriting.PolyVertexMatching
 import degrel.rewriting.VertexBridge
-import degrel.core.Edge
 import degrel.rewriting.MonoVertexMatching
-import scala.Some
 
 case class Matcher(self: Vertex) {
   // Perform as LhsVertex
