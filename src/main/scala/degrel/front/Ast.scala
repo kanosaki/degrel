@@ -2,6 +2,7 @@ package degrel.front
 
 import degrel.core
 import degrel.utils.FlyWrite._
+import degrel.core.Rule
 
 /**
  * 抽象構文木のコンテナクラス
@@ -74,8 +75,7 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
     val rhsContext = new RhsContext(parent = context)(lhsCapture)
     val rhsGraph = rhs.toGraph(rhsContext)
     val lhsGraph = lhs.toGraph(lhsContext)
-    core.Vertex("->", Seq(core.Edge(core.Label("_lhs"), lhsGraph),
-                          core.Edge(core.Label("_rhs"), rhsGraph)))
+    Rule(lhsGraph, rhsGraph)
   }
 }
 

@@ -71,7 +71,7 @@ trait Vertex extends Element {
 
 object Vertex {
   def apply(label: String, edges: Iterable[Edge], attributes: Map[String, String] = Map()): Vertex = {
-    val body = VertexBody(Label(label), attributes, edges.toSeq)
-    new VertexHeader(body)
+    val body = new VertexBody(Label(label), attributes, edges.toSeq)
+    new VertexEagerHeader(body)
   }
 }
