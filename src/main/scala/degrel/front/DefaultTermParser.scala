@@ -24,13 +24,13 @@ object DefaultTermParser extends RegexParsers {
   /**
    * 属性の値として使える文字．任意の文字が使えるが，構文解析上属性の区切り記号と終わりの記号である
    * ','と'}'は使用できません
-   * @TODO エスケープできるようにする
+   * @todo エスケープできるようにする
    */
   val PAT_ATTR_VALUE = """[^,}]*""".r
 
   /**
    * 属性のキーとして使える文字．任意の文字が使えるが，構文解析上属性値との区切り記号の':'は除外
-   * @TODO エスケープできるようにする
+   * @todo エスケープできるようにする
    */
   val PAT_ATTR_KEY = """[^:]+""".r
 
@@ -86,7 +86,7 @@ object DefaultTermParser extends RegexParsers {
   /**
    * 単項の根のパーサー．2項演算子を含む表現が可能なので，左再帰を除去してある
    * そのため，rule_パーサーと組み合わせて使います．
-   * @TODO  rule_をbinop_等の一般化2項演算子パーサーに切り替える?
+   * @todo  rule_をbinop_等の一般化2項演算子パーサーに切り替える?
    *        意味解析器との連携が必要なためその辺は先送り?
    */
   def root: Parser[AstRoot] = "(" ~> root <~ ")" | vertex ~ opt(rule_) ^^ {

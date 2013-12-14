@@ -7,7 +7,7 @@ import degrel.core.{VertexHeader, Rule, Vertex}
  * 書き換えの手続きを管理します
  * @todo トランザクションに対応
  */
-class Rewriter(rule: Rule) {
+class Rewriter(val rule: Rule) {
   /**
    * targetに指定された頂点を根としてパターンマッチを行い，マッチすれば書き換えを行います
    * 書き換えを行った場合はtrueを，書き換えを行わなかった場合はfalseを返します

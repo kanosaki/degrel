@@ -52,6 +52,11 @@ class LocalReserve extends Reserve {
   def addVertices(vs: TraversableOnce[Vertex]) = {
     _roots ++= vs
   }
+
+  def repr() = {
+    s"Rules:\n    ${this.rewriters.map(_.rule.freeze.reprRecursive).mkString("\n    ")}\n" +
+    s"Vertices:\n    ${this.roots.map(_.freeze.reprRecursive).mkString("\n    ")}"
+  }
 }
 
 class FrozenReserve(val _rewriters: Iterable[Rewriter], val _roots: Iterable[Vertex]) extends Reserve {
