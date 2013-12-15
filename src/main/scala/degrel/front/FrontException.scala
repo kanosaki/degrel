@@ -2,7 +2,7 @@ package degrel.front
 
 import degrel.DegrelException
 
-class FrontException(msg: String) extends DegrelException(msg) {
+class FrontException(val msg: String) extends DegrelException(msg) {
 
 }
 

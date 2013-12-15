@@ -1,6 +1,6 @@
 package degrel.control
 
-import degrel.front.ParserUtils
+import degrel.front.{FrontException, ParserUtils}
 import degrel.core.{Rule, Vertex}
 import degrel.rewriting.LocalReserve
 import scala.tools.jline.console.ConsoleReader
@@ -37,7 +37,12 @@ class Console(val reserve: LocalReserve) {
   def start() = {
     while (reader.readLine(prompt) match {
       case null => false
-      case line => this.nextLine(line)
+      case line => {
+        try this.nextLine(line)
+        catch {
+          case fe: FrontException => {println(s"ERROR: ${fe.msg}"); true}
+        }
+      }
     }) {}
   }
 }

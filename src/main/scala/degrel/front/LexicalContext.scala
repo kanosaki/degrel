@@ -7,7 +7,7 @@ import degrel.core
 /**
  * 名前解決エラー．指定された変数名等が見つからない場合にthrowされる．
  */
-class NameError(expr: String) extends Exception {
+class NameError(expr: String) extends FrontException(s"$expr not found") {
   override def toString = {
     expr
   }
