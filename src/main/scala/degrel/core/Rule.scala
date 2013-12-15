@@ -4,6 +4,10 @@ trait Rule extends Vertex {
   def rhs: Vertex
 
   def lhs: Vertex
+
+  override def reprRecursive = {
+    s"${lhs.reprRecursive} -> ${rhs.reprRecursive}"
+  }
 }
 
 case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
@@ -15,6 +19,12 @@ case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
   def rhs = _rhs
 
   def lhs = _lhs
+
+  override def reprRecursive = super[Rule].reprRecursive
+
+  override def freeze = {
+    RuleVertexBody(lhs.freeze, rhs.freeze)
+  }
 }
 
 class RuleVertexHeader(_lhs: Vertex, _rhs: Vertex)
@@ -26,6 +36,7 @@ class RuleVertexHeader(_lhs: Vertex, _rhs: Vertex)
 
   def lhs = rBody.lhs
 
+  override def reprRecursive = super[Rule].reprRecursive
 }
 
 object Rule {

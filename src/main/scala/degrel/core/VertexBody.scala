@@ -1,7 +1,6 @@
 package degrel.core
 
 
-import degrel.engine._
 import degrel.rewriting.BuildingContext
 
 class VertexBody(val _label: Label, val attributes: Map[String, String], val all_edges: Iterable[Edge]) extends Vertex {
@@ -76,12 +75,21 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
 
   def repr: String = {
     val attrsExpr = if (attributes.isEmpty) "" else this.reprAttrs
-    s"${label.expr}$attrsExpr"
+    s"${this.reprLabel}$attrsExpr"
+  }
+
+  def reprLabel: String = {
+    val suffix = if (this.label == Label.wildcard) s"(${(this.hashCode % 50) + 50})" else ""
+    s"${this.label.expr}$suffix"
   }
 
   def reprRecursive: String = {
-    val edgesExpr = all_edges.map(_.toString).mkString(", ")
-    s"${this.repr}($edgesExpr)"
+    if (all_edges.isEmpty) {
+      s"${this.repr}"
+    } else {
+      val edgesExpr = all_edges.map(_.toString).mkString(", ")
+      s"${this.repr}($edgesExpr)"
+    }
   }
 
   def reprAttrs: String = {
