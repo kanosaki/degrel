@@ -14,7 +14,7 @@ trait Reserve {
 
   def rewriteStep() = {
     var rewrote = false
-    for (rw <- this.rewriters) {
+    for (rw <- this.rewriters.par) {
       rewrote ||= rw.step(this)
     }
     rewrote
