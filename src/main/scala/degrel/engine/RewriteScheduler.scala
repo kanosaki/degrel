@@ -24,7 +24,6 @@ object RewriteScheduler {
  * @param reserve
  */
 class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
-  reserve.rewriters.foreach(e => queued.put(RewriterWorker(e)))
 
   def receive: Actor.Receive = {
     case RewriteScheduler.Run => {
@@ -56,6 +55,8 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
    * 各キューの状態を読み取り・変更するときに取得する`ResourceGuard`
    */
   private val modifing = new ResourceGurard()
+
+  reserve.rewriters.foreach(e => queued.put(RewriterWorker(e)))
 
   private def requeueWorkers() = {
     for (st <- stopped) {
