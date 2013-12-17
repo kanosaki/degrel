@@ -3,6 +3,15 @@ package degrel.core
 
 import degrel.rewriting.BuildingContext
 
+object VertexBody {
+  def apply(label: Label, attributes: Map[String, String], all_edges: Iterable[Edge]) = {
+    label match {
+      case Label.reference => new ReferenceVertexBody(label, attributes, all_edges)
+      case _ => new VertexBody(label, attributes, all_edges)
+    }
+  }
+}
+
 class VertexBody(val _label: Label, val attributes: Map[String, String], val all_edges: Iterable[Edge]) extends Vertex {
   def label: Label = _label
 
@@ -14,7 +23,6 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
 
   def checkIsSame(other: VertexBody): Boolean = {
     if (this.label != other.label) return false
-    if (this.attributes != other.attributes) return false
     val thisEdges = this.edges().map(new EdgeEqualityAdapter(_)).toSet
     val otherEdges = other.edges().map(new EdgeEqualityAdapter(_)).toSet
     thisEdges == otherEdges
@@ -28,7 +36,6 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
 
   def checkEquals(other: VertexBody): Boolean = {
     if (this.label != other.label) return false
-    if (this.attributes != other.attributes) return false
     val thisEdges = this.edges().toSet
     val otherEdges = other.edges().toSet
     thisEdges == otherEdges
@@ -38,7 +45,6 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
     val prime = 41
     var result = 1
     result = prime * result + label.hashCode()
-    result = prime * result + attributes.hashCode()
     result = prime * result + all_edges.hashCode()
     result
   }
@@ -74,13 +80,15 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   }
 
   def repr: String = {
-    val attrsExpr = if (attributes.isEmpty) "" else this.reprAttrs
-    s"${this.reprLabel}$attrsExpr"
+    s"${this.reprLabel}${this.reprAttrs}"
   }
 
+
   def reprLabel: String = {
-    val suffix = if (this.label == Label.wildcard) s"(${(this.hashCode % 50) + 50})" else ""
-    s"${this.label.expr}$suffix"
+    this.attributes.get("__captured_as__") match {
+      case Some(capExpr) => s"$capExpr[${this.label.expr}]"
+      case None => s"${this.label.expr}"
+    }
   }
 
   def reprRecursive: String = {
@@ -93,22 +101,45 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   }
 
   def reprAttrs: String = {
-    val kvsExpr = attributes.map {case (k, v) => s"$k:$v"}.mkString(", ")
-    s"{$kvsExpr}"
+    val targetKvs = attributes
+      .filter {case (k, v) => !k.startsWith("_")}
+    if (!targetKvs.isEmpty) {
+      val kvsExpr = targetKvs.map {case (k, v) => s"$k:$v"}.mkString(", ")
+      s"{$kvsExpr}"
+    } else {
+      ""
+    }
   }
 
   // Perform as RhsVertex
   def build(context: BuildingContext): Vertex = {
-    if (this.isReference) {
-      context.matchOf(this.referenceTarget)
-    } else {
-      val buildEdges = this.edges().map(_.build(context))
-      Vertex(this.label.expr, buildEdges, this.attributes)
-    }
+    val buildEdges = this.edges().map(_.build(context))
+    Vertex(this.label.expr, buildEdges, this.attributes)
   }
 
   def freeze = {
     val frozenEdges = all_edges.map(_.freeze)
-    new VertexBody(label, attributes, frozenEdges)
+    VertexBody(label, attributes, frozenEdges)
+  }
+}
+
+class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: Iterable[Edge]) extends VertexBody(label,
+                                                                                                                   attrs,
+                                                                                                                   all_edges) {
+  override def repr: String = {
+    s"@<${this.referenceTarget.repr}>"
+  }
+
+  override def build(context: BuildingContext): Vertex = {
+    context.matchOf(this.referenceTarget)
+  }
+
+  override def reprRecursive: String = {
+    s"@<${this.referenceTarget.reprRecursive}>"
+  }
+
+  def referenceTarget: Vertex = {
+    val refEdges = this.edges("_ref")
+    refEdges.head.dst
   }
 }

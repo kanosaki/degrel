@@ -148,9 +148,17 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
   }
 
   def mkAttributesMap: Map[String, String] = {
-    this.attributes match {
-      case Some(attrs) => attrs.map(ast => (ast.key, ast.value)).toMap
+    val srcattrs = this.attributes match {
+      case Some(attrs) => attrs.map(ast => (ast.key, ast.value))
       case None => Map()
+    }
+    (srcattrs ++ this.mkMetadataAttribtues).toMap
+  }
+
+  def mkMetadataAttribtues: Iterable[(String, String)] = {
+    this.name match {
+      case AstName(Some(AstCapture(e)), _) => Seq("__captured_as__" -> e)
+      case _ => Seq()
     }
   }
 }

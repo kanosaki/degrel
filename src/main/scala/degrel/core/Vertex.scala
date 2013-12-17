@@ -42,14 +42,6 @@ trait Vertex extends Element {
 
   def isReference: Boolean = this.label == Label.reference
 
-  // TODO: Move other location
-  def referenceTarget: Vertex = {
-    assert(this.label == Label.reference)
-    val refEdges = this.edges("_ref")
-    assert(refEdges.size == 1)
-    refEdges.head.dst
-  }
-
   def thru(label: Label): Vertex = {
     val candidates = this.edges(label)
     candidates.size match {
@@ -71,7 +63,7 @@ trait Vertex extends Element {
 
 object Vertex {
   def apply(label: String, edges: Iterable[Edge], attributes: Map[String, String] = Map()): Vertex = {
-    val body = new VertexBody(Label(label), attributes, edges.toSeq)
+    val body = VertexBody(Label(label), attributes, edges.toSeq)
     new VertexEagerHeader(body)
   }
 }
