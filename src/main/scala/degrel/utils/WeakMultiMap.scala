@@ -6,7 +6,7 @@ import java.lang.ref.{ReferenceQueue, WeakReference, Reference}
 // TODO: May need performance improvement.
 class WeakMultiMap[K, V <: AnyRef] extends mutable.Map[K, mutable.Set[V]] with mutable.MultiMap[K, V] {
   private final val CLEANUP_RATIO = 10
-  private val lock = new ResourceGurard()
+  private val lock = new ReadWriteGuard()
   private val cleanupCounter = new CyclicCounter(CLEANUP_RATIO)
   private val _map = new mutable.HashMap[K, mutable.Set[WeakReference[V]]]()
   private val _reverseMap = new mutable.HashMap[WeakReference[V], K]()

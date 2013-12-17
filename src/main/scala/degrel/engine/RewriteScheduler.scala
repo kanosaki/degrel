@@ -4,7 +4,7 @@ import java.util.concurrent.{ConcurrentLinkedDeque, TimeUnit, LinkedBlockingQueu
 import akka.util.Timeout
 import scala.concurrent.duration._
 import akka.pattern.ask
-import degrel.utils.{ResourceGurard, ConcurrentHashSet}
+import degrel.utils.{ResourceGuard, ReadWriteGuard, ConcurrentHashSet}
 import degrel.rewriting.Reserve
 import akka.actor.{Props, Actor, ActorLogging, ActorRef}
 import scala.collection.JavaConversions._
@@ -16,6 +16,10 @@ object RewriteScheduler {
   case object Completed
 
   def props(reserve: Reserve): Props = Props(classOf[RewriteScheduler], reserve)
+
+  def apply(reserve: Reserve): ActorRef = {
+    degrel.engine.system.actorOf(this.props(reserve))
+  }
 }
 
 /**
@@ -54,7 +58,7 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
   /**
    * 各キューの状態を読み取り・変更するときに取得する`ResourceGuard`
    */
-  private val modifing = new ResourceGurard()
+  private val modifing = new ResourceGuard()
 
   reserve.rewriters.foreach(e => queued.put(RewriterWorker(e)))
 
@@ -75,14 +79,14 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
         val future = next ? RewriterWorker.Step(reserve)
         future.onSuccess {
           case RewriterWorker.Result(true) => {
-            modifing.write {
-              working -= next
+            modifing.lock {
               queued.put(next)
               this.requeueWorkers()
+              working -= next
             }
           }
           case RewriterWorker.Result(false) => {
-            modifing.write {
+            modifing.lock {
               working -= next
               stopped.add(next)
             }
@@ -92,6 +96,6 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
     } while (!this.isStopped)
   }
 
-  def isStopped: Boolean = modifing.read {queued.isEmpty && working.isEmpty}
+  def isStopped: Boolean = modifing.lock {queued.isEmpty && working.isEmpty}
 
 }

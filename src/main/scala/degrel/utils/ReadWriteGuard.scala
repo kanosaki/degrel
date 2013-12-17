@@ -2,8 +2,8 @@ package degrel.utils
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-class ResourceGurard {
-  val lock = new ReentrantReadWriteLock()
+class ReadWriteGuard {
+  private val lock = new ReentrantReadWriteLock()
 
   def read[V](f: => V): V = {
     lock.readLock().lock()

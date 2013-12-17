@@ -51,8 +51,7 @@ class Console(val reserve: LocalReserve) {
   }
 
   def rewriteMulti() = {
-    import degrel.engine.system
-    val worker = system.actorOf(RewriteScheduler.props(reserve))
+    val worker = RewriteScheduler(reserve)
     val future = worker ? RewriteScheduler.Run
     Await.result(future, rewriteTimeout.duration)
   }
