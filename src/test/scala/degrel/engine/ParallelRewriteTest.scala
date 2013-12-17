@@ -16,6 +16,7 @@ class ParallelRewriteTest extends FlatSpec {
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 
   def parseR(s: String): core.Rule = ParserUtils.parseRule(s)
+
   implicit val timeout = Timeout(10.seconds)
 
   it should "not stop until rewriting will have been completely stopped" in {
@@ -23,10 +24,15 @@ class ParallelRewriteTest extends FlatSpec {
     reserve.addRule(parseR("a -> b"))
     reserve.addRule(parseR("b -> c"))
     reserve.addRule(parseR("c -> d"))
+    reserve.addRule(parseR("d -> e"))
     reserve.addVertex(parse("a"))
+    reserve.addVertex(parse("a"))
+    reserve.addVertex(parse("b"))
+    reserve.addVertex(parse("c"))
+    reserve.addVertex(parse("d"))
     val scheduler = RewriteScheduler(reserve)
     Await.result(scheduler ? RewriteScheduler.Run, timeout.duration)
-    val expected = Set(parse("d")).map(_.freeze)
+    val expected = Set(parse("e"), parse("e"), parse("e"), parse("e"), parse("e")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
     assert(expected === actual)
   }

@@ -1,4 +1,4 @@
-package degrel
+package degrel.control
 
 import org.scalatest.FunSuite
 
