@@ -14,7 +14,7 @@ trait Reserve {
 
   def rewriteStep() = {
     var rewrote = false
-    for (rw <- this.rewriters.par) {
+    for (rw <- this.rewriters) {
       rewrote ||= rw.step(this)
     }
     rewrote
@@ -22,6 +22,10 @@ trait Reserve {
 
   def rewriteUntilStop() = {
     while (this.rewriteStep()) {}
+  }
+
+  def rewrite() = {
+
   }
 
   def freeze: Reserve = {
