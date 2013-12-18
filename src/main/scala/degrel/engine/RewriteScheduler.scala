@@ -4,7 +4,7 @@ import java.util.concurrent.{ConcurrentLinkedDeque, TimeUnit, LinkedBlockingQueu
 import akka.util.Timeout
 import scala.concurrent.duration._
 import akka.pattern.ask
-import degrel.utils.{ResourceGuard, ReadWriteGuard, ConcurrentHashSet}
+import degrel.utils.{ResourceGuard, ConcurrentHashSet}
 import degrel.rewriting.Reserve
 import akka.actor.{Props, Actor, ActorLogging, ActorRef}
 import scala.collection.JavaConversions._
@@ -60,6 +60,7 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
    */
   private val modifing = new ResourceGuard()
 
+  // `Reserve`から`Rewriter`を`queued`へ追加します
   reserve.rewriters.foreach(e => queued.put(RewriterWorker(e)))
 
   private def requeueWorkers() = {
@@ -69,6 +70,38 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
     stopped.clear()
   }
 
+  /**
+   * 対象となる`Rewriter`を参照する`ActorRef`を最初に受け取り，その`Rewriter`が`Step`を完了したときの結果によって処理を行う
+   * `PartialFunction[Any, Unit]`を返します
+   * それぞれの`Rewriter`が完了した際にfuture.onSuccessによって呼び出されます
+   * RewriterWorker.Resultを受け取り，Result(true)の場合は書き換えが行われたことを意味し，その場合
+   * その変化でさらに書き換えが可能になった可能性があるため，`stopped`の`Rewriter`も含めすべて`queued`へ復帰させます
+   * `Result(false)`を受け取った場合，それは書き換えが行われなかったことを表すので，`stopped`へ追加します
+   * いずれの場合でも`working`からは取り除かれます.
+   * @param worker 今回1度の書き換えが完了した`Rewriter`
+   */
+  protected def onWorkerOnSuccess(worker: ActorRef): PartialFunction[Any, Unit] = {
+    case RewriterWorker.Result(true) => {
+      modifing.lock {
+        queued.put(worker)
+        working -= worker
+        this.requeueWorkers()
+      }
+    }
+    case RewriterWorker.Result(false) => {
+      modifing.lock {
+        working -= worker
+        stopped.add(worker)
+      }
+    }
+  }
+
+  /**
+   * 書き換えを停止するまで実行します．`queued`をタイムアウト100msで参照し，
+   * 要素がある場合は，`RewriterWorker.Step`メッセージを送信します．
+   * `Rewriter`の処理が終了した際に`this.onWorkerOnSuccess`を呼び出すように登録し
+   * 完了時の処理は`onWorkerOnSuccess`へ委譲します
+   */
   def run() = {
     implicit val timeout = Timeout(5.seconds)
     import system.dispatcher
@@ -77,21 +110,7 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
       if (next != null) {
         working += next
         val future = next ? RewriterWorker.Step(reserve)
-        future.onSuccess {
-          case RewriterWorker.Result(true) => {
-            modifing.lock {
-              queued.put(next)
-              this.requeueWorkers()
-              working -= next
-            }
-          }
-          case RewriterWorker.Result(false) => {
-            modifing.lock {
-              working -= next
-              stopped.add(next)
-            }
-          }
-        }
+        future.onSuccess(this.onWorkerOnSuccess(next))
       }
     } while (!this.isStopped)
   }
