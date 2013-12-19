@@ -9,10 +9,16 @@ import scala.concurrent.duration._
 import akka.pattern.ask
 import akka.util.Timeout
 import scala.concurrent.Await
+import scala.tools.jline.console.history.FileHistory
 
 class Console(val reserve: LocalReserve) {
   private val termParser = ParserUtils
+
+  // Init console reader
   private val reader: ConsoleReader = new ConsoleReader()
+  private val history = new FileHistory(env.os.appdir.history)
+  reader.setHistory(this.history)
+
   val prompt = ">>> "
   implicit val rewriteTimeout = Timeout(10.seconds)
 
@@ -66,5 +72,6 @@ class Console(val reserve: LocalReserve) {
         }
       }
     }) {}
+    history.flush()
   }
 }

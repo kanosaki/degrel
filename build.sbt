@@ -21,6 +21,7 @@ libraryDependencies ++= Seq(
     "com.typesafe" %% "scalalogging-slf4j" % "1.0.1", 
     "org.rogach" %% "scallop" % "0.9.4",
     "org.scala-lang" % "jline" % "2.10.3",
+    "commons-io" % "commons-io" % "2.4",
     "org.scalaz" %% "scalaz-core" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
