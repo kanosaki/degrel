@@ -126,16 +126,26 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
 class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: Iterable[Edge]) extends VertexBody(label,
                                                                                                                    attrs,
                                                                                                                    all_edges) {
+  private lazy val unreferenceEdges = all_edges.filter(!_.isReference)
+
   override def repr: String = {
     s"@<${this.referenceTarget.repr}>"
   }
 
   override def build(context: BuildingContext): Vertex = {
-    context.matchOf(this.referenceTarget)
+    val matchedV = context.matchOf(this.referenceTarget)
+    val matchedEdges = this.referenceTarget.edges().map(context.matchedEdge).toSet
+    val builtEdges = matchedV.edges().filter(!matchedEdges.contains(_)) ++ unreferenceEdges
+    Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
   }
 
   override def reprRecursive: String = {
-    s"@<${this.referenceTarget.reprRecursive}>"
+    if (all_edges.isEmpty) {
+      s"@<${this.referenceTarget.reprRecursive}>"
+    } else {
+      val edgesExpr = unreferenceEdges.map(_.reprRecursive).mkString(", ")
+      s"@<${this.referenceTarget.reprRecursive}($edgesExpr)>"
+    }
   }
 
   def referenceTarget: Vertex = {

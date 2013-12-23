@@ -6,6 +6,8 @@ import degrel.rewriting.{MatchingContext, VertexMatching, BuildingContext}
 trait Vertex extends Element {
   def edges(label: Label = Label.wildcard): Iterable[Edge]
 
+  def attributes: Map[String, String]
+
   def attr(key: String): Option[String]
 
   def hasAttr(key: String, value: String = null) = {

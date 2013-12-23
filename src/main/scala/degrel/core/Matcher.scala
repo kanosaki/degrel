@@ -13,13 +13,13 @@ case class Matcher(self: Vertex) {
   def matches(pattern: Vertex, context: MatchingContext): VertexMatching = {
     if (!self.label.matches(pattern.label))
       return NoMatching
-    if (pattern.edges().size == 0) {
-      return MonoVertexMatching(VertexBridge(pattern, self), Stream())
+    if (pattern.edges().isEmpty) {
+      return MonoVertexMatching(VertexBridge(pattern, self, self.edges()), Stream())
     }
     val matchCombinations = this.matchEdges(pattern, context)
     if (matchCombinations.isEmpty) {
       NoMatching
-    } else if(matchCombinations.size == 1) {
+    } else if (matchCombinations.size == 1) {
       matchCombinations.head
     } else {
       PolyVertexMatching(matchCombinations)
@@ -33,10 +33,12 @@ case class Matcher(self: Vertex) {
     if (edgeGroups.forall(!_.isEmpty)) {
       // sequence([1,2], [3,4], [5,6]]) -> [[1,3,4], [1,3,6], [1,4,5], [1,4,6], ...]
       val edgeMatches = edgeGroups.sequence.toStream
-      val vertexMatch = VertexBridge(self, pattern)
       edgeMatches.map(e => {
-        val matchSeq = e.flatten
-        MonoVertexMatching(vertexMatch, matchSeq)
+        val matchedEdgeMatchings = e.flatten[EdgeMatching]
+        val matchedDataEdges = matchedEdgeMatchings.map(_.bridge.dataEdge)
+        val unmetchedEdges = self.edges().toSet &~ matchedDataEdges.toSet
+        val vertexMatch = VertexBridge(pattern, self, unmetchedEdges)
+        MonoVertexMatching(vertexMatch, matchedEdgeMatchings.toStream)
       })
     } else {
       Stream()
@@ -52,7 +54,7 @@ case class Matcher(self: Vertex) {
     val patternEdges = patternEdgesIt.toSeq
     val targetLabel = patternEdges.head.label
     val dataEdges = self.edges(targetLabel).toSet
-    if (dataEdges.size == 0 || dataEdges.size < patternEdges.size)
+    if (dataEdges.isEmpty || dataEdges.size < patternEdges.size)
       return Nil
     val combination = dataEdges.subsets(patternEdges.size).toStream.flatMap(_.toSeq.permutations)
     val filtered = combination.mapFilter(this.matchEdgesSequential(patternEdges, context)).toList

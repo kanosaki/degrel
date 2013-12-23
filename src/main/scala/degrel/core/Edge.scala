@@ -36,6 +36,8 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
   }
 
   def freeze: Edge = Edge(this.label, this.dst.freeze)
+
+  def isReference: Boolean = this.label.expr == "_ref"
 }
 
 class EdgeEqualityAdapter(val target: Edge) {

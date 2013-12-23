@@ -6,7 +6,7 @@ trait MatchBridge[+E <: core.Element] extends Product2[E, E] {
 
 }
 
-case class VertexBridge(patternVertex: core.Vertex, dataVertex: core.Vertex) extends MatchBridge[core.Vertex] {
+case class VertexBridge(patternVertex: core.Vertex, dataVertex: core.Vertex, notMatchedEdges: Iterable[core.Edge]) extends MatchBridge[core.Vertex] {
   def _1: core.Vertex = patternVertex
 
   def _2: core.Vertex = dataVertex

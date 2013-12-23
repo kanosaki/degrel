@@ -94,4 +94,16 @@ class RewriterTest extends FlatSpec {
     val actual = reserve.freeze.roots.toSet
     assert(expected === actual)
   }
+
+  it should "Rewrite with preserving unmatched edges" in {
+    val reserve = new LocalReserve()
+    reserve.addRule(parseR("top(x: x, y: A[a](rewrote: false)) -> foo(a: A(rewrote: true))"))
+    reserve.addVertex(parse("top(x: x, y: a(rewrote: false, other_val: hoge))"))
+    failAfter(1 seconds) {
+      reserve.rewriteUntilStop()
+    }
+    val expected = Set(parse("foo(a: a(rewrote: true, other_val: hoge))")).map(_.freeze)
+    val actual = reserve.freeze.roots.toSet
+    assert(expected === actual)
+  }
 }

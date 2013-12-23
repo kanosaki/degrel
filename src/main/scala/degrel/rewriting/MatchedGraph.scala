@@ -38,11 +38,13 @@ case class PolyVertexMatching(matches: Iterable[VertexMatching]) extends VertexM
 }
 
 trait EdgeMatching extends MatchedGraph {
-
+  def bridge: EdgeBridge
 }
 
 case class MonoEdgeMatching(eBind: EdgeBridge, vMatch: VertexMatching) extends EdgeMatching {
   def iterator: Iterator[BindingPack] = ???
+
+  def bridge = eBind
 
   override def success = vMatch.success
 
@@ -55,6 +57,8 @@ case object NoMatching extends MatchedGraph with VertexMatching with EdgeMatchin
   def iterator: Iterator[BindingPack] = Seq().iterator
 
   override def success: Boolean = false
+
+  def bridge = ???
 
   def pack: BindingPack = {
     MonoBindingPack(Stream())

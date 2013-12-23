@@ -44,4 +44,6 @@ class VertexHeader(f: Unit => VertexBody) extends Vertex {
     case vb: VertexBody => _body = vb
     case vh: VertexHeader => _body = vh.body
   }
+
+  def attributes: Map[String, String] = body.attributes
 }
