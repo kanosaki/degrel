@@ -1,4 +1,4 @@
-package degrel.utils
+package degrel.utils.collection
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable

@@ -1,4 +1,4 @@
-package degrel.utils
+package degrel.utils.collection
 
 class LookaheadIterator[T](source: Iterator[T]) extends BufferedIterator[T] {
   private var ahead: Option[T] = None

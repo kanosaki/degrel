@@ -1,7 +1,9 @@
-package degrel.utils
+package degrel.utils.collection
 
 import scala.collection.mutable
 import java.lang.ref.{ReferenceQueue, WeakReference, Reference}
+import degrel.utils.concurrent.ReadWriteGuard
+import degrel.utils.CyclicCounter
 
 // TODO: May need performance improvement.
 class WeakMultiMap[K, V <: AnyRef] extends mutable.Map[K, mutable.Set[V]] with mutable.MultiMap[K, V] {

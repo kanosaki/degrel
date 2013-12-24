@@ -1,4 +1,4 @@
-package degrel.utils
+package degrel.utils.concurrent
 
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
