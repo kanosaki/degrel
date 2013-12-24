@@ -38,7 +38,7 @@ trait LexicalContext {
    * @param expr 探索するシンボル
    * @return 見つかった値のリスト，より近いコンテキストものが前に来ます
    */
-  def resolve(expr: String) : List[Any] = {
+  def resolve(expr: String): List[Any] = {
     resolveInThis(expr) ++ parent.resolve(expr)
   }
 
@@ -48,7 +48,7 @@ trait LexicalContext {
    * @tparam T
    * @return
    */
-  def resolveExact[T : ClassTag](expr: String) : T = {
+  def resolveExact[T: ClassTag](expr: String): T = {
     val klass = implicitly[ClassTag[T]].runtimeClass
     this.resolve(expr) match {
       case value :: Nil if klass.isInstance(value) => value.asInstanceOf[T]
@@ -65,7 +65,7 @@ trait LexicalContext {
 }
 
 object LexicalContext {
-  def empty : LexicalContext = {
+  def empty: LexicalContext = {
     new RootContext()
   }
 }
@@ -76,7 +76,7 @@ object LexicalContext {
 class RootContext extends LexicalContext {
   val parent: LexicalContext = null
 
-  override def resolve(expr: String) : List[Any] = {
+  override def resolve(expr: String): List[Any] = {
     Nil
   }
 }
@@ -91,9 +91,9 @@ class FileContext(val parent: LexicalContext) extends LexicalContext {
 /**
  * 規則右辺のコンテキスト．ルール右辺では，ルール左辺での束縛が含まれる
  */
-class RhsContext(val parent: LexicalContext)(captures: List[(String, core.Vertex)]) extends LexicalContext {
-  for((s, v) <- captures)
-    symbolMap.addBinding(s, v)
+class RhsContext(val parent: LexicalContext)(val lhsContext: LhsContext) extends LexicalContext {
+  for ((sym, graph) <- lhsContext.toSymMap)
+    symbolMap.addBinding(sym, graph)
 }
 
 /**
@@ -103,17 +103,27 @@ class RhsContext(val parent: LexicalContext)(captures: List[(String, core.Vertex
  * これは束縛と実際に構成されるグラフのインスタンスに一貫性を持たせるためである
  * @example "A[foo](..)"という頂点が左辺に現れた場合，最初にLhsContextにシンボルと対応する頂点"A" -> foo(...)が登録される
  *          その後，グラフを構成するときに，変数が頂点に存在する場合は，LhsContextからシンボルを取得しそれを使用する必要がある
- *@param parent
+ * @param parent
  */
 class LhsContext(val parent: LexicalContext) extends LexicalContext {
   private val captureCache = new mutable.HashMap[AstVertex, core.Vertex]
+  private val lhsCaptureMap = new mutable.HashMap[String, AstVertex]
+
   override def isPattern = true
 
-  def fromCaptureCache(vertex: AstVertex) : Option[core.Vertex] = {
+  def fromCaptureCache(vertex: AstVertex): Option[core.Vertex] = {
     captureCache.get(vertex)
   }
 
-  def storeCaptureCache(astV: AstVertex, coreV : core.Vertex) {
+  def storeCaptureCache(astV: AstVertex, coreV: core.Vertex) {
     captureCache += (astV -> coreV)
+  }
+
+  def fromCaptureMap(sym: String) = lhsCaptureMap.get(sym)
+
+  def storeCaptureMap(sym: String, coreV: AstVertex) = lhsCaptureMap.put(sym, coreV)
+
+  def toSymMap = {
+    lhsCaptureMap.mapValues(_.toGraph(this))
   }
 }

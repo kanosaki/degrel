@@ -64,25 +64,31 @@ class AstTest extends FlatSpec {
 
   it should "capture no variables when graph as no capture variable" in {
     val v = parseFirstRoot("foo(bar: baz(hoge: fuga))").asInstanceOf[AstVertex]
-    assert(v.capture(LexicalContext.empty) === Nil)
+    assert(captureAndRetAsSet(v) === Set())
+  }
+
+  def captureAndRetAsSet(v: AstVertex) = {
+    val context = new LhsContext(parent = LexicalContext.empty)
+    v.capture(context)
+    context.toSymMap.mapValues(_.freeze).toSet[(String, core.Vertex)]
   }
 
   it should "capture a variable from root vertex" in {
     val v = parseFirstRoot("A[foo](bar: baz)").asInstanceOf[AstVertex]
-    assert(freezeCaptureed(v.capture(new LhsContext(parent = LexicalContext.empty)))
-           === List(("A", ("foo" |^| ("bar" |:| ("baz" |^|()))).freeze)))
+    assert(captureAndRetAsSet(v)
+           === Set(("A", ("foo" |^| ("bar" |:| ("baz" |^|()))).freeze)))
   }
 
   it should "capture a variable from other vertex" in {
     val v = parseFirstRoot("hoge(fuga: A[foo](bar: baz))").asInstanceOf[AstVertex]
-    assert(freezeCaptureed(v.capture(new LhsContext(parent = LexicalContext.empty))).toSet
+    assert(captureAndRetAsSet(v)
            === Set(("A", ("foo" |^| ("bar" |:| ("baz" |^|()))).freeze)))
   }
 
   it should "capture multiple variables" in {
     val v = parseFirstRoot("hoge(fuga: A[foo](bar: baz), piyo: B[bar](baz: foo), foobar: C[baz](foo: bar))")
       .asInstanceOf[AstVertex]
-    assert(freezeCaptureed(v.capture(new LhsContext(parent = LexicalContext.empty))).toSet
+    assert(captureAndRetAsSet(v)
            === Set(("A", ("foo" |^| ("bar" |:| ("baz" |^|()))).freeze),
                    ("B", ("bar" |^| ("baz" |:| ("foo" |^|()))).freeze),
                    ("C", ("baz" |^| ("foo" |:| ("bar" |^|()))).freeze)))

@@ -1,13 +1,14 @@
 package degrel.core
 
-import degrel.engine._
 import degrel.rewriting.BuildingContext
+import degrel.utils.support._
 
 
 class VertexHeader(f: Unit => VertexBody) extends Vertex {
   private var _body: VertexBody = null
+
   def body: VertexBody = {
-    if(_body == null) {
+    if (_body == null) {
       _body = f()
     }
     _body
@@ -20,11 +21,13 @@ class VertexHeader(f: Unit => VertexBody) extends Vertex {
   def label: Label = body.label
 
   def repr: String = {
-    s"<${body.repr}>"
+    val id = this.hashCode % 1000
+    s"<${body.repr}@${id.hex()}>"
   }
 
   def reprRecursive = {
-    s"<${body.reprRecursive}>"
+    val id = this.hashCode % 1000
+    s"<${body.reprRecursive}@${id.hex()}>"
   }
 
   def isSameElement(other: Element): Boolean = other match {

@@ -2,6 +2,7 @@ package degrel.utils
 
 import scala.language.implicitConversions
 import scala.collection.mutable.ListBuffer
+import degrel.utils.collection.LookaheadIterator
 
 object IterableExtensions {
   class IterableExtensions[T](it: Iterator[T]) {

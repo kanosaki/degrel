@@ -68,13 +68,13 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
   def toGraph(context: LexicalContext): core.Vertex = {
     // Capture lhs variables
     val lhsContext = new LhsContext(parent = context)
-    val lhsCapture = lhs match {
+    lhs match {
       case v: AstVertex => v.capture(lhsContext)
       case _ => throw new CodeException("A rule only can take vertex on its left hand.")
     }
-    val rhsContext = new RhsContext(parent = context)(lhsCapture)
-    val rhsGraph = rhs.toGraph(rhsContext)
     val lhsGraph = lhs.toGraph(lhsContext)
+    val rhsContext = new RhsContext(parent = context)(lhsContext)
+    val rhsGraph = rhs.toGraph(rhsContext)
     Rule(lhsGraph, rhsGraph)
   }
 }
@@ -84,24 +84,28 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
  * 頂点を表すAST
  */
 case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges: Seq[AstEdge]) extends AstRoot {
+
+  def captureExpr: Option[String] = name match {
+    case AstName(Some(AstCapture(cap)), _) => Some(cap)
+    case _ => None
+  }
+
   /**
    * 頂点を表すVertexを作成します．参照頂点の場合はContextから探索し見つかったものを参照します
    * @param context 現在このグラフが存在するContext
    * @return 構成された頂点
    */
   def toGraph(context: LexicalContext): core.Vertex = {
-    (name, context.isPattern) match {
+    (this.captureExpr, context.isPattern) match {
       // Make reference vertex
-      case (AstName(Some(AstCapture(cap)), _), false) => this.mkReferenceVertex(cap, context)
-      case _ => context match {
-        // Make vertex
-        case lhsContext: LhsContext => this.mkLhsGraph(lhsContext)
-        case _ => this.mkGraph(context)
-      }
+      case (Some(cap), false) => this.mkReferenceVertex(cap, context)
+      case (Some(cap), true) => this.mkLhsGraph(context.asInstanceOf[LhsContext])
+      case _ => this.mkGraph(context)
     }
   }
 
   def mkReferenceVertex(cap: String, context: LexicalContext): core.Vertex = {
+    // TODO: _ref 接続を持つ場合はエラー
     val label = SpecialLabel.Vertex.reference
     val refEdge = core.Edge(SpecialLabel.Edge.ref, context.resolveExact[core.Vertex](cap))
     val edges = Stream(refEdge) ++ this.edges.map(_.toEdge(context))
@@ -111,7 +115,11 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
   def mkLhsGraph(lhsContext: LhsContext): core.Vertex = {
     lhsContext.fromCaptureCache(this) match {
       case Some(v) => v
-      case None => this.mkGraph(lhsContext)
+      case None => {
+        val graph = this.mkGraph(lhsContext)
+        lhsContext.storeCaptureCache(this, graph)
+        graph
+      }
     }
   }
 
@@ -130,22 +138,19 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
    * 頂点が変数を持つ場合はその変数を返します，その際に構成されたGraphは
    * 後で参照の整合性を保つためにContextへキャッシュされます
    */
-  def capture(context: LexicalContext): List[(String, core.Vertex)] = {
-    name match {
-      case AstName(Some(AstCapture(e)), _) => context match {
-        case lhsContext: LhsContext => {
-          val graph = this.toGraph(lhsContext)
-          lhsContext.storeCaptureCache(this, graph)
-          (e, graph) :: this.captureEdges(lhsContext)
-        }
-        case _ => (e, this.toGraph(context)) :: this.captureEdges(context)
+  def capture(context: LexicalContext): Unit = {
+    this.captureEdges(context)
+    this.captureExpr match {
+      case Some(cap) => context match {
+        case lhsContext: LhsContext => lhsContext.storeCaptureMap(cap, this)
       }
-      case _ => this.captureEdges(context)
+      case None =>
     }
   }
 
-  private def captureEdges(context: LexicalContext): List[(String, core.Vertex)] = {
-    this.edges.map(_.capture(context)).flatten.toList
+  private def captureEdges(context: LexicalContext): Unit = {
+    for (edge <- this.edges)
+      edge.capture(context)
   }
 
   def mkAttributesMap: Map[String, String] = {
@@ -165,7 +170,7 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
 }
 
 case class AstEdge(label: AstLabel, dst: AstVertex) extends AstNode {
-  def capture(context: LexicalContext) = dst.capture(context)
+  def capture(context: LexicalContext): Unit = dst.capture(context)
 
   def toEdge(context: LexicalContext): core.Edge = {
     label.expr |:| dst.toGraph(context)

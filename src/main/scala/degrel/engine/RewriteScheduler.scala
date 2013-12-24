@@ -4,10 +4,11 @@ import java.util.concurrent.{ConcurrentLinkedDeque, TimeUnit, LinkedBlockingQueu
 import akka.util.Timeout
 import scala.concurrent.duration._
 import akka.pattern.ask
-import degrel.utils.{ResourceGuard, ConcurrentHashSet}
 import degrel.rewriting.Reserve
 import akka.actor.{Props, Actor, ActorLogging, ActorRef}
 import scala.collection.JavaConversions._
+import degrel.utils.concurrent.ResourceGuard
+import degrel.utils.collection.ConcurrentHashSet
 
 object RewriteScheduler {
 

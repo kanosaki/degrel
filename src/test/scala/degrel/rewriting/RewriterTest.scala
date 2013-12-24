@@ -106,4 +106,24 @@ class RewriterTest extends FlatSpec {
     val actual = reserve.freeze.roots.toSet
     assert(expected === actual)
   }
+
+  it should "able to handle nested capturing" in {
+    val rule = parseR("A[a](b: B, rewrote: false) -> foo(a: A(rewrote: true, b: B), b: B)")
+    val dataV = parse("a(b: b, rewrote: false, hoge: fuga)")
+    val binding = dataV.matches(rule.lhs).pack.pickFirst
+    val result = rule.rhs.build(new BuildingContext(binding))
+    assert(result.freeze === parse("foo(a: a(rewrote: true, b: b, hoge: fuga), b: b)").freeze)
+  }
+
+  it should "able to handle nested capturing in more complicated pattern" in {
+    val reserve = new LocalReserve()
+    reserve.addRule(parseR("A[a](foo: B, rewrote: false) -> foo(a: A(rewrote: true, foo: B), b: B(extracted: true))"))
+    reserve.addVertex(parse("a(foo: b(hoge: fuga), rewrote: false)"))
+    failAfter(1 seconds) {
+      reserve.rewriteUntilStop()
+    }
+    val expected = Set(parse("foo(a: a(foo: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))")).map(_.freeze)
+    val actual = reserve.freeze.roots.toSet
+    assert(expected === actual)
+  }
 }
