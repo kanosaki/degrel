@@ -1,6 +1,7 @@
 package degrel.front.dotlike
 
 import scala.util.parsing.combinator.RegexParsers
+import degrel.front.SyntaxError
 
 /**
  * DOT言語ライクな記法で一つの根付きグラフを記述します．
@@ -12,40 +13,76 @@ import scala.util.parsing.combinator.RegexParsers
  *
  */
 object DigraphParser extends RegexParsers {
+  override val skipWhitespace = false
+
+  def eol = sys.props("line.separator")
+
+  def eoi = """\z""".r // End of Input
+
+  override val whiteSpace = """[ \t]+""".r
+
+  val ws = """[ \t]*""".r
+
+  def token[T](p: Parser[T]): Parser[T] = ws ~> p
+
   val PAT_ATTR_VALUE = """[^,}]*""".r
   val PAT_ATTR_KEY = """[^:]+""".r
 
-  def label: Parser[String] = ???
+  def label: Parser[String] = token( """[_a-z0-9][_a-z0-9A-Z]*""".r)
 
-  def header: Parser[String] = "@" ~> label
-
-  def body = "{" ~> diElems <~ "}" ^^ AstDigraphBody
-
-  def elemSep = ";" | "\n"
-
-  def diElems: Parser[Seq[AstDigraphElement]] = repsep(diElem, elemSep)
-
-  def diElem = label ~ (edge_ | attr_) ^^ {
-    case lbl ~ AstDiEdgePiece(dst, edgeLbl) => AstDigraphEdge(lbl, dst, edgeLbl)
-    case lbl ~ AstDiAttrPiece(attrs) => AstDigraphAttributes(lbl, attrs)
+  def labelOrEmpty: Parser[String] = opt(label) ^^ {
+    case Some(lbl) => lbl
+    case None => ""
   }
 
-  def edge_ : Parser[AstDiEdgePiece] = "->" ~> label ~ ":" ~ label ^^ {
-    case dstLabel ~ _ ~ edgeLabel => AstDiEdgePiece(dstLabel, edgeLabel)
+  def header: Parser[String] = token("@") ~> label
+
+  def body = token("{") ~> diElems <~ token("}") ^^ AstDigraphBody
+
+  def elemSep = token(";" | eol)
+
+  def diElems: Parser[Seq[AstDigraphElement]] = repsep(diElem, rep1(elemSep)).map(_.filter(_ != AstDigraphEmptyLine))
+
+  def diElem: Parser[AstDigraphElement] = opt(edge | attr) ^^ {
+    case Some(e) => e
+    case None => AstDigraphEmptyLine
   }
+
+  def edge: Parser[AstDigraphEdge] = labelOrEmpty ~
+                                     token("->") ~
+                                     labelOrEmpty ~
+                                     token(":") ~
+                                     label ^^ {
+                                       case fromLabel ~ _ ~ toLabel ~ _ ~ edgeLabel => AstDigraphEdge(fromLabel,
+                                                                                                       toLabel,
+                                                                                                       edgeLabel)
+                                     }
 
   /**
    * 属性のパーサー
    */
-  def attribute: Parser[(String, String)] = PAT_ATTR_KEY ~ ":" ~ PAT_ATTR_VALUE ^^ {
-    case key ~ _ ~ value => (key, value)
-  }
+  def attributeEntry: Parser[(String, String)] = token(PAT_ATTR_KEY) ~
+                                                 token(":") ~
+                                                 token(PAT_ATTR_VALUE) ^^ {
+                                                   case key ~ _ ~ value => (key, value)
+                                                 }
 
-  def attr_ : Parser[AstDiAttrPiece] = "{" ~> repsep(attribute, ",") <~ "}" ^^ {
-    case ss => AstDiAttrPiece(ss.toMap)
-  }
+  def attr: Parser[AstDigraphAttributes] = labelOrEmpty ~
+                                           token("{") ~
+                                           repsep(attributeEntry, token(",")) ~
+                                           token("}") ^^ {
+                                             case lbl ~ _ ~ ss ~ _ => AstDigraphAttributes(lbl, ss)
+                                           }
 
   def digraph: Parser[AstDigraph] = header ~ body ^^ {
     case hd ~ bd => AstDigraph(hd, bd)
+  }
+
+  def apply(expr: String): AstDigraph = {
+    parse(digraph, expr) match {
+      case Success(gr, _) => gr
+      case fail: NoSuccess =>
+        throw new SyntaxError(fail.msg + s" in '$expr'} at ${fail.next.offset}")
+    }
   }
 }

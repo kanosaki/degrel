@@ -12,7 +12,11 @@ case class AstDigraphEdge(fromLabel: String, toLabel: String, edgeLabel: String)
 
 }
 
-case class AstDigraphAttributes(vertexLabel: String, attributes: Map[String, String]) extends AstDigraphElement {
+case class AstDigraphAttributes(vertexLabel: String, attributes: Seq[(String, String)]) extends AstDigraphElement {
+
+}
+
+case object AstDigraphEmptyLine extends AstDigraphElement {
 
 }
 
@@ -20,11 +24,3 @@ case class AstDigraphBody(elements: Iterable[AstDigraphElement]) {
 
 }
 
-
-case class AstDiEdgePiece(dstVertex: String, edgeLabel: String) {
-
-}
-
-case class AstDiAttrPiece(attributes: Map[String, String]) {
-
-}
