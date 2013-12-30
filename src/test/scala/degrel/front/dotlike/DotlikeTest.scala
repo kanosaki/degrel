@@ -39,6 +39,8 @@ class DotlikeTest extends FlatSpec {
         |  a -> ab : e
         |  b -> ba : e
         |  b -> bb : e
+        |  a {foo: bar}
+        |  b {hoge: fuga, foo: bar}
         |}
       """.stripMargin
     val expectedAstEdges = Set(AstDigraphEdge("", "a", "e"),
@@ -46,9 +48,15 @@ class DotlikeTest extends FlatSpec {
                                 AstDigraphEdge("a", "aa", "e"),
                                 AstDigraphEdge("a", "ab", "e"),
                                 AstDigraphEdge("b", "ba", "e"),
-                                AstDigraphEdge("b", "bb", "e"))
+                                AstDigraphEdge("b", "bb", "e"),
+                                AstDigraphAttributes("a", Seq("foo" -> "bar")),
+                                AstDigraphAttributes("b", Seq("hoge" -> "fuga", "foo" -> "bar")))
     val actualAst = DigraphParser(expr)
     assert(actualAst.label === "root")
     assert(actualAst.body.elements.toSet === expectedAstEdges)
+  }
+
+  it should "build simple vertex" in {
+    val expr = "@root{}"
   }
 }
