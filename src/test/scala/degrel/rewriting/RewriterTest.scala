@@ -7,6 +7,7 @@ import degrel.front
 import degrel.core
 import degrel.front.ParserUtils
 import degrel.utils.TestUtils._
+import degrel.Query._
 
 class RewriterTest extends FlatSpec {
   val parser = front.DefaultTermParser
@@ -125,5 +126,13 @@ class RewriterTest extends FlatSpec {
     val expected = Set(parse("foo(a: a(foo: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
     assert(expected === actual)
+  }
+
+  it should "rewrite looped graph" in {
+    val reserve = new LocalReserve()
+    reserve.addRule(parseR("A[a](b: B, c: C, rewrote: false) -> a(b: B(a: A, c: C), c: C(b: B, a: A), rewrote: true)"))
+    reserve.addVertex(parse("a(b: b, c: c, rewrote: false)"))
+    assert(reserve.rewriteStep())
+    val actual = reserve.roots.head
   }
 }

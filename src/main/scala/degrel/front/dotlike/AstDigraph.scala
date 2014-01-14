@@ -1,7 +1,13 @@
 package degrel.front.dotlike
 
+import degrel.front.LexicalContext
+
 case class AstDigraph(label: String, body: AstDigraphBody) {
 
+  def toGraph(context: LexicalContext = LexicalContext.empty) = {
+    val builder = new DotlikeBuilder(this)(context)
+    builder.root
+  }
 }
 
 trait AstDigraphElement {

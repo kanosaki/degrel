@@ -5,8 +5,13 @@ trait Rule extends Vertex {
 
   def lhs: Vertex
 
-  override def reprRecursive = {
-    s"${lhs.reprRecursive} -> ${rhs.reprRecursive}"
+  override def reprRecursive(history: TraverseHistory) = {
+    history.next(this) {
+      case Right(nextHistory) => {
+        s"${lhs.reprRecursive(nextHistory)} -> ${rhs.reprRecursive(nextHistory)}"
+      }
+      case Left(_) => throw new RuntimeException("Cannot repr a Rule recursively")
+    }
   }
 }
 
@@ -20,7 +25,7 @@ case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
 
   def lhs = _lhs
 
-  override def reprRecursive = super[Rule].reprRecursive
+  override def reprRecursive(history: TraverseHistory) = super[Rule].reprRecursive(history)
 
   override def freeze = {
     RuleVertexBody(lhs.freeze, rhs.freeze)
@@ -36,7 +41,7 @@ class RuleVertexHeader(_lhs: Vertex, _rhs: Vertex)
 
   def lhs = rBody.lhs
 
-  override def reprRecursive = super[Rule].reprRecursive
+  override def reprRecursive(history: TraverseHistory) = super[Rule].reprRecursive(history)
 }
 
 object Rule {

@@ -25,9 +25,16 @@ class VertexHeader(f: Unit => VertexBody) extends Vertex {
     s"<${body.repr}@${id.hex()}>"
   }
 
-  def reprRecursive = {
+  def reprRecursive(history: TraverseHistory) = {
     val id = this.hashCode % 1000
-    s"<${body.reprRecursive}@${id.hex()}>"
+    history.next(this) {
+      case Right(nextHistory) => {
+        s"<${body.reprRecursive(nextHistory)}@${id.hex()}>"
+      }
+      case Left(_) => {
+        s"<${body.repr}@${id.hex()}>"
+      }
+    }
   }
 
   def isSameElement(other: Element): Boolean = other match {

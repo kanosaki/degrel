@@ -12,8 +12,8 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
     s"${label.expr}:"
   }
 
-  def reprRecursive = {
-    s"${label.expr}:${dst.reprRecursive}"
+  def reprRecursive(history: TraverseHistory) = {
+    s"${label.expr}:${dst.reprRecursive(history)}"
   }
 
   def matches(pattern: Edge, context: MatchingContext): EdgeMatching = {

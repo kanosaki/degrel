@@ -91,12 +91,19 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
     }
   }
 
-  def reprRecursive: String = {
-    if (all_edges.isEmpty) {
-      s"${this.repr}"
-    } else {
-      val edgesExpr = all_edges.map(_.toString).mkString(", ")
-      s"${this.repr}($edgesExpr)"
+  def reprRecursive(history: TraverseHistory): String = {
+    history.next(this) {
+      case Right(nextHistory) => {
+        if (all_edges.isEmpty) {
+          s"${this.repr}"
+        } else {
+          val edgesExpr = all_edges.map(_.reprRecursive(nextHistory)).mkString(", ")
+          s"${this.repr}($edgesExpr)"
+        }
+      }
+      case Left(_) => {
+        this.repr
+      }
     }
   }
 
@@ -139,12 +146,19 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
     Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
   }
 
-  override def reprRecursive: String = {
-    if (all_edges.isEmpty) {
-      s"@<${this.referenceTarget.reprRecursive}>"
-    } else {
-      val edgesExpr = unreferenceEdges.map(_.reprRecursive).mkString(", ")
-      s"@<${this.referenceTarget.reprRecursive}($edgesExpr)>"
+  override def reprRecursive(history: TraverseHistory): String = {
+    history.next(this) {
+      case Right(nextHistory) => {
+        if (all_edges.isEmpty) {
+          s"@<${this.referenceTarget.reprRecursive(nextHistory)}>"
+        } else {
+          val edgesExpr = unreferenceEdges.map(_.reprRecursive(nextHistory)).mkString(", ")
+          s"@<${this.referenceTarget.reprRecursive(nextHistory)}($edgesExpr)>"
+        }
+      }
+      case Left(_) => {
+        this.repr
+      }
     }
   }
 

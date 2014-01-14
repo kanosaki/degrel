@@ -1,8 +1,6 @@
 package degrel.core
 
-import degrel.misc.PrettyPrintable
-
-trait Element extends PrettyPrintable {
+trait Element {
   def isSameElement(other: Element): Boolean
 
   def isSame(other: Element): Boolean = {
@@ -13,9 +11,13 @@ trait Element extends PrettyPrintable {
 
   def =/~(other: Element): Boolean = !(this ==~ other)
 
-  override def toString = this.reprRecursive
+  override def toString = this.reprRecursive(new TraverseHistory())
 
   def freeze: Element
+
+  def repr: String
+
+  def reprRecursive(history: TraverseHistory): String
 }
 
 trait Pattern {

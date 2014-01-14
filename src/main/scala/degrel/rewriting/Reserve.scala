@@ -58,8 +58,8 @@ class LocalReserve extends Reserve {
   }
 
   def repr() = {
-    s"Rules:\n    ${this.rewriters.map(_.rule.freeze.reprRecursive).mkString("\n    ")}\n" +
-    s"Vertices:\n    ${this.roots.map(_.freeze.reprRecursive).mkString("\n    ")}"
+    s"Rules:\n    ${this.rewriters.map(_.rule.freeze.toString).mkString("\n    ")}\n" +
+    s"Vertices:\n    ${this.roots.map(_.freeze.toString).mkString("\n    ")}"
   }
 }
 
