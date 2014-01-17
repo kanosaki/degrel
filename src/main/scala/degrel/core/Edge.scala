@@ -12,7 +12,7 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
     s"${label.expr}:"
   }
 
-  def reprRecursive(history: TraverseHistory) = {
+  def reprRecursive(history: Trajectory) = {
     s"${label.expr}:${dst.reprRecursive(history)}"
   }
 
@@ -36,6 +36,14 @@ case class Edge(label: Label, dst: Vertex) extends Product2[String, Vertex] with
   }
 
   def freeze: Edge = Edge(this.label, this.dst.freeze)
+
+  def freezeRecursive(footprints: Footprints[Vertex]): Edge = {
+    Edge(this.label, this.dst.freezeRecursive(footprints))
+  }
+
+  def copyRecursive(footprints: Footprints[Vertex]): Edge = {
+    Edge(this.label, this.dst.copyRecursive(footprints))
+  }
 
   def isReference: Boolean = this.label.expr == "_ref"
 }

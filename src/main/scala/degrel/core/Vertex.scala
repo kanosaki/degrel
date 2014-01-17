@@ -60,12 +60,35 @@ trait Vertex extends Element {
     Rule(lhs, rhs)
   }
 
-  def freeze: Vertex
+  def asRoot: Graph = {
+    this match {
+      case g: Graph => g
+      case _ => new Graph(this)
+    }
+  }
+
+  /**
+   * この頂点を基点にすべての接続を再帰的にトラバースし，VertexHeaderを除去して不変なグラフを新規に構築します．
+   * @return 新規に構築された不変なグラフ
+   */
+  def freeze: Vertex = {
+    this.freezeRecursive(new Footprints[Vertex]())
+  }
+
+  def freezeRecursive(footprints: Footprints[Vertex]): Vertex
+
+  def deepCopy: Vertex = {
+    this.copyRecursive(new Footprints[Vertex]())
+  }
+
+  def copyRecursive(footprints: Footprints[Vertex]): Vertex
+
+  def shallowCopy: Vertex
 }
 
 object Vertex {
   def apply(label: String, edges: Iterable[Edge], attributes: Map[String, String] = Map()): Vertex = {
     val body = VertexBody(Label(label), attributes, edges.toSeq)
-    new VertexEagerHeader(body)
+    new VertexHeader(body)
   }
 }

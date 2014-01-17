@@ -58,7 +58,7 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
    * @param label 作成する頂点のラベル
    */
   private def createVertex(label: String): Unit = {
-    val header = new core.VertexHeader(_ => null)
+    val header = new core.VertexHeader(null)
     vertices += label -> header
     val edges = edgeDestinationMap.getOrElse(label, mutable.Seq[String]())
       .map(dstLabel => Edge(edgeLabelMap(label -> dstLabel),
@@ -76,7 +76,7 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
 
 
   def root: Vertex = {
-    new core.VertexHeader(_ => {
+    new core.VertexHeader({
       val label = ""
       val edges = edgeDestinationMap.getOrElse(label, mutable.Seq[String]())
         .map(dstLabel => Edge(edgeLabelMap(label -> dstLabel),

@@ -4,12 +4,12 @@ import degrel.rewriting.BuildingContext
 import degrel.utils.support._
 
 
-class VertexHeader(f: Unit => VertexBody) extends Vertex {
+class VertexHeader(f: => VertexBody) extends Vertex {
   private var _body: VertexBody = null
 
   def body: VertexBody = {
     if (_body == null) {
-      _body = f()
+      _body = f
     }
     _body
   }
@@ -25,9 +25,9 @@ class VertexHeader(f: Unit => VertexBody) extends Vertex {
     s"<${body.repr}@${id.hex()}>"
   }
 
-  def reprRecursive(history: TraverseHistory) = {
+  def reprRecursive(trajectory: Trajectory) = {
     val id = this.hashCode % 1000
-    history.next(this) {
+    trajectory.walk(this) {
       case Right(nextHistory) => {
         s"<${body.reprRecursive(nextHistory)}@${id.hex()}>"
       }
@@ -35,6 +35,28 @@ class VertexHeader(f: Unit => VertexBody) extends Vertex {
         s"<${body.repr}@${id.hex()}>"
       }
     }
+  }
+
+  def freezeRecursive(footprints: Footprints[Vertex]): Vertex = {
+    footprints.stamp(this) {
+      case Right(fp) => {
+        this.body.freezeRecursive(fp)
+      }
+      case Left(fp) => fp.resultOf(this)
+    }
+  }
+
+  def copyRecursive(footprints: Footprints[Vertex]): Vertex = {
+    footprints.stamp(this) {
+      case Right(fp) => {
+        new VertexHeader(this.body.copyRecursive(fp).asInstanceOf[VertexBody])
+      }
+      case Left(fp) => fp.resultOf(this)
+    }
+  }
+
+  def shallowCopy: Vertex = {
+    new VertexHeader(this.body)
   }
 
   def isSameElement(other: Element): Boolean = other match {
@@ -45,10 +67,6 @@ class VertexHeader(f: Unit => VertexBody) extends Vertex {
   def attr(key: String): Option[String] = body.attr(key)
 
   def build(context: BuildingContext): Vertex = body.build(context)
-
-  def freeze: VertexBody = {
-    this.body.freeze
-  }
 
   def write(v: Vertex) = v match {
     case vb: VertexBody => _body = vb

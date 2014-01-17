@@ -11,15 +11,12 @@ trait Element {
 
   def =/~(other: Element): Boolean = !(this ==~ other)
 
-  override def toString = this.reprRecursive(new TraverseHistory())
+  override def toString = this.reprRecursive(new Trajectory())
 
   def freeze: Element
 
   def repr: String
 
-  def reprRecursive(history: TraverseHistory): String
+  def reprRecursive(history: Trajectory): String
 }
 
-trait Pattern {
-
-}

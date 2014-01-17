@@ -16,12 +16,12 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   def label: Label = _label
 
   def isSameElement(other: Element): Boolean = other match {
-    case vh: VertexEagerHeader => vh.body ==~ this
+    case vh: VertexHeader => vh.body ==~ this
     case vb: VertexBody => this.checkIsSame(vb)
     case _ => false
   }
 
-  def checkIsSame(other: VertexBody): Boolean = {
+  private def checkIsSame(other: VertexBody): Boolean = {
     if (this.label != other.label) return false
     val thisEdges = this.edges().map(new EdgeEqualityAdapter(_)).toSet
     val otherEdges = other.edges().map(new EdgeEqualityAdapter(_)).toSet
@@ -29,12 +29,12 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   }
 
   override def equals(other: Any) = other match {
-    case vh: VertexEagerHeader => vh.body == this
+    case vh: VertexHeader => vh.body == this
     case vb: VertexBody => this.checkEquals(vb)
     case _ => false
   }
 
-  def checkEquals(other: VertexBody): Boolean = {
+  private def checkEquals(other: VertexBody): Boolean = {
     if (this.label != other.label) return false
     val thisEdges = this.edges().toSet
     val otherEdges = other.edges().toSet
@@ -91,8 +91,8 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
     }
   }
 
-  def reprRecursive(history: TraverseHistory): String = {
-    history.next(this) {
+  def reprRecursive(trajectory: Trajectory): String = {
+    trajectory.walk(this) {
       case Right(nextHistory) => {
         if (all_edges.isEmpty) {
           s"${this.repr}"
@@ -124,46 +124,28 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
     Vertex(this.label.expr, buildEdges, this.attributes)
   }
 
-  def freeze = {
-    val frozenEdges = all_edges.map(_.freeze)
-    VertexBody(label, attributes, frozenEdges)
-  }
-}
-
-class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: Iterable[Edge]) extends VertexBody(label,
-                                                                                                                   attrs,
-                                                                                                                   all_edges) {
-  private lazy val unreferenceEdges = all_edges.filter(!_.isReference)
-
-  override def repr: String = {
-    s"@<${this.referenceTarget.repr}>"
-  }
-
-  override def build(context: BuildingContext): Vertex = {
-    val matchedV = context.matchOf(this.referenceTarget)
-    val matchedEdges = this.referenceTarget.edges().map(context.matchedEdge).toSet
-    val builtEdges = matchedV.edges().filter(!matchedEdges.contains(_)) ++ unreferenceEdges.map(_.build(context))
-    Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
-  }
-
-  override def reprRecursive(history: TraverseHistory): String = {
-    history.next(this) {
-      case Right(nextHistory) => {
-        if (all_edges.isEmpty) {
-          s"@<${this.referenceTarget.reprRecursive(nextHistory)}>"
-        } else {
-          val edgesExpr = unreferenceEdges.map(_.reprRecursive(nextHistory)).mkString(", ")
-          s"@<${this.referenceTarget.reprRecursive(nextHistory)}($edgesExpr)>"
-        }
+  def freezeRecursive(footprints: Footprints[Vertex]): Vertex = {
+    footprints.stamp(this) {
+      case Right(fp) => {
+        val frozenEdges = all_edges.map(_.freezeRecursive(fp))
+        VertexBody(label, attributes, frozenEdges)
       }
-      case Left(_) => {
-        this.repr
-      }
+      case Left(fp) => fp.resultOf(this)
     }
   }
 
-  def referenceTarget: Vertex = {
-    val refEdges = this.edges("_ref")
-    refEdges.head.dst
+  def copyRecursive(footprints: Footprints[Vertex]): Vertex = {
+    footprints.stamp(this) {
+      case Right(fp) => {
+        val frozenEdges = all_edges.map(_.copyRecursive(fp))
+        VertexBody(label, attributes, frozenEdges)
+      }
+      case Left(fp) => fp.resultOf(this)
+    }
+  }
+
+  def shallowCopy: Vertex = {
+    VertexBody(label, attributes, all_edges)
   }
 }
+

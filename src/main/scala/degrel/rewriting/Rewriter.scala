@@ -12,10 +12,10 @@ class Rewriter(val rule: Rule)  {
   /**
    * targetに指定された頂点を根としてパターンマッチを行い，マッチすれば書き換えを行います
    * 書き換えを行った場合はtrueを，書き換えを行わなかった場合はfalseを返します
-   * @param target
-   * @return
+   * @param target このルールで書き換えるグラフの頂点
+   * @return 書き換えが実行された場合はTrue, 実行されなければFalse
    */
-  def begin(target: Vertex): Boolean = {
+  def rewrite(target: Vertex): Boolean = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
       val binding = this.pick(mch.pack)
@@ -56,20 +56,11 @@ class Rewriter(val rule: Rule)  {
    */
   def step(reserve: Reserve): Boolean = {
     for (vertex <- reserve.iterVertices) {
-      val rewrote = this.begin(vertex)
+      val rewrote = this.rewrite(vertex)
       if (rewrote) {
         return true
       }
     }
     false
   }
-
-  /**
-   * Reserveに対し書き換えが停止するまで書き換えを行います
-   * @param reserve
-   */
-  def rewrite(reserve: Reserve) = {
-
-  }
-
 }
