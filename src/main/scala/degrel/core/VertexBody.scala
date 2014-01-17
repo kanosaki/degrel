@@ -4,15 +4,15 @@ package degrel.core
 import degrel.rewriting.BuildingContext
 
 object VertexBody {
-  def apply(label: Label, attributes: Map[String, String], all_edges: Iterable[Edge]) = {
+  def apply(label: Label, attributes: Map[String, String], allEdges: Iterable[Edge]) = {
     label match {
-      case Label.reference => new ReferenceVertexBody(label, attributes, all_edges)
-      case _ => new VertexBody(label, attributes, all_edges)
+      case Label.reference => new ReferenceVertexBody(label, attributes, allEdges)
+      case _ => new VertexBody(label, attributes, allEdges)
     }
   }
 }
 
-class VertexBody(val _label: Label, val attributes: Map[String, String], val all_edges: Iterable[Edge]) extends Vertex {
+class VertexBody(val _label: Label, val attributes: Map[String, String], val allEdges: Iterable[Edge]) extends Vertex {
   def label: Label = _label
 
   def isSameElement(other: Element): Boolean = other match {
@@ -45,16 +45,16 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
     val prime = 41
     var result = 1
     result = prime * result + label.hashCode()
-    result = prime * result + all_edges.hashCode()
+    result = prime * result + allEdges.hashCode()
     result
   }
 
-  private val _edge_cache: Map[Label, Iterable[Edge]] = all_edges.groupBy(e => e.label)
-  protected val hasPolyvalentEdge = all_edges.size != _edge_cache.size
+  private val _edge_cache: Map[Label, Iterable[Edge]] = allEdges.groupBy(e => e.label)
+  protected val hasPolyvalentEdge = allEdges.size != _edge_cache.size
 
   def edges(label: Label): Iterable[Edge] = {
     label match {
-      case Label.wildcard => all_edges
+      case Label.wildcard => allEdges
       case _ =>
         _edge_cache.get(label) match {
           case None => Seq()
@@ -62,7 +62,7 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
         }
     }
     if (label == Label.wildcard)
-      all_edges
+      allEdges
     else
       _edge_cache.get(label) match {
         case None => Seq()
@@ -94,10 +94,10 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   def reprRecursive(trajectory: Trajectory): String = {
     trajectory.walk(this) {
       case Right(nextHistory) => {
-        if (all_edges.isEmpty) {
+        if (allEdges.isEmpty) {
           s"${this.repr}"
         } else {
-          val edgesExpr = all_edges.map(_.reprRecursive(nextHistory)).mkString(", ")
+          val edgesExpr = allEdges.map(_.reprRecursive(nextHistory)).mkString(", ")
           s"${this.repr}($edgesExpr)"
         }
       }
@@ -127,7 +127,7 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   def freezeRecursive(footprints: Footprints[Vertex]): Vertex = {
     footprints.stamp(this) {
       case Right(fp) => {
-        val frozenEdges = all_edges.map(_.freezeRecursive(fp))
+        val frozenEdges = allEdges.map(_.freezeRecursive(fp))
         VertexBody(label, attributes, frozenEdges)
       }
       case Left(fp) => fp.resultOf(this)
@@ -137,7 +137,7 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   def copyRecursive(footprints: Footprints[Vertex]): Vertex = {
     footprints.stamp(this) {
       case Right(fp) => {
-        val frozenEdges = all_edges.map(_.copyRecursive(fp))
+        val frozenEdges = allEdges.map(_.copyRecursive(fp))
         VertexBody(label, attributes, frozenEdges)
       }
       case Left(fp) => fp.resultOf(this)
@@ -145,7 +145,7 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   }
 
   def shallowCopy: Vertex = {
-    VertexBody(label, attributes, all_edges)
+    VertexBody(label, attributes, allEdges)
   }
 }
 
