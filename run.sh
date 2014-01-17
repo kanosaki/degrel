@@ -1,2 +1,6 @@
-#1/bin/bash
-java -jar target/scala-2.10/degrel.jar $*
+#!/bin/bash
+BINJAR=target/scala-2.10/degrel.jar
+if [[ ! -f $BINJAR ]]; then
+    . sbt assembly
+fi
+java -jar $BINJAR $*
