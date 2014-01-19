@@ -31,6 +31,15 @@ trait Reserve {
   def freeze: Reserve = {
     new FrozenReserve(this.rewriters.toSeq, this.roots.map(_.freeze).toSeq)
   }
+
+  def report() = {
+    s"Vertices:\n    ${this.roots.map(_.toString).mkString("\n    ")}"
+  }
+
+  def repr() = {
+    s"Rules:\n    ${this.rewriters.map(_.rule.freeze.toString).mkString("\n    ")}\n" +
+    s"Vertices:\n    ${this.roots.map(_.freeze.toString).mkString("\n    ")}"
+  }
 }
 
 class LocalReserve extends Reserve {
@@ -57,10 +66,6 @@ class LocalReserve extends Reserve {
     _roots ++= vs
   }
 
-  def repr() = {
-    s"Rules:\n    ${this.rewriters.map(_.rule.freeze.toString).mkString("\n    ")}\n" +
-    s"Vertices:\n    ${this.roots.map(_.freeze.toString).mkString("\n    ")}"
-  }
 }
 
 class FrozenReserve(val _rewriters: Iterable[Rewriter], val _roots: Iterable[Vertex]) extends Reserve {
