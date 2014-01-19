@@ -17,7 +17,7 @@ class ParallelRewriteTest extends FlatSpec {
 
   def parseR(s: String): core.Rule = ParserUtils.parseRule(s)
 
-  implicit val timeout = Timeout(10.seconds)
+  implicit val timeout = Timeout(2.seconds)
 
   it should "not stop until rewriting will have been completely stopped" in {
     val reserve = new LocalReserve()
