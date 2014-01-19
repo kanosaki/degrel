@@ -1,6 +1,8 @@
 DEGREL - Distributed REGREL
 ===========================
 
+※まだ実装中
+
 DEGRELはREGRELを分散処理向けに再実装したものです.
 
 1. Modules
