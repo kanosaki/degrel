@@ -61,11 +61,13 @@ class Traverser(val start: Vertex, val maxHops: Option[Int] = None) extends Iter
 }
 
 object Traverser {
-  def apply(start: Vertex, maxHops: Int = -1) = {
+  def apply(start: Vertex, maxHops: Int = UNLIMITED) = {
     if(maxHops < 0){
       new Traverser(start, None)
     } else {
       new Traverser(start, Some(maxHops))
     }
   }
+
+  val UNLIMITED = -1
 }
