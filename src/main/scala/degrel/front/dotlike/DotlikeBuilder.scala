@@ -61,7 +61,8 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
     val header = new core.VertexHeader(null)
     vertices += label -> header
     val edges = edgeDestinationMap.getOrElse(label, mutable.Seq[String]())
-      .map(dstLabel => Edge(edgeLabelMap(label -> dstLabel),
+      .map(dstLabel => Edge(null,
+                             edgeLabelMap(label -> dstLabel),
                              this.vertexFor(dstLabel)))
     val body = new core.VertexBody(label, this.attributesFor(label), edges)
     header.write(body)
@@ -79,7 +80,8 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
     new core.VertexHeader({
       val label = ""
       val edges = edgeDestinationMap.getOrElse(label, mutable.Seq[String]())
-        .map(dstLabel => Edge(edgeLabelMap(label -> dstLabel),
+        .map(dstLabel => Edge(null,
+                               edgeLabelMap(label -> dstLabel),
                                this.vertexFor(dstLabel)))
       new core.VertexBody(ast.label, this.attributesFor(label), edges)
     })

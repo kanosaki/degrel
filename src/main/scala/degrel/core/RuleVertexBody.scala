@@ -1,11 +1,12 @@
 package degrel.core
 
 case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
-  extends VertexBody("->",
-                      Map(),
-                      Stream(Edge("_lhs", _lhs),
-                              Edge("_rhs", _rhs)))
+  extends VertexBody("->", Map(), Seq())
           with Rule {
+
+  override def allEdges: Iterable[Edge] = Seq(Edge(this, "_lhs", _lhs),
+                                               Edge(this, "_rhs", _rhs))
+
   def rhs = _rhs
 
   def lhs = _lhs

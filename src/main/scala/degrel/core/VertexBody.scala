@@ -12,8 +12,19 @@ object VertexBody {
   }
 }
 
-class VertexBody(val _label: Label, val attributes: Map[String, String], val allEdges: Iterable[Edge]) extends Vertex {
+class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge]) extends Vertex {
+
+  private lazy val _edge_cache: Map[Label, Iterable[Edge]] = allEdges.groupBy(e => e.label)
+  protected lazy val hasPolyvalentEdge = allEdges.size != _edge_cache.size
+  for (e <- _allEdges) {
+    e.src = this
+  }
+
   def label: Label = _label
+
+  protected def allEdges: Iterable[Edge] = {
+    _allEdges
+  }
 
   def isSameElement(other: Element): Boolean = other match {
     case vh: VertexHeader => vh.body ==~ this
@@ -49,8 +60,6 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
     result
   }
 
-  private val _edge_cache: Map[Label, Iterable[Edge]] = allEdges.groupBy(e => e.label)
-  protected val hasPolyvalentEdge = allEdges.size != _edge_cache.size
 
   def edges(label: Label): Iterable[Edge] = {
     label match {
@@ -97,7 +106,7 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
         if (allEdges.isEmpty) {
           s"${this.repr}"
         } else {
-          val edgesExpr = allEdges.map(_.reprRecursive(nextHistory)).mkString(", ")
+          val edgesExpr = this.edges().map(_.reprRecursive(nextHistory)).mkString(", ")
           s"${this.repr}($edgesExpr)"
         }
       }
@@ -119,33 +128,32 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], val all
   }
 
   // Perform as RhsVertex
+  /**
+   * 自身を書き換え右辺の頂点として，新規に頂点を構成します
+   * 自分が左辺でマッチしている頂点，すなわち対応するredex上の頂点を持つ場合は，頂点をマージします
+   * また，マッチしていない場合は新規に頂点を構築します
+   */
   def build(context: BuildingContext): Vertex = {
-    val buildEdges = this.edges().map(_.build(context))
-    Vertex(this.label.expr, buildEdges, this.attributes)
-  }
-
-  def freezeRecursive(footprints: Footprints[Vertex]): Vertex = {
-    footprints.stamp(this) {
-      case Right(fp) => {
-        val frozenEdges = allEdges.map(_.freezeRecursive(fp))
-        VertexBody(label, attributes, frozenEdges)
+    context.matchedVertex(this) match {
+      case Some(matchedV) => {
+        val matchedEdges = this.edges().map(context.matchedEdgeExact).toSet
+        val builtEdges = matchedV
+                           .edges()
+                           .filter(!matchedEdges.contains(_))
+                           .map(_.duplicate()) ++
+                         this.edges()
+                           .map(_.build(context))
+        Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
       }
-      case Left(fp) => fp.resultOf(this)
-    }
-  }
-
-  def copyRecursive(footprints: Footprints[Vertex]): Vertex = {
-    footprints.stamp(this) {
-      case Right(fp) => {
-        val frozenEdges = allEdges.map(_.copyRecursive(fp))
-        VertexBody(label, attributes, frozenEdges)
+      case None => {
+        val buildEdges = this.edges().map(_.build(context))
+        Vertex(this.label.expr, buildEdges, this.attributes)
       }
-      case Left(fp) => fp.resultOf(this)
     }
   }
 
   def shallowCopy: Vertex = {
-    VertexBody(label, attributes, allEdges)
+    VertexBody(label, attributes, this.edges())
   }
 }
 

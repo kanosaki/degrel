@@ -1,4 +1,4 @@
-package degrel.core.builders
+package degrel.core.operators
 
 
 import degrel.core._
@@ -22,9 +22,7 @@ class Freezer(val root: Vertex) {
 
   private def buildVertex(v: Vertex): VertexBody = {
     val edges = v.edges().map(e => {
-      Edge(e.label, {
-        vMap(e.dst)
-      })
+      Edge(null, e.label, {vMap(e.dst)})
     })
     VertexBody(v.label, v.attributes, edges)
   }

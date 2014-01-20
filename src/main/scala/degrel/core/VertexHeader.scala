@@ -37,24 +37,6 @@ class VertexHeader(f: => VertexBody) extends Vertex {
     }
   }
 
-  def freezeRecursive(footprints: Footprints[Vertex]): Vertex = {
-    footprints.stamp(this) {
-      case Right(fp) => {
-        this.body.freezeRecursive(fp)
-      }
-      case Left(fp) => fp.resultOf(this)
-    }
-  }
-
-  def copyRecursive(footprints: Footprints[Vertex]): Vertex = {
-    footprints.stamp(this) {
-      case Right(fp) => {
-        new VertexHeader(this.body.copyRecursive(fp).asInstanceOf[VertexBody])
-      }
-      case Left(fp) => fp.resultOf(this)
-    }
-  }
-
   def shallowCopy: Vertex = {
     new VertexHeader(this.body)
   }

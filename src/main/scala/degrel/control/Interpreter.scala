@@ -32,7 +32,7 @@ class Interpreter(source: Source) {
     }
     println("-------- INPUT ---------")
     println(reserve.repr())
-    this.rewriteMulti()
+    reserve.rewriteUntilStop()
     println("-------- RESULT --------")
     println(reserve.repr())
   }

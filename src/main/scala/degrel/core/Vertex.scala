@@ -72,16 +72,13 @@ trait Vertex extends Element {
    * @return 新規に構築された不変なグラフ
    */
   def freeze: Vertex = {
-    this.freezeRecursive(new Footprints[Vertex]())
+    operators.freeze(this)
   }
-
-  def freezeRecursive(footprints: Footprints[Vertex]): Vertex
 
   def deepCopy: Vertex = {
-    this.copyRecursive(new Footprints[Vertex]())
+    operators.duplicate(this)
   }
 
-  def copyRecursive(footprints: Footprints[Vertex]): Vertex
 
   def shallowCopy: Vertex
 }

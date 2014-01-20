@@ -1,9 +1,9 @@
 package degrel.rewriting
 
-import degrel.core.{Vertex, Edge}
+import degrel.core.{Vertex, Edge, Element}
 
-class BuildingContext(var binding: Binding) {
-  def matchOf(patternVertex: Vertex): Vertex = {
+class BuildingContext(val binding: Binding) {
+  def matchedVertexExact(patternVertex: Vertex): Vertex = {
     binding.get(patternVertex) match {
       case Some(v) => v match {
         case v: Vertex => v
@@ -13,7 +13,7 @@ class BuildingContext(var binding: Binding) {
     }
   }
 
-  def matchedEdge(patternEdge: Edge): Edge = {
+  def matchedEdgeExact(patternEdge: Edge): Edge = {
     binding.get(patternEdge) match {
       case Some(v) => v match {
         case e: Edge => e
@@ -23,4 +23,17 @@ class BuildingContext(var binding: Binding) {
     }
   }
 
+  def matchedVertex(patternVertex: Vertex): Option[Vertex] = {
+    binding.get(patternVertex) match {
+      case Some(v) => Some(v.asInstanceOf[Vertex])
+      case None => None
+    }
+  }
+
+  def matchedEdge(patternEdge: Edge): Option[Edge] = {
+    binding.get(patternEdge) match {
+      case Some(e) => Some(e.asInstanceOf[Edge])
+      case None => None
+    }
+  }
 }

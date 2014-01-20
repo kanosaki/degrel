@@ -100,7 +100,7 @@ class AstTest extends FlatSpec {
     val rhs = graph.edges(SE.rhs).head.dst
     assert(rhs.label === Label("foobar"))
     val expectedCapturedV = "foo" |^| ("bar" |:| ("baz" |^|()))
-    val expectedValue = "foobar" |^| ("baz" |:| core.Vertex("@", Seq(core.Edge(core.Label("_ref"), expectedCapturedV))))
+    val expectedValue = "foobar" |^| ("baz" |:| core.Vertex("@", Seq(core.Edge(null, core.Label("_ref"), expectedCapturedV))))
     assert(rhs.freeze === expectedValue.freeze)
   }
 

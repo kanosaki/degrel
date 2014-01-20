@@ -20,6 +20,7 @@ class Rewriter(val rule: Rule)  {
     if (mch.success) {
       val binding = this.pick(mch.pack)
       val builtGraph = this.build(binding)
+      builtGraph.freeze
       target match {
         case vh: VertexHeader => vh.write(builtGraph)
         case _ => throw new IllegalArgumentException("rule must be vertex header")

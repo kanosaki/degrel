@@ -12,9 +12,14 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
   }
 
   override def build(context: BuildingContext): Vertex = {
-    val matchedV = context.matchOf(this.referenceTarget)
-    val matchedEdges = this.referenceTarget.edges().map(context.matchedEdge).toSet
-    val builtEdges = matchedV.edges().filter(!matchedEdges.contains(_)) ++ unreferenceEdges.map(_.build(context))
+    val matchedV = context.matchedVertexExact(this.referenceTarget)
+    val matchedEdges = this.referenceTarget.edges().map(context.matchedEdgeExact).toSet
+    val builtEdges = matchedV
+                       .edges()
+                       .filter(!matchedEdges.contains(_))
+                       .map(_.duplicate()) ++
+                     unreferenceEdges
+                       .map(_.build(context))
     Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
   }
 

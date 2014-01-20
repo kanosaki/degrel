@@ -19,6 +19,10 @@ trait Query[+E] extends Iterator[E] {
     }
   }
 
+  def exactAs[T]: T = {
+    this.exact.asInstanceOf[T]
+  }
+
   def freeze: Query[E]
 
   def mkPattern(expr: String): Regex = {

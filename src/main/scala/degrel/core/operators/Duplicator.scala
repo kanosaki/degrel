@@ -1,4 +1,4 @@
-package degrel.core.builders
+package degrel.core.operators
 
 import degrel.core.Vertex
 

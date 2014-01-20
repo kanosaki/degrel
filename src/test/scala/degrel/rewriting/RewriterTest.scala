@@ -116,14 +116,24 @@ class RewriterTest extends FlatSpec {
     assert(result.freeze === parse("foo(a: a(rewrote: true, b: b, hoge: fuga), b: b)").freeze)
   }
 
+  it should "able to build nested capturing" in {
+    val rule = parseR("A[a](foo: B, rewrote: false) -> joe(a: A(rewrote: true, jack: B), b: B(extracted: true))")
+    val dataV = parse("a(foo: b(hoge: fuga), rewrote: false)")
+    val binding = dataV.matches(rule.lhs).pack.pickFirst
+    val result = rule.rhs.build(new BuildingContext(binding))
+    assert(result.freeze === parse("joe(a: a(jack: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))").freeze)
+  }
+
+  // Same pattern
   it should "able to handle nested capturing in more complicated pattern" in {
     val reserve = new LocalReserve()
-    reserve.addRule(parseR("A[a](foo: B, rewrote: false) -> foo(a: A(rewrote: true, foo: B), b: B(extracted: true))"))
+    reserve.addRule(parseR("A[a](foo: B, rewrote: false) -> joe(a: A(rewrote: true, jack: B), b: B(extracted: true))"))
     reserve.addVertex(parse("a(foo: b(hoge: fuga), rewrote: false)"))
     failAfter(1 seconds) {
       reserve.rewriteUntilStop()
     }
-    val expected = Set(parse("foo(a: a(foo: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))")).map(_.freeze)
+    println(reserve.repr())
+    val expected = Set(parse("joe(a: a(jack: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
     assert(expected === actual)
   }
