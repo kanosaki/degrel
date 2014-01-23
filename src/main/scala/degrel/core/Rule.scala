@@ -18,6 +18,6 @@ trait Rule extends Vertex {
 
 object Rule {
   def apply(lhs: Vertex, rhs: Vertex) = {
-    new RuleVertexHeader(lhs, rhs)
+    new RuleVertexHeader(lhs, rhs, ID.NA)
   }
 }

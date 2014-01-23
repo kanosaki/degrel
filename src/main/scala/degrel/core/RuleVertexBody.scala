@@ -1,7 +1,7 @@
 package degrel.core
 
-case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
-  extends VertexBody("->", Map(), Seq())
+case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex, _id: ID)
+  extends VertexBody("->", Map(), Seq(), _id)
           with Rule {
 
   override def allEdges: Iterable[Edge] = Seq(Edge(this, "_lhs", _lhs),
@@ -14,6 +14,6 @@ case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
   override def reprRecursive(history: Trajectory) = super[Rule].reprRecursive(history)
 
   override def freeze = {
-    RuleVertexBody(lhs.freeze, rhs.freeze)
+    RuleVertexBody(lhs.freeze, rhs.freeze, this.id)
   }
 }

@@ -37,8 +37,8 @@ trait Reserve {
   }
 
   def repr() = {
-    s"Rules:\n    ${this.rewriters.map(_.rule.freeze.toString).mkString("\n    ")}\n" +
-    s"Vertices:\n    ${this.roots.map(_.freeze.toString).mkString("\n    ")}"
+    s"Rules:\n    ${this.rewriters.map(_.rule.toString).mkString("\n    ")}\n" +
+    s"Vertices:\n    ${this.roots.map(_.toString).mkString("\n    ")}"
   }
 }
 

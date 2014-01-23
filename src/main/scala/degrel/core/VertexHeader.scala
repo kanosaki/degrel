@@ -21,18 +21,17 @@ class VertexHeader(f: => VertexBody) extends Vertex {
   def label: Label = body.label
 
   def repr: String = {
-    val id = this.hashCode % 1000
-    s"<${body.repr}@${id.hex()}>"
+    s"<${body.repr}>"
   }
 
   def reprRecursive(trajectory: Trajectory) = {
     val id = this.hashCode % 1000
     trajectory.walk(this) {
       case Right(nextHistory) => {
-        s"<${body.reprRecursive(nextHistory)}@${id.hex()}>"
+        s"<${body.reprRecursive(nextHistory)}>"
       }
       case Left(_) => {
-        s"<${body.repr}@${id.hex()}>"
+        s"<${body.repr}(..)>"
       }
     }
   }
@@ -56,4 +55,6 @@ class VertexHeader(f: => VertexBody) extends Vertex {
   }
 
   def attributes: Map[String, String] = body.attributes
+
+  def id: ID = body.id
 }

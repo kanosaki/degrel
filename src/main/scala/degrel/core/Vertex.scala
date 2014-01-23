@@ -3,12 +3,14 @@ package degrel.core
 
 import degrel.rewriting.{MatchingContext, VertexMatching, BuildingContext}
 
-trait Vertex extends Element {
+trait Vertex extends Element with Comparable[Vertex] {
   def edges(label: Label = Label.wildcard): Iterable[Edge]
 
   def attributes: Map[String, String]
 
   def attr(key: String): Option[String]
+
+  def id: ID
 
   def hasAttr(key: String, value: String = null) = {
     value match {
@@ -24,13 +26,6 @@ trait Vertex extends Element {
 
   def label: Label
 
-  def id: ID = {
-    this.localID
-  }
-
-  protected def localID: ID = {
-    LocalID(System.identityHashCode(this))
-  }
 
   def hasEdge(label: Label = Label.wildcard): Boolean = {
     this.edges(label).size > 0
@@ -79,13 +74,16 @@ trait Vertex extends Element {
     operators.duplicate(this)
   }
 
-
   def shallowCopy: Vertex
+
+  def compareTo(o: Vertex): Int = {
+    this.id.compareTo(o.id)
+  }
 }
 
 object Vertex {
-  def apply(label: String, edges: Iterable[Edge], attributes: Map[String, String] = Map()): Vertex = {
-    val body = VertexBody(Label(label), attributes, edges.toSeq)
+  def apply(label: String, edges: Iterable[Edge], attributes: Map[String, String] = Map(), id: ID = ID.NA): Vertex = {
+    val body = VertexBody(Label(label), attributes, edges.toSeq, id)
     new VertexHeader(body)
   }
 }

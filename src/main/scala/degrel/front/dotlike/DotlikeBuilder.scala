@@ -1,7 +1,7 @@
 package degrel.front.dotlike
 
 import scala.collection.mutable
-import degrel.core.{Vertex, Edge}
+import degrel.core.{VertexBody, VertexHeader, Vertex, Edge, ID}
 import degrel.core
 import degrel.front.LexicalContext
 
@@ -21,6 +21,10 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
       // Attribtesの追加は遅延させます
       unprocessedAttributes += attr
     }
+  }
+
+  def addLazyInitVertex(label: String) = {
+
   }
 
   unprocessedAttributes.foreach(this.addAttrs)
@@ -60,11 +64,9 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
   private def createVertex(label: String): Unit = {
     val header = new core.VertexHeader(null)
     vertices += label -> header
-    val edges = edgeDestinationMap.getOrElse(label, mutable.Seq[String]())
-      .map(dstLabel => Edge(null,
-                             edgeLabelMap(label -> dstLabel),
-                             this.vertexFor(dstLabel)))
-    val body = new core.VertexBody(label, this.attributesFor(label), edges)
+    val edges = edgeDestinationMap.getOrElse(label, mutable.Seq[String]()).toSeq
+      .map(dstLabel => Edge(header, edgeLabelMap(label -> dstLabel), {this.vertexFor(dstLabel)}))
+    val body = VertexBody(label, this.attributesFor(label), edges, ID.NA)
     header.write(body)
   }
 
@@ -77,13 +79,12 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
 
 
   def root: Vertex = {
-    new core.VertexHeader({
-      val label = ""
-      val edges = edgeDestinationMap.getOrElse(label, mutable.Seq[String]())
-        .map(dstLabel => Edge(null,
-                               edgeLabelMap(label -> dstLabel),
-                               this.vertexFor(dstLabel)))
-      new core.VertexBody(ast.label, this.attributesFor(label), edges)
-    })
+    val rootLabel = ""
+    val header = new VertexHeader(null)
+    val edges = edgeDestinationMap.getOrElse(rootLabel, mutable.Seq[String]())
+      .map(dstLabel => Edge(header, edgeLabelMap(rootLabel -> dstLabel), this.vertexFor(dstLabel)))
+    Vertex(ast.label, edges, this.attributesFor(""))
+    header.write(VertexBody(ast.label, this.attributesFor(rootLabel), edges, ID.NA))
+    header
   }
 }

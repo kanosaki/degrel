@@ -13,5 +13,4 @@ object Graph {
  * @param root
  */
 class Graph(val root: Vertex) extends VertexHeader(Graph.getVertexBody(root)) {
-
 }

@@ -24,7 +24,7 @@ class Freezer(val root: Vertex) {
     val edges = v.edges().map(e => {
       Edge(null, e.label, {vMap(e.dst)})
     })
-    VertexBody(v.label, v.attributes, edges)
+    VertexBody(v.label, v.attributes, edges, ID.NA)
   }
 
   def freeze: Vertex = builtRoot

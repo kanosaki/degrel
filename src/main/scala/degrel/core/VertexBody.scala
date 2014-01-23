@@ -4,31 +4,41 @@ package degrel.core
 import degrel.rewriting.BuildingContext
 
 object VertexBody {
-  def apply(label: Label, attributes: Map[String, String], allEdges: Iterable[Edge]) = {
+  def apply(label: Label, attributes: Map[String, String], allEdges: Iterable[Edge], id: ID) = {
     label match {
-      case Label.reference => new ReferenceVertexBody(label, attributes, allEdges)
-      case _ => new VertexBody(label, attributes, allEdges)
+      case Label.reference => new ReferenceVertexBody(label, attributes, allEdges, id)
+      case _ => new VertexBody(label, attributes, allEdges, id)
     }
   }
 }
 
-class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge]) extends Vertex {
+class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
 
-  private lazy val _edge_cache: Map[Label, Iterable[Edge]] = allEdges.groupBy(e => e.label)
-  protected lazy val hasPolyvalentEdge = allEdges.size != _edge_cache.size
-  for (e <- _allEdges) {
-    e.src = this
-  }
+  private val _id = _previd.autoValidate
+
+  def id: ID = _id
 
   def label: Label = _label
 
+  private var _edges: Iterable[Edge] = null
+
+  this.writeEdges(_allEdges)
+
   protected def allEdges: Iterable[Edge] = {
-    _allEdges
+    if (_edges == null) throw new Exception("You cannot refer edges untill initialized.")
+    _edges
   }
 
+  def writeEdges(es: Iterable[Edge]) = {
+    for (e <- es) {
+      e.src = this
+    }
+    _edges = es
+  }
+
+
   def isSameElement(other: Element): Boolean = other match {
-    case vh: VertexHeader => vh.body ==~ this
-    case vb: VertexBody => this.checkIsSame(vb)
+    case v: Vertex => operators.areSame(this, v)
     case _ => false
   }
 
@@ -56,7 +66,7 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
     val prime = 41
     var result = 1
     result = prime * result + label.hashCode()
-    result = prime * result + allEdges.hashCode()
+    result = prime * result + this.id.hashCode()
     result
   }
 
@@ -64,19 +74,8 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
   def edges(label: Label): Iterable[Edge] = {
     label match {
       case Label.wildcard => allEdges
-      case _ =>
-        _edge_cache.get(label) match {
-          case None => Seq()
-          case Some(a) => a
-        }
+      case _ => allEdges.filter(_.label == label)
     }
-    if (label == Label.wildcard)
-      allEdges
-    else
-      _edge_cache.get(label) match {
-        case None => Seq()
-        case Some(a) => a
-      }
   }
 
   def attr(key: String): Option[String] = {
@@ -85,11 +84,12 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
 
 
   def groupedEdges: Iterable[Iterable[Edge]] = {
-    _edge_cache.values
+    allEdges.groupBy(_.label).values
   }
 
   def repr: String = {
-    s"${this.reprLabel}${this.reprAttrs}"
+    val id = this.id.shorten
+    s"${this.reprLabel}@${id}${this.reprAttrs}"
   }
 
 
@@ -153,7 +153,7 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
   }
 
   def shallowCopy: Vertex = {
-    VertexBody(label, attributes, this.edges())
+    VertexBody(label, attributes, this.edges(), this.id)
   }
 }
 

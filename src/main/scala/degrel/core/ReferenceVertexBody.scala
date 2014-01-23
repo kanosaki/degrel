@@ -2,9 +2,10 @@ package degrel.core
 
 import degrel.rewriting.BuildingContext
 
-class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: Iterable[Edge]) extends VertexBody(label,
-                                                                                                                   attrs,
-                                                                                                                   all_edges) {
+class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: Iterable[Edge], _id: ID) extends VertexBody(label,
+                                                                                                                            attrs,
+                                                                                                                            all_edges,
+                                                                                                                            _id) {
   private lazy val unreferenceEdges = all_edges.filter(!_.isReference)
 
   override def repr: String = {
@@ -20,7 +21,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
                        .map(_.duplicate()) ++
                      unreferenceEdges
                        .map(_.build(context))
-    Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
+    Vertex(matchedV.label.expr, builtEdges, matchedV.attributes, matchedV.id)
   }
 
   override def reprRecursive(history: Trajectory): String = {

@@ -14,6 +14,8 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex) extends Product2[Str
 
   lazy val dst = _dst
 
+  private var __sourceVertex: Vertex = null
+
   def src: Vertex = {
     __sourceVertex match {
       case null => {
@@ -25,13 +27,12 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex) extends Product2[Str
     }
   }
 
-  private var __sourceVertex: Vertex = null
 
   def src_=(v: Vertex) = {
     if (v == null) {
       throw new NullPointerException("Argument cannot be null")
     }
-    if (__sourceVertex != null && __sourceVertex != v) {
+    if (__sourceVertex != null && (__sourceVertex eq v)) {
       throw new AssertionError("Souce can set only once.")
     }
     __sourceVertex = v
@@ -47,7 +48,8 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex) extends Product2[Str
   }
 
   override def equals(other: Any) = other match {
-    case e: Edge => e.label == this.label && e.dst == this.dst
+    //case e: Edge => e.label == this.label && e.dst.id == this.dst.id && this.src.id == e.src.id
+    case e: Edge => e.label == this.label && this.dst == e.dst
     case _ => false
   }
 
@@ -55,7 +57,6 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex) extends Product2[Str
     val prime = 139
     var result = 1
     result = prime * result + label.hashCode()
-    // TODO: use src for calc hash
     //result = prime * result + src.id.hashCode()
     //result = prime * result + dst.id.hashCode()
     result
@@ -84,7 +85,7 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex) extends Product2[Str
   }
 
   def isSameElement(other: Element): Boolean = other match {
-    case e: Edge => (this.label == e.label) || (this.dst ==~ e.dst)
+    case e: Edge => (this.label == e.label) || operators.areSame(this.dst, e.dst)
     case _ => false
   }
 

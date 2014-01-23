@@ -1,8 +1,19 @@
 package degrel.rewriting
 
 import degrel.core.{Vertex, Edge, Element}
+import scala.collection.mutable
 
 class BuildingContext(val binding: Binding) {
+  val builtVertices = mutable.HashMap[Vertex, Vertex]()
+
+  def registerBuiltVertex(redexV: Vertex, builtV: Vertex) = {
+    builtVertices += redexV -> builtV
+  }
+
+  def fromBuiltVertex(redexV: Vertex) = {
+    builtVertices.get(redexV)
+  }
+
   def matchedVertexExact(patternVertex: Vertex): Vertex = {
     binding.get(patternVertex) match {
       case Some(v) => v match {
