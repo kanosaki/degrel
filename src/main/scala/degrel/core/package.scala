@@ -1,5 +1,5 @@
 package degrel
 
 package object core {
-  type TransactionStatus = TransacrionStatusEnum.Value
+  type TransactionStatus = TransacrionStatus.Value
 }

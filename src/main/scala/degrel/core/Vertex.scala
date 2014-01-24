@@ -79,6 +79,13 @@ trait Vertex extends Element with Comparable[Vertex] {
   def compareTo(o: Vertex): Int = {
     this.id.compareTo(o.id)
   }
+
+  def version: VertexVersion = {
+    this match {
+      case vh: VertexHeader => VertexVersion(vh, vh.body)
+      case _ => throw new Exception("VertexVersion is only available for VertexHeader.")
+    }
+  }
 }
 
 object Vertex {

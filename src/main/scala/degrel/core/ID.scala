@@ -1,5 +1,7 @@
 package degrel.core
 
+import scala.concurrent.stm
+
 
 trait ID extends Comparable[ID] {
   def shorten: String = {
@@ -16,11 +18,14 @@ trait ID extends Comparable[ID] {
 }
 
 object ID {
-  private var idCounter: Int = -1
+  private val idCounter = stm.Ref(-1)
 
   private def nextID: ID = {
-    idCounter += 1
-    LocalID(idCounter)
+    stm.atomic {
+      implicit txn =>
+        idCounter.transform(_ + 1)
+        LocalID(idCounter.get)
+    }
   }
 
   def NA: ID = NotAssignedID

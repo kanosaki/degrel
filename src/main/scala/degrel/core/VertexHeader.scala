@@ -1,18 +1,23 @@
 package degrel.core
 
 import degrel.rewriting.BuildingContext
-import degrel.utils.support._
+import scala.concurrent.stm
 
 
 class VertexHeader(f: => VertexBody) extends Vertex {
-  private var _body: VertexBody = null
+  private var _locator: stm.Ref[VertexLocator] = null
 
   def body: VertexBody = {
-    if (_body == null) {
-      _body = f
-    }
-    _body
+    this.locator.single.get.activeVertex
   }
+
+  protected def locator: stm.Ref[VertexLocator] = {
+    if (_locator == null) {
+      _locator = stm.Ref(VertexLocator.createNew(f))
+    }
+    _locator
+  }
+
 
   def edges(label: Label): Iterable[Edge] = body.edges(label)
 
@@ -49,9 +54,22 @@ class VertexHeader(f: => VertexBody) extends Vertex {
 
   def build(context: BuildingContext): Vertex = body.build(context)
 
+
   def write(v: Vertex) = v match {
-    case vb: VertexBody => _body = vb
-    case vh: VertexHeader => _body = vh.body
+    case vb: VertexBody => locator.single.set(VertexLocator.createNew(vb))
+    case vh: VertexHeader => locator.single.set(VertexLocator.createNew(vh.body))
+  }
+
+  def beginTransaction()(implicit txn: Transaction): (VertexLocator, VertexLocator) = {
+    stm.atomic {
+      implicit _txn =>
+        val loc = this.locator.single.get
+        (loc, VertexLocator.createFrom(loc))
+    }
+  }
+
+  def commitTransaction(prev: VertexLocator, created: VertexLocator)(implicit txn: Transaction): Boolean = {
+    _locator.single.compareAndSetIdentity(prev, created)
   }
 
   def attributes: Map[String, String] = body.attributes

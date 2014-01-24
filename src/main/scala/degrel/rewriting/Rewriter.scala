@@ -1,6 +1,6 @@
 package degrel.rewriting
 
-import degrel.core.{VertexHeader, Rule, Vertex}
+import degrel.core._
 import akka.actor.{Props, Actor}
 
 
@@ -8,24 +8,34 @@ import akka.actor.{Props, Actor}
  * 書き換えの手続きを管理します
  * @todo トランザクションに対応
  */
-class Rewriter(val rule: Rule)  {
+class Rewriter(val rule: Rule) {
+  self =>
   /**
    * targetに指定された頂点を根としてパターンマッチを行い，マッチすれば書き換えを行います
    * 書き換えを行った場合はtrueを，書き換えを行わなかった場合はfalseを返します
    * @param target このルールで書き換えるグラフの頂点
    * @return 書き換えが実行された場合はTrue, 実行されなければFalse
    */
-  def rewrite(target: Vertex): Boolean = {
+  def rewrite(root: Vertex, target: Vertex): ActionLog = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
+      implicit val transacton = new Transaction()
+      val targetHeader = target.asInstanceOf[VertexHeader]
+      val (prevLocator, newLocator) = targetHeader.beginTransaction()
       val binding = this.pick(mch.pack)
       val builtGraph = this.build(binding)
-      target match {
-        case vh: VertexHeader => vh.write(builtGraph)
-        case _ => throw new IllegalArgumentException("rule must be vertex header")
+      val builtSucceeded = binding.ensure() && newLocator.tryCommit(builtGraph)
+      if (!builtSucceeded) {
+        return new BuildingFailure(root, target, newLocator.oldVertex, newLocator.newVertex)
       }
+      val commitSucceeded = targetHeader.commitTransaction(prevLocator, newLocator) && transacton.complete()
+      if (!commitSucceeded) {
+        return new CommitingFailure(root, target, newLocator.oldVertex, newLocator.newVertex)
+      }
+      new RewritingSucceed(root, target, newLocator.oldVertex, newLocator.newVertex)
+    } else {
+      NOP
     }
-    mch.success
   }
 
   /**
@@ -55,12 +65,57 @@ class Rewriter(val rule: Rule)  {
    * @return 実際に書き換えが行われたかどうか
    */
   def step(reserve: Reserve): Boolean = {
-    for (vertex <- reserve.iterVertices) {
-      val rewrote = this.rewrite(vertex)
-      if (rewrote) {
-        return true
+    for (rt <- reserve.roots) {
+      for (vertex <- Traverser(rt)) {
+        val result = this.rewrite(rt, vertex)
+        if (result.performed) {
+          println(result.repr)
+        }
+        if (result.succeed) {
+          return true
+        }
       }
     }
     false
   }
+
+  abstract class ActionLog(val succeed: Boolean, val root: Vertex, val target: Vertex, prev: VertexBody, next: VertexBody) {
+    def rule = self.rule
+
+    def performed: Boolean
+
+    def msg: String
+
+    def repr = s"$msg:\n  Rule  : $rule\n  Target: $target\n  Root  : $root\n  Prev  : $prev\n  Next  : $next"
+  }
+
+  class BuildingFailure(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody)
+    extends ActionLog(false, root, target, prev, next) {
+    def msg = "BuildingFailure"
+
+    def performed = true
+  }
+
+  class CommitingFailure(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody)
+    extends ActionLog(false, root, target, prev, next) {
+    def msg = "CommitingFailure"
+
+    def performed = true
+  }
+
+  class RewritingSucceed(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody)
+    extends ActionLog(true, root, target, prev, next) {
+    def msg = "RewritingSucceed"
+
+    def performed = true
+  }
+
+  object NOP extends ActionLog(false, null, null, null, null) {
+    def msg = "NOP"
+
+    override def repr = "NOP"
+
+    def performed = false
+  }
+
 }

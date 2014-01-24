@@ -1,5 +1,5 @@
 package degrel.core
 
-object TransacrionStatusEnum extends Enumeration {
+object TransacrionStatus extends Enumeration {
   val Active, Aborted, Commited = Value
 }
