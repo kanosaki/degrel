@@ -3,7 +3,7 @@ package degrel.core
 import scala.concurrent.stm
 
 class Transaction() {
-  private val _status: stm.Ref[TransactionStatus] = stm.Ref(TransacrionStatus.Active)
+  protected val _status: stm.Ref[TransactionStatus] = stm.Ref(TransacrionStatus.Active)
 
   def status: TransactionStatus = _status.single.get
 
@@ -17,7 +17,7 @@ class Transaction() {
 object Transaction {
 
   class Bottom extends Transaction {
-    private val _status: stm.Ref[TransactionStatus] = stm.Ref(TransacrionStatus.Commited)
+    override protected val _status: stm.Ref[TransactionStatus] = stm.Ref(TransacrionStatus.Commited)
   }
 
 

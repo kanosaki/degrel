@@ -46,12 +46,12 @@ class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit tra
 
 object VertexLocator {
   def createNew(src: VertexBody)(implicit txn: Transaction = Transaction.bot) = {
-    new VertexLocator(null, src)
+    new VertexLocator(src, null)
   }
 
   def createFrom(prev: VertexLocator)(implicit txn: Transaction): VertexLocator = {
     require(prev != null)
-    new VertexLocator(copyVertex(prev.activeVertex), prev.oldVertex)
+    new VertexLocator(copyVertex(prev.activeVertex), prev.activeVertex)
   }
 
   def copyVertex(v: VertexBody): VertexBody = {
