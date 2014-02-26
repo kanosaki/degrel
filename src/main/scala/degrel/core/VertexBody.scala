@@ -30,6 +30,7 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
   }
 
   def writeEdges(es: Iterable[Edge]) = {
+    if(_edges != null) throw new Exception("Duplicated initialization")
     for (e <- es) {
       e.src = this
     }

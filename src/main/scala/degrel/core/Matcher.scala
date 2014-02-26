@@ -11,12 +11,14 @@ import degrel.rewriting.MonoVertexMatching
 case class Matcher(self: Vertex) {
   // Perform as LhsVertex
   def matches(pattern: Vertex, context: MatchingContext): VertexMatching = {
+    val patVersion = pattern.version
+    val selfVersion = self.version
     if (!self.label.matches(pattern.label))
       return NoMatching
     if (pattern.edges().isEmpty) {
-      return MonoVertexMatching(VertexBridge(pattern, self, self.edges()), Stream())
+      return MonoVertexMatching(VertexBridge(pattern, patVersion, self, selfVersion, self.edges()), Stream())
     }
-    val matchCombinations = this.matchEdges(pattern, context)
+    val matchCombinations = this.matchEdges(pattern, context, patVersion, selfVersion)
     if (matchCombinations.isEmpty) {
       NoMatching
     } else if (matchCombinations.size == 1) {
@@ -26,7 +28,7 @@ case class Matcher(self: Vertex) {
     }
   }
 
-  private def matchEdges(pattern: Vertex, context: MatchingContext): Seq[VertexMatching] = {
+  private def matchEdges(pattern: Vertex, context: MatchingContext, patV: VertexVersion, selfV: VertexVersion): Seq[VertexMatching] = {
     if (pattern.edges().size > self.edges().size)
       return Stream()
     val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_, context)).toList
@@ -37,7 +39,7 @@ case class Matcher(self: Vertex) {
         val matchedEdgeMatchings = e.flatten[EdgeMatching]
         val matchedDataEdges = matchedEdgeMatchings.map(_.bridge.dataEdge)
         val unmetchedEdges = self.edges().toSet &~ matchedDataEdges.toSet
-        val vertexMatch = VertexBridge(pattern, self, unmetchedEdges)
+        val vertexMatch = VertexBridge(pattern, patV, self, selfV, unmetchedEdges)
         MonoVertexMatching(vertexMatch, matchedEdgeMatchings.toStream)
       })
     } else {

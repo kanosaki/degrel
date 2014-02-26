@@ -24,7 +24,7 @@ class Rewriter(val rule: Rule) {
       val (prevLocator, newLocator) = targetHeader.beginTransaction()
       val binding = this.pick(mch.pack)
       val builtGraph = this.build(binding)
-      val builtSucceeded = binding.ensure() && newLocator.tryCommit(builtGraph)
+      val builtSucceeded = binding.confirm() && newLocator.tryCommit(builtGraph)
       if (!builtSucceeded) {
         return new BuildingFailure(root, target, newLocator.oldVertex, newLocator.newVertex)
       }

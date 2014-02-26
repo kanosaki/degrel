@@ -5,11 +5,12 @@ import degrel.core
 
 object Binding {
   def apply(bridges: Seq[MatchBridge[Element]]) = {
-    new Binding(bridges.map(br => (br._1, br._2)).toMap)
+    new Binding(bridges)
   }
 }
 
-class Binding(protected val map: Map[Element, Element]) extends Map[Element, Element] {
+class Binding(bridges: Seq[MatchBridge[Element]]) extends Map[Element, Element] {
+  protected val map: Map[Element, Element] = bridges.map(br => (br._1, br._2)).toMap
   def get(key: Element): Option[Element] = map.get(key)
 
   def iterator: Iterator[(Element, Element)] = map.iterator
@@ -19,21 +20,21 @@ class Binding(protected val map: Map[Element, Element]) extends Map[Element, Ele
   def +[B1 >: Element](kv: (Element, B1)): Map[Element, B1] = map + kv
 
   def asQueryable: QueryableBinding = {
-    new QueryableBinding(map)
+    new QueryableBinding(bridges)
   }
 
-  def ensure(): Boolean = {
-    true // TODO: Implement
+  def confirm(): Boolean = {
+    bridges.forall(br => br.confirm())
   }
 }
 
 /**
  * For debugging
  */
-class QueryableBinding(protected val _map: Map[Element, Element]) extends Binding(_map) {
+class QueryableBinding(bridges: Seq[MatchBridge[Element]]) extends Binding(bridges) {
 
   def queryPatternVertices(f: core.Vertex => Boolean): Iterable[core.Vertex] = {
-    _map.filter {
+    map.filter {
       case (v: core.Vertex, _) => f(v)
       case _ => false
     }.map {
@@ -43,7 +44,7 @@ class QueryableBinding(protected val _map: Map[Element, Element]) extends Bindin
   }
 
   def queryDataVertices(f: core.Vertex => Boolean): Iterable[core.Vertex] = {
-    _map.filter {
+    map.filter {
       case (_, v: core.Vertex) => f(v)
       case _ => false
     }.map {
@@ -53,7 +54,7 @@ class QueryableBinding(protected val _map: Map[Element, Element]) extends Bindin
   }
 
   def query(patternPredicate: core.Vertex => Boolean): Iterable[(core.Vertex, core.Vertex)] = {
-    _map.filter {
+    map.filter {
       case (v: core.Vertex, _) => patternPredicate(v)
       case _ => false
     }.map {
