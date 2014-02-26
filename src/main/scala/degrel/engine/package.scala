@@ -1,5 +1,10 @@
 package degrel
 
 package object engine {
-  val system = Engine.actorSystem
+  val default = {
+    val engine = new Engine("degrel")
+    engine.boot()
+    engine
+  }
+  val system = default.system
 }
