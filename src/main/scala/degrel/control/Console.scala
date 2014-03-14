@@ -8,8 +8,9 @@ import degrel.engine.RewriteScheduler
 import scala.concurrent.duration._
 import akka.pattern.ask
 import akka.util.Timeout
-import scala.concurrent.Await
+import scala.concurrent.{ExecutionContext, Await}
 import scala.tools.jline.console.history.FileHistory
+import java.util.concurrent.Executors
 
 class Console(val reserve: LocalReserve) {
   private val termParser = ParserUtils
@@ -60,6 +61,15 @@ class Console(val reserve: LocalReserve) {
     val worker = RewriteScheduler(reserve)
     val future = worker ? RewriteScheduler.Run
     Await.result(future, rewriteTimeout.duration)
+  }
+
+  def rewriteBenchmark(maxParallelalism: Int) = {
+    for(threadNum <- 1 to maxParallelalism) {
+      val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(threadNum))
+      val worker = RewriteScheduler(reserve, ec)
+      val future = worker ? RewriteScheduler.Run
+      Await.result(future, rewriteTimeout.duration)
+    }
   }
 
   def start() = {

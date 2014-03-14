@@ -14,5 +14,6 @@ object SupportUtils {
     }
   }
 
+
   implicit def supportutil_numberExtensions(num: Int) = new NumberExtension(num)
 }

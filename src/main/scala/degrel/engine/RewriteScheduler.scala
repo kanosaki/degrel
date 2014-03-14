@@ -1,6 +1,6 @@
 package degrel.engine
 
-import java.util.concurrent.{ConcurrentLinkedDeque, TimeUnit, LinkedBlockingQueue}
+import java.util.concurrent.{ForkJoinPool, ConcurrentLinkedDeque, TimeUnit, LinkedBlockingQueue}
 import akka.util.Timeout
 import scala.concurrent.duration._
 import akka.pattern.ask
@@ -9,6 +9,7 @@ import akka.actor.{Props, Actor, ActorLogging, ActorRef}
 import scala.collection.JavaConversions._
 import degrel.utils.concurrent.ResourceGuard
 import degrel.utils.collection.ConcurrentHashSet
+import scala.concurrent.ExecutionContext
 
 object RewriteScheduler {
 
@@ -16,10 +17,18 @@ object RewriteScheduler {
 
   case object Completed
 
-  def props(reserve: Reserve): Props = Props(classOf[RewriteScheduler], reserve)
+  case class BenchmarkCompleted(elapsed: Duration)
+
+  case object Benchmark
+
+  def props(reserve: Reserve, ec: ExecutionContext): Props = Props(classOf[RewriteScheduler], reserve, ec)
 
   def apply(reserve: Reserve): ActorRef = {
-    degrel.engine.system.actorOf(this.props(reserve))
+    degrel.engine.system.actorOf(this.props(reserve, null))
+  }
+
+  def apply(reserve: Reserve, dispatcher: ExecutionContext): ActorRef = {
+    degrel.engine.system.actorOf(this.props(reserve, dispatcher))
   }
 }
 
@@ -28,7 +37,13 @@ object RewriteScheduler {
  * 一度にすべての書き換えが行われないよう，書き換えは1ステップずつ行われます．
  * @param reserve
  */
-class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
+class RewriteScheduler(val reserve: Reserve,
+                       implicit val rewriteTimeOut: Timeout = Timeout(5.seconds),
+                       _dispatcher: ExecutionContext = null) extends Actor with ActorLogging {
+  implicit val dispatcher = _dispatcher match {
+    case null => system.dispatcher
+    case _ => _dispatcher
+  }
 
   def receive: Actor.Receive = {
     case RewriteScheduler.Run => {
@@ -104,8 +119,6 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
    * 完了時の処理は`onWorkerOnSuccess`へ委譲します
    */
   def run() = {
-    implicit val timeout = Timeout(5.seconds)
-    import system.dispatcher
     do {
       val next = queued.poll(100, TimeUnit.MILLISECONDS)
       if (next != null) {
@@ -117,5 +130,19 @@ class RewriteScheduler(val reserve: Reserve) extends Actor with ActorLogging {
   }
 
   def isStopped: Boolean = modifing.lock {queued.isEmpty && working.isEmpty}
+}
 
+class BenchmarkingRewriteScheduler(reserve: Reserve,
+                                   rewriteTimeOut: Timeout = Timeout(5.seconds),
+                                   _dispatcher: ExecutionContext = null) extends RewriteScheduler(reserve,
+                                                                                                   rewriteTimeOut,
+                                                                                                   _dispatcher) {
+  override def receive: Actor.Receive = {
+    case RewriteScheduler.Benchmark => {
+      val start = System.currentTimeMillis()
+
+      val elapsed = System.currentTimeMillis() - start
+      sender ! Duration(elapsed, TimeUnit.MILLISECONDS)
+    }
+  }
 }
