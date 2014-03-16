@@ -1,7 +1,7 @@
 package degrel.config
 
-class RootConfig extends Config {
-  def parent: Config = null
+class RootConfig extends ConfigBase {
+  def parent: ConfigBase = null
 
   def get(key: Symbol): List[Any] = ???
 

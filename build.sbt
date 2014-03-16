@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
     "org.scalatest" % "scalatest_2.10" % "2.0" % "test",
     "org.scalamock" %% "scalamock-scalatest-support" % "3.0.1" % "test",
     "com.typesafe" %% "scalalogging-slf4j" % "1.0.1", 
-    "org.rogach" %% "scallop" % "0.9.4",
+    "org.rogach" %% "scallop" % "0.9.5",
     "org.scala-lang" % "jline" % "2.10.3",
     "commons-io" % "commons-io" % "2.4",
     "org.scalaz" %% "scalaz-core" % scalazVersion,
