@@ -2,6 +2,7 @@ package degrel.rewriting
 
 import degrel.core._
 import akka.actor.{Props, Actor}
+import degrel.utils.collection.ShuffledIterator
 
 
 /**
@@ -65,7 +66,7 @@ class Rewriter(val rule: Rule) {
    * @return 実際に書き換えが行われたかどうか
    */
   def step(reserve: Reserve): Boolean = {
-    for (rt <- reserve.roots) {
+    for (rt <- ShuffledIterator(reserve.roots.iterator)) {
       for (vertex <- Traverser(rt)) {
         val result = this.rewrite(rt, vertex)
         if (result.performed) {
