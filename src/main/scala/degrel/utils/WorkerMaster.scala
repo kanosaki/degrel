@@ -19,14 +19,13 @@ class WorkerMaster(threadNum: Int = -1) {
 
 
   private def requeueWorkers() = {
-    for (tsk <- stopped) {
-      queued.put(tsk)
-    }
+    queued.addAll(stopped)
     stopped.clear()
   }
 
 
   def start() = {
+    implicit val master = this
     do {
       val next = queued.poll(100, TimeUnit.MILLISECONDS)
       if (next != null) {
@@ -78,7 +77,7 @@ trait WorkerTask {
     }
   }
 
-  abstract def run(): TaskResult
+  def run(): TaskResult
 
 }
 
