@@ -125,7 +125,7 @@ class RewriterTest extends FlatSpec {
   }
 
   // Same pattern
-  ignore should "able to handle nested capturing in more complicated pattern" in {
+  it should "able to handle nested capturing in more complicated pattern" in {
     val reserve = new LocalReserve()
     reserve.addRule(parseR("A[a](foo: B, rewrote: false) -> joe(a: A(rewrote: true, jack: B), b: B(extracted: true))"))
     reserve.addVertex(parse("a(foo: b(hoge: fuga), rewrote: false)"))

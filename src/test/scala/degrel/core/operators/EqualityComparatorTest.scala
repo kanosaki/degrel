@@ -44,7 +44,7 @@ class EqualityComparatorTest extends FlatSpec {
     }
   }
 
-  ignore should "compare isomorphic graph without polyvalent edge" in {
+  it should "compare isomorphic graph without polyvalent edge" in {
     val cases = Seq( """@a{ -> b : b; b -> c: c; c -> : a}""" -> """@a{ -> b : b; b -> c: c; c -> : a}""")
     for ((v1, v2) <- cases) {
       parseDot(v1) ===~ parseDot(v2)
@@ -64,7 +64,7 @@ class EqualityComparatorTest extends FlatSpec {
     }
   }
 
-  ignore should "compare non-isomorphic graph with polyvalent edge" in {
+  it should "compare non-isomorphic graph with polyvalent edge" in {
     val cases =
       Seq( """@a{ -> b : e; b -> c: e; c -> : e}""" -> """@a{ -> b : e; b -> c: e; c -> : e; c -> d : e}""",
            """@a{ -> b : e; b -> c: e; c -> : e}""" -> """@a{ -> b : e; b -> c: e; c -> : e; c -> d : e; d -> : e}""",
