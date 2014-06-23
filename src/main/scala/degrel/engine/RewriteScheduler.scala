@@ -21,14 +21,20 @@ object RewriteScheduler {
 
   case object Benchmark
 
-  def props(reserve: Reserve, ec: ExecutionContext): Props = Props(classOf[RewriteScheduler], reserve, ec)
+  val DEFAULT_TIMEOUT = Timeout(5.seconds)
 
-  def apply(reserve: Reserve): ActorRef = {
-    degrel.engine.system.actorOf(this.props(reserve, null))
+  def props(reserve: Reserve,
+            timeout: Timeout,
+            ec: ExecutionContext): Props = Props(classOf[RewriteScheduler], reserve, timeout, ec)
+
+  def apply(reserve: Reserve,
+            timeout: Timeout = DEFAULT_TIMEOUT,
+            dispatcher: ExecutionContext = null): ActorRef = {
+    degrel.engine.system.actorOf(this.props(reserve, timeout, dispatcher))
   }
 
   def apply(reserve: Reserve, dispatcher: ExecutionContext): ActorRef = {
-    degrel.engine.system.actorOf(this.props(reserve, dispatcher))
+    this.apply(reserve, DEFAULT_TIMEOUT, dispatcher)
   }
 }
 
