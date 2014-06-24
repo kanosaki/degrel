@@ -84,11 +84,6 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex) extends Product2[Str
     Edge(this.src, this.label, dst.build(context))
   }
 
-  def isSameElement(other: Element): Boolean = other match {
-    case e: Edge => (this.label == e.label) || operators.areSame(this.dst, e.dst)
-    case _ => false
-  }
-
   def freeze: Edge = Edge(this.src, this.label, this.dst.freeze)
 
   def isReference: Boolean = this.label.expr == "_ref"

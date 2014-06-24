@@ -37,12 +37,6 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
     _edges = es
   }
 
-
-  def isSameElement(other: Element): Boolean = other match {
-    case v: Vertex => operators.areSame(this, v)
-    case _ => false
-  }
-
   private def checkIsSame(other: VertexBody): Boolean = {
     if (this.label != other.label) return false
     val thisEdges = this.edges().map(new EdgeEqualityAdapter(_)).toSet
