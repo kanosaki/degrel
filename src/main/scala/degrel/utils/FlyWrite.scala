@@ -20,7 +20,7 @@ object FlyWrite {
       core.Vertex(s, List(edge))
     }
 
-    def |^|(v: Unit) = {
+    def v() = {
       core.Vertex(s, List())
     }
 

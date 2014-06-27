@@ -1,9 +1,12 @@
 package degrel
 
+import com.typesafe.scalalogging.Logging
+
+
 /**
  * 実際にログを行うライブラリとのアダプター
  */
-trait Logger extends com.typesafe.scalalogging.slf4j.Logging {
+trait Logger extends Logging {
   def debug(msg: String) = logger.debug(msg)
   def info(msg: String) = logger.info(msg)
   def warn(msg: String) = logger.warn(msg)
