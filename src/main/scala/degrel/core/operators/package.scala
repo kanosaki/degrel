@@ -26,11 +26,14 @@ package object operators {
    *  根がa, bで異なるため，グラフとしては等しくなりますが，根付きグラフとしては異なるものになります
    */
   def areIsomorphic(one: Element, another: Element): Boolean = (one, another) match {
-    case (g1: Graph, g2: Graph) => {
-      new GraphIsomorphismComparator(g1, g2).eval()
-    }
     case (v1: Vertex, v2: Vertex) => {
       new RootIsomorphismComparator(v1, v2).eval()
+    }
+    case (v1: RootedGraph, v2: RootedGraph) => {
+      new RootIsomorphismComparator(v1.root, v2.root).eval()
+    }
+    case (g1: Graph, g2: Graph) => {
+      new GraphIsomorphismComparator(g1, g2).eval()
     }
     case _ => throw new Exception("")
   }

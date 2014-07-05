@@ -5,6 +5,7 @@ import degrel.rewriting.LocalReserve
 import degrel.front
 import degrel.front.ParserUtils
 import degrel.core
+import degrel.utils.TestUtils.assertElementSet
 import scala.concurrent.duration._
 import akka.pattern.ask
 import akka.util.Timeout
@@ -32,8 +33,8 @@ class ParallelRewriteTest extends FlatSpec {
     reserve.addVertex(parse("d"))
     val scheduler = RewriteScheduler(reserve)
     Await.result(scheduler ? RewriteScheduler.Run, timeout.duration)
-    val expected = Set(parse("e"), parse("e"), parse("e"), parse("e"), parse("e")).map(_.freeze)
-    val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    val expected = Set(parse("e"), parse("e"), parse("e"), parse("e"), parse("e"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
   }
 }

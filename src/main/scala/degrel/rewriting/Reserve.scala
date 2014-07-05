@@ -1,6 +1,6 @@
 package degrel.rewriting
 
-import degrel.core.{Vertex, Rule, Traverser}
+import degrel.core.{Vertex, Rule, Traverser, Edge}
 import scala.collection.mutable
 
 trait Reserve {
@@ -11,6 +11,14 @@ trait Reserve {
   }
 
   def roots: Iterable[Vertex]
+
+  def toVertex: Vertex = {
+    Vertex.create("_reserve")(newVertex => {
+      val rootedges = this.roots.map(new Edge(newVertex, "_root", _))
+      val ruleedges = this.rewriters.map(r => new Edge(newVertex, "_rule", r.rule))
+      rootedges ++ ruleedges
+    })
+  }
 
   def rewriteStep() = {
     var rewrote = false
@@ -40,6 +48,7 @@ trait Reserve {
     s"Rules:\n    ${this.rewriters.map(_.rule.toString).mkString("\n    ")}\n" +
     s"Vertices:\n    ${this.roots.map(_.toString).mkString("\n    ")}"
   }
+
 }
 
 class LocalReserve extends Reserve {

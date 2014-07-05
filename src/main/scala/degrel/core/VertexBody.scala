@@ -37,34 +37,6 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
     _edges = es
   }
 
-  private def checkIsSame(other: VertexBody): Boolean = {
-    if (this.label != other.label) return false
-    val thisEdges = this.edges().map(new EdgeEqualityAdapter(_)).toSet
-    val otherEdges = other.edges().map(new EdgeEqualityAdapter(_)).toSet
-    thisEdges == otherEdges
-  }
-
-  override def equals(other: Any) = other match {
-    case vh: VertexHeader => vh.body == this
-    case vb: VertexBody => this.checkEquals(vb)
-    case _ => false
-  }
-
-  private def checkEquals(other: VertexBody): Boolean = {
-    if (this.label != other.label) return false
-    val thisEdges = this.edges().toSet
-    val otherEdges = other.edges().toSet
-    thisEdges == otherEdges
-  }
-
-  override def hashCode = {
-    val prime = 41
-    var result = 1
-    result = prime * result + label.hashCode()
-    result = prime * result + this.id.hashCode()
-    result
-  }
-
 
   def edges(label: Label): Iterable[Edge] = {
     label match {

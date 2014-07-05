@@ -2,7 +2,7 @@ package degrel.core
 
 import scala.language.implicitConversions
 
-trait Label {
+trait Label extends Ordered[Label] {
   def expr: String
 
   override def equals(other: Any) = other match {
@@ -17,10 +17,12 @@ trait Label {
   }
 
   def matches(pattern: Label) = {
-    if(pattern.expr == "*")
-      true
-    else
-      this.expr == pattern.expr
+    pattern.expr == "*" ||
+    this.expr == pattern.expr
+  }
+
+  override def compare(that: Label): Int = {
+    this.expr.compare(that.expr)
   }
 }
 
@@ -40,7 +42,6 @@ object Label {
 }
 
 case class BasicLabel(expr: String) extends Label {
-
 }
 
 case object WildcardLabel extends Label {

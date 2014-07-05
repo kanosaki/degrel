@@ -5,6 +5,7 @@ import degrel.front.dotlike.DigraphParser
 import degrel.core.{VertexBody, Vertex}
 import degrel.front.ParserUtils
 import degrel.Query._
+import degrel.utils.TestUtils._
 
 class FreezerTest extends FlatSpec {
   val parser = DigraphParser
@@ -19,7 +20,7 @@ class FreezerTest extends FlatSpec {
   it should "freeze treed graph" in {
     val graph = parseTerm("foo(a: bar, b: baz(hoge: fuga))")
     val frozen = graph.freeze
-    assert(frozen.path(":b/baz").exact === parseTerm("baz(hoge: fuga)").freeze)
+    assert(frozen.path(":b/baz").exact ===~ parseTerm("baz(hoge: fuga)").freeze)
   }
 
   it should "freeze looped graph" in {

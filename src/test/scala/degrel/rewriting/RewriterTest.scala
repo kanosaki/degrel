@@ -1,13 +1,11 @@
 package degrel.rewriting
 
-import org.scalatest.FlatSpec
-import org.scalatest.time.SpanSugar._
-import org.scalatest.concurrent.Timeouts._
-import degrel.front
-import degrel.core
+import degrel.{core, front}
 import degrel.front.ParserUtils
 import degrel.utils.TestUtils._
-import degrel.Query._
+import org.scalatest.FlatSpec
+import org.scalatest.concurrent.Timeouts._
+import org.scalatest.time.SpanSugar._
 
 class RewriterTest extends FlatSpec {
   val parser = front.DefaultTermParser
@@ -42,7 +40,7 @@ class RewriterTest extends FlatSpec {
     assert(rewrote, "should be written")
     val expected = Set(parse("b")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite single vertex with single rule at deep level" in {
@@ -53,7 +51,7 @@ class RewriterTest extends FlatSpec {
     assert(rewrote, "should be written")
     val expected = Set(parse("x(y: z(c: b))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite single vertex if there are no rules which have nothing to do with" in {
@@ -67,7 +65,7 @@ class RewriterTest extends FlatSpec {
     val expected = Set(parse("x(y: z(c: b(c: d)))"),
                         parse("hoge(fuga: piyo)")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite single vertex with capturing" in {
@@ -78,7 +76,7 @@ class RewriterTest extends FlatSpec {
     assert(rewrote, "should be written")
     val expected = Set(parse("x(y: z(c: b(c: foo(bar: baz))))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite in multi steps" in {
@@ -93,7 +91,7 @@ class RewriterTest extends FlatSpec {
     val expected = Set(parse("x(y: c(d: foo(bar: hoge(fuga: piyo))), b: c)"),
                         parse("c(d: foo(bar: foo))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    assertElementSet(expected, actual)
   }
 
   it should "Rewrite with preserving unmatched edges" in {
@@ -105,7 +103,7 @@ class RewriterTest extends FlatSpec {
     }
     val expected = Set(parse("foo(a: a(rewrote: true, other_val: hoge))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    assertElementSet(expected, actual)
   }
 
   it should "able to handle nested capturing" in {
@@ -113,7 +111,7 @@ class RewriterTest extends FlatSpec {
     val dataV = parse("a(b: b, rewrote: false, hoge: fuga)")
     val binding = dataV.matches(rule.lhs).pack.pickFirst
     val result = rule.rhs.build(new BuildingContext(binding))
-    assert(result.freeze === parse("foo(a: a(rewrote: true, b: b, hoge: fuga), b: b)").freeze)
+    assert(result ===~ parse("foo(a: a(rewrote: true, b: b, hoge: fuga), b: b)"))
   }
 
   it should "able to build nested capturing" in {
@@ -121,7 +119,7 @@ class RewriterTest extends FlatSpec {
     val dataV = parse("a(foo: b(hoge: fuga), rewrote: false)")
     val binding = dataV.matches(rule.lhs).pack.pickFirst
     val result = rule.rhs.build(new BuildingContext(binding))
-    assert(result.freeze === parse("joe(a: a(jack: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))").freeze)
+    assert(result ===~  parse("joe(a: a(jack: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))").freeze)
   }
 
   // Same pattern
@@ -135,7 +133,7 @@ class RewriterTest extends FlatSpec {
     println(reserve.repr())
     val expected = Set(parse("joe(a: a(jack: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))")).map(_.freeze)
     val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite looped graph" in {

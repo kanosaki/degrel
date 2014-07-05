@@ -1,14 +1,14 @@
 package degrel.core.operators
 
-import org.scalatest.FlatSpec
-import degrel.core.Vertex
+import degrel.core.Graph
 import degrel.front.ParserUtils
 import degrel.utils.TestUtils._
+import org.scalatest.FlatSpec
 
 class EqualityComparatorTest extends FlatSpec {
-  def parse(s: String): Vertex = ParserUtils.parseVertex(s)
+  def parse(s: String): Graph = ParserUtils.parseVertex(s).toGraph
 
-  def parseDot(s: String): Vertex = ParserUtils.parseDot(s)
+  def parseDot(s: String): Graph = ParserUtils.parseDot(s).toGraph
 
   it should "compare isomorphic simple vertex" in {
     val v1 = parse("foo")
@@ -33,12 +33,12 @@ class EqualityComparatorTest extends FlatSpec {
     val cases =
       Seq("foo(bar: hoge(fuga: piyo), baz: abc, joe: jack)"
           -> "foo(baz: abc, bar: hoge(fuga: piyo))",
-           "foo(bar: hoge(fuga: piyo), baz: abc)"
-           -> "foo(baz: abc, bar: hoge(fuga: piyo), joe: jack)",
-           "foo(bar: hoge(fuga: piyo, a: b), baz: abc)"
-           -> "foo(baz: abc, bar: hoge(fuga: piyo))",
-           "foo(bar: hoge(fuga: piyo), baz: abc)"
-           -> "foo(baz: abc, bar: hoge(fuga: piyo, a: b))")
+          "foo(bar: hoge(fuga: piyo), baz: abc)"
+          -> "foo(baz: abc, bar: hoge(fuga: piyo), joe: jack)",
+          "foo(bar: hoge(fuga: piyo, a: b), baz: abc)"
+          -> "foo(baz: abc, bar: hoge(fuga: piyo))",
+          "foo(bar: hoge(fuga: piyo), baz: abc)"
+          -> "foo(baz: abc, bar: hoge(fuga: piyo, a: b))")
     for ((v1, v2) <- cases) {
       parse(v1) ==/~ parse(v2)
     }

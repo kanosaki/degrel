@@ -9,7 +9,10 @@ object Edge {
   }
 }
 
-class Edge(_src: => Vertex, _label: Label, _dst: => Vertex) extends Product2[String, Vertex] with Element {
+class Edge(_src: => Vertex, _label: Label, _dst: => Vertex)
+  extends Product2[String, Vertex]
+          with Element
+          with Comparable[Edge] {
   def label = _label
 
   lazy val dst = _dst
@@ -92,15 +95,7 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex) extends Product2[Str
     Edge(null, this.label, this.dst)
   }
 
-}
-
-class EdgeEqualityAdapter(val target: Edge) {
-  override def equals(other: Any) = other match {
-    case e: Element => e ==~ target
-    case eqAdapter: EdgeEqualityAdapter => eqAdapter.target ==~ this.target
-    case _ => false
+  override def compareTo(o: Edge): Int = {
+    this.label.compareTo(o.label)
   }
-
-  override def hashCode() = target.hashCode()
 }
-

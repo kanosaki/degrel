@@ -22,6 +22,20 @@ trait Vertex extends Element with Comparable[Vertex] {
     }
   }
 
+  override def equals(other: Any) = other match {
+    case vh: VertexHeader => vh.body == this
+    case vb: VertexBody => this.label == vb.label && this.id == vb.id
+    case _ => false
+  }
+
+  override def hashCode = {
+    val prime = 41
+    var result = 1
+    result = prime * result + label.hashCode()
+    result = prime * result + this.id.hashCode()
+    result
+  }
+
   def groupedEdges: Iterable[Iterable[Edge]]
 
   def label: Label
@@ -55,10 +69,10 @@ trait Vertex extends Element with Comparable[Vertex] {
     Rule(lhs, rhs)
   }
 
-  def asRoot: Graph = {
+  def toGraph: Graph = {
     this match {
       case g: Graph => g
-      case _ => new Graph(this)
+      case _ => new RawRootedGraph(this)
     }
   }
 
@@ -89,8 +103,30 @@ trait Vertex extends Element with Comparable[Vertex] {
 }
 
 object Vertex {
-  def apply(label: String, edges: Iterable[Edge], attributes: Map[String, String] = Map(), id: ID = ID.NA): Vertex = {
+  def apply(label: String,
+            edges: Iterable[Edge],
+            attributes: Map[String, String] = Map(),
+            id: ID = ID.NA): Vertex = {
     val body = VertexBody(Label(label), attributes, edges.toSeq, id)
     new VertexHeader(body)
+  }
+
+  /**
+   * Note: edgeInitに渡されるVertexはVertexHeaderのみなので注意
+   * @param label
+   * @param attributes
+   * @param id
+   * @param edgeInit
+   * @return
+   */
+  def create(label: String,
+            attributes: Map[String, String] = Map(),
+            id: ID = ID.NA)
+           (edgeInit: Vertex => Iterable[Edge]): Vertex = {
+    val vh = new VertexHeader(null)
+    val edges = edgeInit(vh)
+    val body = VertexBody(Label(label), attributes, edges.toSeq, id)
+    vh.write(body)
+    vh
   }
 }
