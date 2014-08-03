@@ -5,6 +5,16 @@ import degrel.core.{Vertex, BasicLabel}
 import degrel.Query._
 
 class DotlikeTest extends FlatSpec {
+
+  class RawIdentifier(expr: String) extends AstDigraphIdentifier(expr match { case "" => None; case s => Some(s)},
+                                                                 None) {
+    override def toIdentifier: String = expr
+  }
+
+  def mkEdge(from: String, to: String, label: String): AstDigraphEdge = {
+    AstDigraphEdge(new RawIdentifier(from), new RawIdentifier(to), label)
+  }
+
   it should "parse root only digraph" in {
     val expr = "@an_root{}"
     val expected = AstDigraph("an_root", AstDigraphBody(Seq()))
@@ -22,12 +32,12 @@ class DotlikeTest extends FlatSpec {
         |  b -> bb : e;
         |}
       """.stripMargin
-    val expectedAstEdges = Set(AstDigraphEdge("", "a", "e"),
-                                AstDigraphEdge("", "b", "e"),
-                                AstDigraphEdge("a", "aa", "e"),
-                                AstDigraphEdge("a", "ab", "e"),
-                                AstDigraphEdge("b", "ba", "e"),
-                                AstDigraphEdge("b", "bb", "e"))
+    val expectedAstEdges = Set(mkEdge("", "a", "e"),
+                               mkEdge("", "b", "e"),
+                               mkEdge("a", "aa", "e"),
+                               mkEdge("a", "ab", "e"),
+                               mkEdge("b", "ba", "e"),
+                               mkEdge("b", "bb", "e"))
     val actualAst = DigraphParser(expr)
     assert(actualAst.label === "root")
     assert(actualAst.body.elements.toSet === expectedAstEdges)
@@ -46,14 +56,14 @@ class DotlikeTest extends FlatSpec {
         |  b {hoge: fuga, foo: bar}
         |}
       """.stripMargin
-    val expectedAstEdges = Set(AstDigraphEdge("", "a", "e"),
-                                AstDigraphEdge("", "b", "e"),
-                                AstDigraphEdge("a", "aa", "e"),
-                                AstDigraphEdge("a", "ab", "e"),
-                                AstDigraphEdge("b", "ba", "e"),
-                                AstDigraphEdge("b", "bb", "e"),
-                                AstDigraphAttributes("a", Seq("foo" -> "bar")),
-                                AstDigraphAttributes("b", Seq("hoge" -> "fuga", "foo" -> "bar")))
+    val expectedAstEdges = Set(mkEdge("", "a", "e"),
+                               mkEdge("", "b", "e"),
+                               mkEdge("a", "aa", "e"),
+                               mkEdge("a", "ab", "e"),
+                               mkEdge("b", "ba", "e"),
+                               mkEdge("b", "bb", "e"),
+                               AstDigraphAttributes("a", Seq("foo" -> "bar")),
+                               AstDigraphAttributes("b", Seq("hoge" -> "fuga", "foo" -> "bar")))
     val actualAst = DigraphParser(expr)
     assert(actualAst.label === "root")
     assert(actualAst.body.elements.toSet === expectedAstEdges)
@@ -110,4 +120,43 @@ class DotlikeTest extends FlatSpec {
     val c = graph.path("a/c").exact.asInstanceOf[Vertex]
     assert(c.edges().size === 1)
   }
+
+  it should "build graph with identifier" in {
+    val expr =
+      """@root{
+        |   -> a : e
+        |   a -> b$1 : e
+        |   a -> b$2 : e
+        |   a -> b$3 : e
+        |}
+      """.stripMargin
+    val ast = DigraphParser(expr)
+    val graph = ast.toGraph()
+    val bs = graph.path("a/b").toSeq
+    assert(bs.size === 3)
+  }
+
+  it should "build a DAG with identifier" in {
+    val expr =
+      """@root{
+        |  -> a$1 : e
+        |  a$1 -> a$2 : e
+        |  a$2 -> a$3 : e
+        |  a$3 -> a$1 : e
+        |
+        |  a$3 -> b : foo
+        |  a$1 -> c : bar
+        |}
+      """.stripMargin
+    val ast = DigraphParser(expr)
+    val graph = ast.toGraph()
+    val a1q = graph.path("a").toSeq
+    assert(a1q.size === 1)
+    val a1 = graph.path("a").exactAs[Vertex]
+    val a1_2 = a1.path("a/a/a").exactAs[Vertex]
+    assert(a1 === a1_2)
+
+
+  }
+
 }

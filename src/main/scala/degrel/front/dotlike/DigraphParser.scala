@@ -27,8 +27,23 @@ object DigraphParser extends RegexParsers {
 
   val PAT_ATTR_VALUE = """[^,}]*""".r
   val PAT_ATTR_KEY = """[^:]+""".r
+  val IDENTIFIER_SEP = "$"
 
   def label: Parser[String] = token( """[_a-z0-9][_a-z0-9A-Z]*""".r)
+
+  /**
+   * 各頂点の識別子．基本的に`label`の形を取りますが，グラフ内に同じラベルを持つ別の頂点を作成したい場合は
+   * `label$label`のようにして別途修飾し区別することが可能です．
+   * foobar, foobar$hoge, foobar$piyo
+   * はすべて`foobar`という頂点を生成しますが，別のものと区別されます
+   * また，foo$hogeとbar$hoge は別のものととらえられます
+   */
+  def identifier: Parser[AstDigraphIdentifier] = opt(label) ~ opt(identifierSeparator ~> label) ^^ {
+    case lbl ~ id => AstDigraphIdentifier(lbl, id)
+  }
+
+  def identifierSeparator = token(IDENTIFIER_SEP)
+
 
   def labelOrEmpty: Parser[String] = opt(label) ^^ {
     case Some(lbl) => lbl
@@ -48,14 +63,14 @@ object DigraphParser extends RegexParsers {
     case None => AstDigraphEmptyLine
   }
 
-  def edge: Parser[AstDigraphEdge] = labelOrEmpty ~
+  def edge: Parser[AstDigraphEdge] = identifier ~
                                      token("->") ~
-                                     labelOrEmpty ~
+                                     identifier ~
                                      token(":") ~
                                      label ^^ {
                                        case fromLabel ~ _ ~ toLabel ~ _ ~ edgeLabel => AstDigraphEdge(fromLabel,
-                                                                                                       toLabel,
-                                                                                                       edgeLabel)
+                                                                                                      toLabel,
+                                                                                                      edgeLabel)
                                      }
 
   /**
