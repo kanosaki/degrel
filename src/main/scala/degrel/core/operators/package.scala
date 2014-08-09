@@ -32,6 +32,12 @@ package object operators {
     case (v1: RootedGraph, v2: RootedGraph) => {
       new RootIsomorphismComparator(v1.root, v2.root).eval()
     }
+    case (v1: RootedGraph, v2: Vertex) => {
+      new RootIsomorphismComparator(v1.root, v2).eval()
+    }
+    case (v1: Vertex, v2: RootedGraph) => {
+      new RootIsomorphismComparator(v1, v2.root).eval()
+    }
     case (g1: Graph, g2: Graph) => {
       new GraphIsomorphismComparator(g1, g2).eval()
     }

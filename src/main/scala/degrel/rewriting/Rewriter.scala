@@ -1,7 +1,7 @@
 package degrel.rewriting
 
+import degrel.Logger
 import degrel.core._
-import akka.actor.{Props, Actor}
 import degrel.utils.collection.ShuffledIterator
 
 
@@ -9,7 +9,7 @@ import degrel.utils.collection.ShuffledIterator
  * 書き換えの手続きを管理します
  * @todo トランザクションに対応
  */
-class Rewriter(val rule: Rule) {
+class Rewriter(val rule: Rule) extends Logger {
   self =>
   /**
    * targetに指定された頂点を根としてパターンマッチを行い，マッチすれば書き換えを行います
@@ -70,7 +70,7 @@ class Rewriter(val rule: Rule) {
       for (vertex <- Traverser(rt)) {
         val result = this.rewrite(rt, vertex)
         if (result.performed) {
-          println(result.repr)
+          logger.debug(result.repr)
         }
         if (result.succeed) {
           return true

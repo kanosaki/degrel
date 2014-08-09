@@ -21,7 +21,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
                        .map(_.duplicate()) ++
                      unreferenceEdges
                        .map(_.build(context))
-    Vertex(matchedV.label.expr, builtEdges, matchedV.attributes, matchedV.id)
+    Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
   }
 
   override def reprRecursive(history: Trajectory): String = {

@@ -1,5 +1,7 @@
 package degrel.tonberry
 
+import degrel.core.{Edge, Vertex}
+
 import scala.util.matching.Regex
 
 trait Query[+E] extends Iterator[E] {
@@ -21,6 +23,13 @@ trait Query[+E] extends Iterator[E] {
 
   def exactAs[T]: T = {
     this.exact.asInstanceOf[T]
+  }
+
+  def singleV: Vertex = {
+    this.exact match {
+      case v: Vertex => v
+      case e: Edge => e.dst
+    }
   }
 
   def freeze: Query[E]

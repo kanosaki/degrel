@@ -1,14 +1,10 @@
 package degrel
 
-import com.typesafe.scalalogging.Logging
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
 
 /**
  * 実際にログを行うライブラリとのアダプター
  */
-trait Logger extends Logging {
-  def debug(msg: String) = logger.debug(msg)
-  def info(msg: String) = logger.info(msg)
-  def warn(msg: String) = logger.warn(msg)
-  def error(msg: String) = logger.error(msg)
+trait Logger extends LazyLogging {
 }

@@ -1,14 +1,15 @@
 package degrel.utils.collection
 
-import scala.collection.mutable
+import degrel.utils.concurrent.ReadWriteGuard
+
+import scala.collection.mutable.{PriorityQueue => MutablePriorityQueue}
 import scala.util.Random
-import degrel.utils.concurrent.{ReadWriteGuard, ResourceGuard}
 
 class ShuffledIterator[A](inner: Iterator[A], val bufferSize: Int) extends Iterator[A] {
 
   type E = ItemWrapper[A]
 
-  private val buffer = new mutable.PriorityQueue[E]()(ItemComparator)
+  private val buffer = new MutablePriorityQueue[E]()(ItemComparator)
   private val bufferLock = new ReadWriteGuard()
   private val random = new Random()
 

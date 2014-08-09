@@ -22,20 +22,6 @@ trait Vertex extends Element with Comparable[Vertex] {
     }
   }
 
-  override def equals(other: Any) = other match {
-    case vh: VertexHeader => vh.body == this
-    case vb: VertexBody => this.label == vb.label && this.id == vb.id
-    case _ => false
-  }
-
-  override def hashCode = {
-    val prime = 41
-    var result = 1
-    result = prime * result + label.hashCode()
-    result = prime * result + this.id.hashCode()
-    result
-  }
-
   def groupedEdges: Iterable[Iterable[Edge]]
 
   def label: Label

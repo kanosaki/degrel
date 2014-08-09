@@ -1,10 +1,10 @@
 package degrel.utils.collection
 
 import java.util.concurrent.ConcurrentHashMap
-import scala.collection.mutable
+import scala.collection.mutable.{Set => MutableSet}
 import scala.collection.JavaConversions._
 
-class ConcurrentHashSet[T] extends mutable.Set[T] {
+class ConcurrentHashSet[T] extends MutableSet[T] {
   val internalMap = new ConcurrentHashMap[T, Unit]()
 
   def +=(elem: T): this.type = {

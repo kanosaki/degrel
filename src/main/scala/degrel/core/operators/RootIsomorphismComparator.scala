@@ -21,7 +21,7 @@ class RootIsomorphismComparator(self: Vertex, another: Vertex) {
       case None => {
         history += self -> that
         self.label == that.label &&
-        self.edges().size == self.edges().size &&
+        self.edges().size == that.edges().size &&
         areIsoEdges(history, self, that)
       }
     }

@@ -30,7 +30,6 @@ class VertexHeader(f: => VertexBody) extends Vertex {
   }
 
   def reprRecursive(trajectory: Trajectory) = {
-    val id = this.hashCode % 1000
     trajectory.walk(this) {
       case Right(nextHistory) => {
         s"<${body.reprRecursive(nextHistory)}>"
