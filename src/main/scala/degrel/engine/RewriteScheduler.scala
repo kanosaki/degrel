@@ -2,13 +2,13 @@ package degrel.engine
 
 import java.util.concurrent.{ForkJoinPool, ConcurrentLinkedDeque, TimeUnit, LinkedBlockingQueue}
 import akka.util.Timeout
+import degrel.utils.collection.mutable.ConcurrentHashSet
 import scala.concurrent.duration._
 import akka.pattern.ask
 import degrel.rewriting.Reserve
 import akka.actor.{Props, Actor, ActorLogging, ActorRef}
 import scala.collection.JavaConversions._
 import degrel.utils.concurrent.ResourceGuard
-import degrel.utils.collection.ConcurrentHashSet
 import scala.concurrent.ExecutionContext
 
 object RewriteScheduler {

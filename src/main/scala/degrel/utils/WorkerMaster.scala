@@ -1,7 +1,7 @@
 package degrel.utils
 
 import java.util.concurrent._
-import degrel.utils.collection.ConcurrentHashSet
+import degrel.utils.collection.mutable.ConcurrentHashSet
 import degrel.utils.concurrent.ResourceGuard
 
 class WorkerMaster(threadNum: Int = -1) {

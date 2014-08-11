@@ -16,13 +16,15 @@ val scalazVersion = "7.0.6"
 val akkaVersion = "2.3.3"
 
 libraryDependencies ++= Seq(
-    "org.scalatest" % "scalatest_2.11" % "2.2.0" % "test",
-    "org.scalamock" %% "scalamock-scalatest-support" % "3.1.1" % "test",
+    "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
+    "org.scalamock" %% "scalamock-scalatest-support" % "3.1.2" % "test",
     "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.2",
     "ch.qos.logback" % "logback-classic" % "1.1.2",
     "org.rogach" %% "scallop" % "0.9.5",
     "org.scala-lang" % "jline" % "2.10.3",
     "commons-io" % "commons-io" % "2.4",
+//    "org.scalanlp" %% "breeze" % "0.8.1",
+//    "org.scalanlp" %% "breeze-natives" % "0.8.1",
     "org.scalaz" %% "scalaz-core" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,

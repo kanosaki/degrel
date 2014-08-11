@@ -1,7 +1,7 @@
 package degrel.engine
 
 import degrel.core
-import degrel.utils.collection.WeakMultiMap
+import degrel.utils.collection.mutable.WeakMultiMap
 
 class VertexTable {
   private val map = new WeakMultiMap[core.Label, core.Vertex]()

@@ -1,4 +1,4 @@
-package degrel.utils.collection
+package degrel.utils.collection.mutable
 
 import org.scalatest.FlatSpec
 
