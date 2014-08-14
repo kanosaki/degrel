@@ -4,7 +4,30 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.FlatSpec
 
 class SignalTest extends FlatSpec with MockFactory {
+
+  def assertCommonRequirements(sigFactory: () => signal.Signal[String]) = {
+    val sig = sigFactory()
+    val handlerA = mockFunction[Any, String, Unit]
+    val handlerB = mockFunction[Any, String, Unit]
+    sig.register(handlerA)
+    sig.register(handlerB)
+    handlerA.expects(null, "FOO").once()
+    handlerA.expects(null, "BAR").once()
+    handlerA.expects(null, "BAZ").once()
+    handlerB.expects(null, "FOO").once()
+    handlerB.expects(null, "BAR").once()
+    handlerB.expects(null, "BAZ").once()
+    handlerB.expects(null, "HOGE").once()
+    sig.trigger(null, "FOO")
+    sig.trigger(null, "BAR")
+    sig.trigger(null, "BAZ")
+    sig.unregister(handlerA)
+    sig.trigger(null, "HOGE")
+  }
+
   it should "call handler with arguments" in {
+    assertCommonRequirements(() => Signal[String]())
+
     val sig = Signal[Int]()
     val handler = mockFunction[Any, Int, Unit]
     sig.register(handler)
@@ -20,6 +43,8 @@ class SignalTest extends FlatSpec with MockFactory {
   }
 
   it should "handle signal in concurrent" in {
+    assertCommonRequirements(() => new signal.ThreadPoolSignal[String](1000))
+
     val sig = new signal.ThreadPoolSignal[String](1000)
     val h1 = mockFunction[Any, String, Unit]
     val h2 = mockFunction[Any, String, Unit]
@@ -56,5 +81,9 @@ class SignalTest extends FlatSpec with MockFactory {
     })
     sig.trigger(null, "FOOBAR")
     sig.trigger(null, "HOGEHOGE")
+  }
+
+  it should "handle with weak references" in {
+    assertCommonRequirements(() => new signal.WeakSequentialSignal[String]())
   }
 }
