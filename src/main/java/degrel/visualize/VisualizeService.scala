@@ -1,22 +1,24 @@
 package degrel.visualize
 
 import degrel.core.Element
+import degrel.visualize.fxapp.FXManager
+import degrel.visualize.fxml.MultiGraphView
 
 object VisualizeService {
-  private var _currentPresenter: SimpleGraphPresenter = null
+  var multigraphview = new MultiGraphView()
 
   protected def prepareCurrentPresenter = {
-    if (_currentPresenter == null) {
-      _currentPresenter = new SimpleGraphPresenter()
-    }
-    _currentPresenter.pack()
-    _currentPresenter.setVisible(true)
-    _currentPresenter
+    FXManager.launch()
+    val stage = FXUtil.loadStage(new MultiGraphView())
+    FXUtil.runLater(
+    {
+      stage.show()
+    })
   }
 
 
   def show(elem: Element) = {
-    prepareCurrentPresenter.pushElement(elem)
+    prepareCurrentPresenter
+    //prepareCurrentPresenter.pushElement(elem)
   }
-
 }

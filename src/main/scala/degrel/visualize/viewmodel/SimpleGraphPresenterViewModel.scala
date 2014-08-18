@@ -1,17 +1,24 @@
 package degrel.visualize.viewmodel
 
 import degrel.core.Element
-import degrel.visualize.viewmodel.graphdrawer.{DynamicsGraphDrawer, GraphDrawer}
 
-class SimpleGraphPresenterViewModel {
-  var graphViewModel = new GraphViewModel()
-  var drawer = new DynamicsGraphDrawer()
+object SimpleGraphPresenterViewModel {
+  val DEFAULT_TRAVERSE_DEPTH = 20
+}
+
+class SimpleGraphPresenterViewModel() {
+  private val graphViewModel: GraphViewModel = new GraphViewModel(SimpleGraphPresenterViewModel.DEFAULT_TRAVERSE_DEPTH)
 
   def pushElement(elem: Element) = {
-
+    graphViewModel.setElement(elem)
   }
 
-  def getGraphViewModel: GraphViewModel = graphViewModel
+  def getGraphViewModel(): GraphViewModel = {
+    graphViewModel
+  }
 
-  def getDrawer: GraphDrawer = drawer
+  def dispose(): Unit = {
+    graphViewModel.dispose()
+  }
+
 }

@@ -5,6 +5,10 @@ object Signal {
     new signal.SequentialSignal[T]()
   }
 
+  def weak[T]() = {
+    new signal.WeakSequentialSignal[T]()
+  }
+
   trait DispatchMethod
 
   object DispatchMethod {
