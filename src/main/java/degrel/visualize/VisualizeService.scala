@@ -1,8 +1,7 @@
 package degrel.visualize
 
 import degrel.core.Element
-import degrel.visualize.fxapp.FXManager
-import degrel.visualize.fxml.MultiGraphView
+import degrel.visualize.view.MultiGraphView
 
 object VisualizeService {
   var multigraphview = new MultiGraphView()

@@ -1,4 +1,4 @@
-package degrel.visualize.fxml
+package degrel.visualize.view
 
 import javafx.fxml.FXML
 import javafx.scene.canvas.Canvas

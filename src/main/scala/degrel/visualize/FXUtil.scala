@@ -7,14 +7,14 @@ import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 
 import degrel.utils.toRunnable
-import degrel.visualize.fxapp.FXManager
+import degrel.visualize.FXManager
 
 import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.concurrent.duration.Duration
 
 
 object FXUtil {
-  val FXML_DIRECTORY = Paths.get("/degrel/visualize/fxml").toString
+  val FXML_DIRECTORY = Paths.get("/degrel/visualize/view").toString
   /**
    * JavaFXでFXMLをロードするときに使用されるClassLoaderはキャッシュを行わないため一般に低速．
    * なので，ロードされたクラスをキャッシュして高速化を図ります

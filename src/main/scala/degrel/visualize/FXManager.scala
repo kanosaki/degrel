@@ -1,4 +1,4 @@
-package degrel.visualize.fxapp
+package degrel.visualize
 
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 import javafx.application.{Application, Platform}

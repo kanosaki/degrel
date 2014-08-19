@@ -1,5 +1,11 @@
 package degrel.visualize.viewmodel
 
-class MultiGraphViewModel {
+import degrel.visualize.view.GraphView
 
+class MultiGraphViewModel {
+  var graphView = new GraphView()
+
+  def getGraphView() = {
+
+  }
 }
