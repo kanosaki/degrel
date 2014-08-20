@@ -6,13 +6,16 @@ import javafx.fxml.FXMLLoader
 import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 
+import degrel.misc.CachedClassLoader
 import degrel.utils.toRunnable
-import degrel.visualize.FXManager
 
-import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 
+/**
+ * JavaFXのためのユーティリティ関数群
+ */
 object FXUtil {
   val FXML_DIRECTORY = Paths.get("/degrel/visualize/view").toString
   /**
@@ -116,11 +119,25 @@ object FXUtil {
     FXManager.runLater(runnable)
   }
 
+  /**
+   * 処理をJavaFXの Applicationスレッドで実行して，その結果を待ちます
+   * @param f 実行する処理
+   * @param atMost 最大で待機する時間
+   * @tparam T 処理によって返される値の型
+   * @return 処理による結果
+   */
   def runAndWait[T](f: => T, atMost: Duration = Duration.Inf): T = {
     val fut = this.runFuture(f)
     Await.result(fut, atMost)
   }
 
+  /**
+   * 処理をJavaFXの Applicationスレッドで実行して，その結果のFutureを返します．
+   * @note JavaFXではrunLaterのみを提供しているので，キューを使って結果を受け渡しします
+   * @param f 実行する処理
+   * @tparam T 処理によって返される値の型
+   * @return 処理による結果のFuture
+   */
   def runFuture[T](f: => T): Future[T] = {
     val channel = new LinkedBlockingQueue[T]()
     this.runLater(

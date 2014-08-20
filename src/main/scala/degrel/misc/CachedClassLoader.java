@@ -1,4 +1,4 @@
-package degrel.visualize;
+package degrel.misc;
 
 import java.io.IOException;
 import java.net.URL;

@@ -36,34 +36,36 @@ class FXManager extends Application {
   }
 }
 
+/**
+ * JavaFX用の管理モジュール．`FXUtil`へjavafx Applicationの機能を提供します.
+ * JavaFXでは`javafx.application.Application`をアプリケーションのEntry Pointとすることを前提としていますが
+ * それでは不便なのでdegrelのいろいろなモジュールや，さらにはデバッグ中にIDE等からも視覚化機能を利用できるように橋渡しを行います．
+ * 具体的にはjavafx Applicationをシングルトンとして保持していて，javafx Application内で実行が必要な物へのアクセスを提供します．
+ * 実際には`FXUtil`の各ユーティリティ関数群を通して利用してください．
+ */
 object FXManager {
   private val __launch_lock = new Object()
   private val __initialize_lock = new Object()
   private var instance: FXManager = null
   private val initLatch = new CountDownLatch(1)
+  private var __is_launching = false
   protected var _isLaunchd = false
   implicit private val ec = ExecutionContext.global
-
-  def waitForInitialize(timeout: Long = -1,
-                        unit: TimeUnit = TimeUnit.MILLISECONDS) = {
-    if (timeout < 0) {
-      initLatch.await()
-    } else {
-      initLatch.await(timeout, unit)
-    }
-  }
 
   def isLaunchd = _isLaunchd
 
   /**
-   * JavaFX Applicationを初期化します．JavaFXでは1度しか呼べないため，
+   * JavaFX Applicationを非同期で初期化します．
+   * JavaFXでは1度しか呼べないため，2度目以降は何もしません．実際に処理が行われたかどうかは返値を見てください．
    * @param args 引数
    * @return 実際にApplication.launchが実行された場合はtrue, 2回目以降なので実行されなかった場合はfalse
    */
   def launchAsync(args: Array[String] = Array()): Boolean = {
     __launch_lock.synchronized(
     {
-      _isLaunchd match {
+      if (__is_launching) return false
+      __is_launching = true
+      val ret = _isLaunchd match {
         case true => false
         case false => {
           Future(
@@ -73,6 +75,8 @@ object FXManager {
           true
         }
       }
+      __is_launching = false
+      ret
     })
   }
 
@@ -80,6 +84,15 @@ object FXManager {
     val ret = this.launchAsync(args)
     this.waitForInitialize()
     ret
+  }
+
+  def waitForInitialize(timeout: Long = -1,
+                        unit: TimeUnit = TimeUnit.MILLISECONDS) = {
+    if (timeout < 0) {
+      initLatch.await()
+    } else {
+      initLatch.await(timeout, unit)
+    }
   }
 
 

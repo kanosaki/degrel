@@ -5,12 +5,12 @@ import javafx.scene.canvas.Canvas
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{AnchorPane, BorderPane}
 
-import degrel.visualize.{GCWrapper, UpdateTimer, ViewBase}
+import degrel.visualize.{GraphicsContextWrapper, UpdateTimer, ViewBase}
 
 class GraphView extends ViewBase {
   val updateTimer = new UpdateTimer(10) {
     override def update(now: Long): Unit = {
-      val g = new GCWrapper(drawArea.getGraphicsContext2D)
+      val g = new GraphicsContextWrapper(drawArea.getGraphicsContext2D)
       val h = drawArea.getHeight
       val w = drawArea.getWidth
       g.clearRect(0, 0, w, h)

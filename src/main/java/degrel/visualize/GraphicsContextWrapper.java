@@ -19,7 +19,7 @@ import javafx.scene.transform.Affine;
 /**
  * Decorator for javafx.scene.canvas.GraphicsContext
  */
-public class GCWrapper {
+public class GraphicsContextWrapper {
     private GraphicsContext origin;
 
     public Canvas getCanvas() {
@@ -326,7 +326,7 @@ public class GCWrapper {
         origin.fillText(text, x, y);
     }
 
-    public GCWrapper(GraphicsContext origin) {
+    public GraphicsContextWrapper(GraphicsContext origin) {
         this.origin = origin;
     }
 }
