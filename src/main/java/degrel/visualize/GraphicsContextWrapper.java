@@ -46,6 +46,10 @@ public class GraphicsContextWrapper {
         origin.translate(x, y);
     }
 
+    public void translate(Vec v) {
+        origin.translate(v.x(), v.y());
+    }
+
     public void arc(double centerX, double centerY, double radiusX, double radiusY, double startAngle, double length) {
         origin.arc(centerX, centerY, radiusX, radiusY, startAngle, length);
     }
@@ -68,6 +72,10 @@ public class GraphicsContextWrapper {
 
     public void strokeOval(Vec topLeft, double w, double h) {
         origin.strokeOval(topLeft.x(), topLeft.y(), w, h);
+    }
+
+    public void strokeOvalCenter(Vec center, double w, double h) {
+        origin.strokeOval(center.x() - w / 2, center.y() - h / 2, w, h);
     }
 
     public void beginPath() {
@@ -276,6 +284,14 @@ public class GraphicsContextWrapper {
 
     public void fillOval(double x, double y, double w, double h) {
         origin.fillOval(x, y, w, h);
+    }
+
+    public void fillOval(Vec topLeft, double w, double h) {
+        origin.fillOval(topLeft.x(), topLeft.y(), w, h);
+    }
+
+    public void fillOvalCenter(Vec center, double w, double h) {
+        origin.fillOval(center.x() - w / 2, center.y() - h / 2, w, h);
     }
 
     public void fillArc(double x, double y, double w, double h, double startAngle, double arcExtent, ArcType closure) {

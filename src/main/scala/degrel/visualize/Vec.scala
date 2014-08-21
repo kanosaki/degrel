@@ -18,6 +18,16 @@ class Vec(var x: Double, var y: Double) {
 
   def /(r: Double) = Vec(this.x / r, this.y / r)
 
+  def unit: Vec = {
+    val n = this.norm
+    Vec(this.x / n, this.y / n)
+  }
+
+  def normalize(norm: Double) = {
+    val n = this.norm
+    Vec(this.x * norm / n, this.y * norm / n)
+  }
+
   def +=(o: Vec) = {
     x += o.x
     y += o.y

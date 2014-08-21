@@ -44,6 +44,7 @@ object FXUtil {
    * @return ロードされたJavaFXオブジェクト
    */
   def loadAbsolute[T <: Parent](path: String, controller: AnyRef = null): T = {
+    FXManager.launch()
     val loader = new FXMLLoader(getClass.getResource(path))
     loader.setClassLoader(classLoader)
     if (controller != null) {
@@ -51,7 +52,10 @@ object FXUtil {
     }
     val doc = loader.load[T]()
     controller match {
-      case v: ViewBase => v.documentRoot = doc
+      case v: ViewBase => {
+        v.documentRoot = doc
+        FXManager.registerController(v)
+      }
     }
     doc
   }

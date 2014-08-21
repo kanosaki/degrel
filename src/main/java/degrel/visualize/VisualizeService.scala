@@ -4,20 +4,23 @@ import degrel.core.Element
 import degrel.visualize.view.MultiGraphView
 
 object VisualizeService {
-  var multigraphview = new MultiGraphView()
+  var multiGraphView: MultiGraphView = null
 
-  protected def prepareCurrentPresenter = {
-    FXManager.launch()
-    val stage = FXUtil.loadStage(new MultiGraphView())
+  protected def prepareCurrentPresenter(): Unit = {
+    if (multiGraphView != null) return
+    multiGraphView = new MultiGraphView()
+    val stage = FXUtil.loadStage(multiGraphView)
     FXUtil.runLater(
     {
       stage.show()
     })
   }
 
-
   def show(elem: Element) = {
     prepareCurrentPresenter
-    //prepareCurrentPresenter.pushElement(elem)
+    FXUtil.runLater(
+    {
+      multiGraphView.pushElement(elem)
+    })
   }
 }

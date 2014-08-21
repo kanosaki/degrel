@@ -5,6 +5,7 @@ import javafx.application.{Application, Platform}
 import javafx.stage.Stage
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.ref.WeakReference
 
 class FXManager extends Application {
   FXManager.__initialize_lock.synchronized(
@@ -16,6 +17,8 @@ class FXManager extends Application {
   })
 
   var primaryStage: Stage = null
+  private var childControllers = List[WeakReference[ViewBase]]()
+  private val childControllersLock = new Object()
 
   override def start(primaryStage: Stage): Unit = {
     this.primaryStage = primaryStage
@@ -26,6 +29,23 @@ class FXManager extends Application {
 
   override def init() = {
 
+  }
+
+  override def stop() = {
+    for (child <- this.childControllers.filter(_.get.nonEmpty)) {
+      child.get match {
+        case Some(view) => view.onStopping()
+        case None =>
+      }
+    }
+  }
+
+  def addChildController(view: ViewBase) = {
+    childControllersLock.synchronized(
+    {
+      this.childControllers = new WeakReference[ViewBase](view) ::
+                              childControllers.filter(_.get.nonEmpty)
+    })
   }
 
   /**
@@ -53,6 +73,13 @@ object FXManager {
   implicit private val ec = ExecutionContext.global
 
   def isLaunchd = _isLaunchd
+
+  def registerController(view: ViewBase) = {
+    instance match {
+      case null =>
+      case _ => instance.addChildController(view)
+    }
+  }
 
   /**
    * JavaFX Applicationを非同期で初期化します．

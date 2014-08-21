@@ -38,4 +38,8 @@ class ViewBase {
     _fxmlRoot
   }
 
+  def onStopping() = {
+
+  }
+
 }

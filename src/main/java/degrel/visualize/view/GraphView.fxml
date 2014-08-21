@@ -11,7 +11,7 @@
             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" xmlns="http://javafx.com/javafx/8"
             xmlns:fx="http://javafx.com/fxml/1">
     <center>
-        <AnchorPane fx:id="drawAreaWrap" style="-fx-background-color: #00FF00;" BorderPane.alignment="TOP_LEFT">
+        <AnchorPane fx:id="drawAreaWrap" BorderPane.alignment="TOP_LEFT">
             <children>
                 <Canvas fx:id="drawArea" height="300.0" onMouseClicked="#canvasClick" width="400.0"
                         AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"

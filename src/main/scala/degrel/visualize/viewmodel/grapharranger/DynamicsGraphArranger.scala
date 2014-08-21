@@ -41,12 +41,12 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
   /**
    * ノード間のバネの自然長
    */
-  var neutralLength: Float = 20
+  var neutralLength: Float = 100
 
   /**
    * 減衰
    */
-  var attenuation = 0.4
+  var attenuation = 0.5
 
   /**
    * 微少時間(単位なし)
@@ -59,7 +59,7 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
   /**
    * 変動係数を指定し，エネルギーの変動がこれを下回れば安定とします
    */
-  var stableThresh = 0.015
+  var stableThresh = 0.005
 
   var gravity = new Vec(0, 0.5)
 
@@ -82,6 +82,7 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
       v.step()
     }
     history += this.grossEnergy
+    println(grossEnergy)
   }
 
   def grossEnergy = {
@@ -138,5 +139,7 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
 
   override def clear(): Unit = {
     adapterMapping.clear()
+    stickedVertices.clear()
+    edges.clear()
   }
 }
