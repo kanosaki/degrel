@@ -1,8 +1,8 @@
 package degrel.front.dotlike
 
-import org.scalatest.FlatSpec
-import degrel.core.{Vertex, BasicLabel}
 import degrel.Query._
+import degrel.core.{BasicLabel, Traverser, Vertex}
+import org.scalatest.FlatSpec
 
 class DotlikeTest extends FlatSpec {
 
@@ -159,4 +159,17 @@ class DotlikeTest extends FlatSpec {
 
   }
 
+  it should "build a tree and asserted by FlyWrite" in {
+    val expr =
+      """@r {
+        |  -> a : e
+        |  -> b : e
+        |  b -> : e
+        |}
+      """.stripMargin
+    val actualAst = DigraphParser(expr)
+    val graph = actualAst.toGraph()
+    val vertices = Traverser(graph).toSeq
+    assert(vertices.size === 3)
+  }
 }

@@ -1,7 +1,7 @@
 package degrel.front.dotlike
 
 import degrel.core
-import degrel.core.{Edge, ID, Vertex, VertexBody, VertexHeader}
+import degrel.core.{Edge, ID, Vertex, VertexBody}
 import degrel.front.LexicalContext
 import degrel.utils.collection.mutable.BiHashMap
 
@@ -24,6 +24,7 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
   // Tag as I(Identifier)
   def tagI(expr: String): String @@ I = Tag[String, I](expr)
 
+  val rootIdentifier = tagI("")
 
   val vertices = new mutable.HashMap[String @@ I, Vertex]
   val attributes = new mutable.HashMap[String @@ I, Map[String, String]]
@@ -41,6 +42,9 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
       unprocessedAttributes += attr
     }
   })
+
+  // 根のラベルを登録
+  identifierLabelMap += tagI("") -> tagL(ast.label)
 
   def addLazyInitVertex(label: String) = {
 
@@ -108,13 +112,5 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
   }
 
 
-  def root: Vertex = {
-    val rootLabel = tagI("")
-    val header = new VertexHeader(null)
-    val edges = edgeDestinationMap.getOrElse(rootLabel, mutable.Seq[String @@ I]())
-      .map(dstLabel => Edge(header, edgeLabelMap(rootLabel -> dstLabel), this.vertexFor(dstLabel)))
-    Vertex(ast.label, edges, this.attributesFor(rootLabel))
-    header.write(VertexBody(ast.label, this.attributesFor(rootLabel), edges, ID.NA))
-    header
-  }
+  def root: Vertex = this.vertexFor(rootIdentifier)
 }
