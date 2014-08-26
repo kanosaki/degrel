@@ -70,31 +70,37 @@ class GraphView extends ViewBase {
     val g = new GraphicsContextWrapper(drawArea.getGraphicsContext2D)
     val h = drawArea.getHeight
     val w = drawArea.getWidth
+    val vertexW: Double = 60
+    val vertexH: Double = 30
     g.clearRect(0, 0, w, h)
 
     for (e <- drawer.edges) {
-      g.setLineWidth(1)
-      g.strokeLine(e.from + topLeftPad, e.to + topLeftPad)
-      g.setLineWidth(3)
-      g.strokeLine(e.to + topLeftPad, (e.to - (e.to - e.from).normalize(40)) + topLeftPad)
+      val rev = e.from - e.to
+      val p = rev.x
+      val q = rev.y
+      val a = vertexW / 2
+      val b = vertexH / 2
+      val crossX = (a * b * p) / math.sqrt(math.pow(a * q, 2) + math.pow(b * p, 2)) + topLeftPad.x + e.to.x
+      val crossY = (a * b * q) / math.sqrt(math.pow(a * q, 2) + math.pow(b * p, 2)) + topLeftPad.y + e.to.y
+      g.setFill(Color.BLACK)
+      g.fillArrow(e.from + topLeftPad, Vec(crossX, crossY))
     }
 
     g.setLineWidth(1)
 
-    val vertexW = 60
-    val vertexH = 30
     for (v <- drawer.vertices) {
       val loc = v.location + topLeftPad
-      g.setFill(Color.color(1, 1, 1))
+      g.setFill(Color.WHITE)
       g.fillOvalCenter(loc, vertexW, vertexH)
-      g.setStroke(Color.color(0, 0, 0))
+      g.setStroke(Color.BLACK)
       g.strokeOvalCenter(loc, vertexW, vertexH)
       g.strokeText(v.origin.label.expr, loc.x - vertexW * 0.3, loc.y + 5)
     }
 
+
     if (drawer.isCompleted) {
       g.setFill(Color.color(0.1, 0.1, 0.1))
-      g.fillRect(10, 10, 20, 20) // Stop mark..? only for debugging
+      g.fillRect(10, 10, 20, 20) // Stop sign..? only for debugging
     }
   }
 

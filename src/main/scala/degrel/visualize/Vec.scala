@@ -28,6 +28,12 @@ class Vec(var x: Double, var y: Double) {
     Vec(this.x * norm / n, this.y * norm / n)
   }
 
+  def rotate(rad: Double) = {
+    val cos = math.cos(rad)
+    val sin = math.sin(rad)
+    Vec(x * cos - y * sin, x * sin + y * cos)
+  }
+
   def +=(o: Vec) = {
     x += o.x
     y += o.y

@@ -82,7 +82,6 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
       v.step()
     }
     history += this.grossEnergy
-    println(grossEnergy)
   }
 
   def grossEnergy = {
