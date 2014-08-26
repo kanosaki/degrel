@@ -11,9 +11,9 @@ trait GraphArranger {
 
   def tick(): Unit
 
-  def vertices: Iterable[VertexViewModel]
+  def vertices: Iterable[ArrangerVertexInfo]
 
-  def edges: Iterable[EdgeViewModel]
+  def edges: Iterable[ArrangerEdgeInfo]
 
   def isCompleted: Boolean
 }

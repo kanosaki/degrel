@@ -11,17 +11,17 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
                             var withGravity: Boolean = false) extends GraphArranger {
   initialVertices.foreach(pushVertex)
 
-  val edges = new mutable.ListBuffer[EdgeAdapter]()
+  val edges = new mutable.ListBuffer[ArrangerEdgeAdapter]()
 
-  val adapterMapping = new mutable.HashMap[ID, VertexAdapter]()
+  val adapterMapping = new mutable.HashMap[ID, ArrangerVertexAdapter]()
 
   val stickedVertices = new mutable.HashSet[ID]()
 
-  def vertices: Iterable[VertexAdapter] = adapterMapping.values
+  def vertices: Iterable[ArrangerVertexAdapter] = adapterMapping.values
 
   override def pushVertex(v: Vertex) = {
-    adapterMapping += v.id -> new VertexAdapter(v)
-    v.edges().foreach(edges += new EdgeAdapter(_))
+    adapterMapping += v.id -> new ArrangerVertexAdapter(v)
+    v.edges().foreach(edges += new ArrangerEdgeAdapter(_))
   }
 
   override def stickVertex(v: Vertex) = {
@@ -89,7 +89,7 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
   }
 
 
-  class VertexAdapter(val origin: Vertex) extends VertexViewModel {
+  class ArrangerVertexAdapter(val origin: Vertex) extends ArrangerVertexInfo {
     var isFixed = false
     var weight = 1
     var location = Vec.random() * neutralLength * 3
@@ -126,7 +126,7 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
     }
   }
 
-  class EdgeAdapter(val origin: Edge) extends EdgeViewModel {
+  class ArrangerEdgeAdapter(val origin: Edge) extends ArrangerEdgeInfo {
     override def from: Vec = {
       adapterMapping(origin.src.id).location
     }
