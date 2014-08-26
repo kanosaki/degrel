@@ -6,24 +6,43 @@ import degrel.visualize.Vec
 
 import scala.collection.mutable
 
+/**
+ * 力学モデルを用いてグラフを描画します
+ * @param initialVertices 初期頂点
+ * @param withGravity 重力をかけるかどうか
+ */
 class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
-                            var stableThreshould: Float = 1f,
                             var withGravity: Boolean = false) extends GraphArranger {
   initialVertices.foreach(pushVertex)
 
+  /**
+   * 接続
+   */
   val edges = new mutable.ListBuffer[ArrangerEdgeAdapter]()
 
+  /**
+   * core.VertexのIDとArrangerVertexAdapterの対応
+   */
   val adapterMapping = new mutable.HashMap[ID, ArrangerVertexAdapter]()
 
+  /**
+   * 位置固定頂点．自動位置調整で操作されなくなります
+   */
   val stickedVertices = new mutable.HashSet[ID]()
 
   def vertices: Iterable[ArrangerVertexAdapter] = adapterMapping.values
 
+  /**
+   * @inheritdoc
+   */
   override def pushVertex(v: Vertex) = {
     adapterMapping += v.id -> new ArrangerVertexAdapter(v)
     v.edges().foreach(edges += new ArrangerEdgeAdapter(_))
   }
 
+  /**
+   * @inheritdoc
+   */
   override def stickVertex(v: Vertex) = {
     stickedVertices += v.id
   }

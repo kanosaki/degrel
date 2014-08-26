@@ -356,14 +356,19 @@ class GraphicsContextWrapper(val origin: GraphicsContext) {
   }
 
   /**
-   * 矢印を描画します
-   * @param from
-   * @param to
+   * 矢印を描画します．
+   * @param from 矢印の根元の座標
+   * @param to 矢印の先の座標．鏃が描画(fill)されます
+   * @param arrowHeight 鏃の長さ(高さ) 矢の方向の鏃の大きさです
+   * @param arrowWidth 鏃の幅 矢の方向に垂直な方向の大きさです．この値は矢の中心からの半径に相当する長さで，鏃自体の幅はこれの2倍になります．
    */
   def fillArrow(from: Vec, to: Vec, arrowHeight: Double = 10, arrowWidth: Double = 5) = {
     origin.strokeLine(from.x, from.y, to.x, to.y)
+    // 筈から鏃までのベクトル
     val delta = to - from
+    // 鏃とシャフトの部分の交点の座標
     val base = to - delta.normalize(arrowHeight)
+    // 鏃の三角形の筈側2点を求めます．シャフト方向のベクトルをPI/2回転させて，arrowWidthで長さを調整します
     val side = delta.rotate(Math.PI / 2).normalize(arrowWidth)
     val wing1 = base + side
     val wing2 = base - side

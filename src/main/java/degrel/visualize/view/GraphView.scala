@@ -50,8 +50,10 @@ class GraphView extends ViewBase {
   }
 
   override def onDocumentLoaded() = {
+    // 描画領域のサイズが外側に応じて変化するようにbind
     drawArea.heightProperty().bind(drawAreaWrap.heightProperty())
     drawArea.widthProperty().bind(drawAreaWrap.widthProperty())
+    // 描画領域のサイズが変更されたら再描画
     drawArea.widthProperty().addListener(new value.ChangeListener[Number] {
       override def changed(observable: ObservableValue[_ <: Number], oldValue: Number, newValue: Number): Unit = {
         drawGraph()
@@ -74,6 +76,7 @@ class GraphView extends ViewBase {
     val vertexH: Double = 30
     g.clearRect(0, 0, w, h)
 
+    // 接続を描画
     for (e <- drawer.edges) {
       val rev = e.from - e.to
       val p = rev.x
@@ -88,6 +91,7 @@ class GraphView extends ViewBase {
 
     g.setLineWidth(1)
 
+    // 頂点を描画
     for (v <- drawer.vertices) {
       val loc = v.location + topLeftPad
       g.setFill(Color.WHITE)
@@ -98,6 +102,7 @@ class GraphView extends ViewBase {
     }
 
 
+    // デバッグ用に停止マークを描画
     if (drawer.isCompleted) {
       g.setFill(Color.color(0.1, 0.1, 0.1))
       g.fillRect(10, 10, 20, 20) // Stop sign..? only for debugging

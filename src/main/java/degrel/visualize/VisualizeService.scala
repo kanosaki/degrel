@@ -16,8 +16,12 @@ object VisualizeService {
     })
   }
 
+  /**
+   * {@code elem}を表示します
+   * @param elem 表示する要素
+   */
   def show(elem: Element) = {
-    prepareCurrentPresenter
+    prepareCurrentPresenter()
     FXUtil.runLater(
     {
       multiGraphView.pushElement(elem)

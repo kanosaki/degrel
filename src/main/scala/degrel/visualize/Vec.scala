@@ -18,16 +18,25 @@ class Vec(var x: Double, var y: Double) {
 
   def /(r: Double) = Vec(this.x / r, this.y / r)
 
+  /**
+   * 単位ベクトルを求めます
+   */
   def unit: Vec = {
     val n = this.norm
     Vec(this.x / n, this.y / n)
   }
 
+  /**
+   * ベクトルの向きを変えず，長さのみを調整します
+   */
   def normalize(norm: Double) = {
     val n = this.norm
     Vec(this.x * norm / n, this.y * norm / n)
   }
 
+  /**
+   * ベクトルを回転します
+   */
   def rotate(rad: Double) = {
     val cos = math.cos(rad)
     val sin = math.sin(rad)
@@ -54,8 +63,14 @@ class Vec(var x: Double, var y: Double) {
     y /= o.y
   }
 
+  /**
+   * ベクトルの長さ
+   */
   def norm = math.sqrt(this.normSq)
 
+  /**
+   * ベクトルの長さの平方
+   */
   def normSq = x * x + y * y
 
   override def equals(o: Any) = o match {
@@ -74,8 +89,14 @@ class Vec(var x: Double, var y: Double) {
 }
 
 object Vec {
+  /**
+   * ゼロベクトル
+   */
   def zero: Vec = Vec(0, 0)
 
+  /**
+   * 0 <= x <= 1, 0 <= y <= 1を満たす(x,y)ベクトルをランダムに返します
+   */
   def random(): Vec = new Vec(math.random, math.random)
 
   def apply(x: Double, y: Double) = new Vec(x, y)
