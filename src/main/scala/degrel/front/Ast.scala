@@ -1,8 +1,8 @@
 package degrel.front
 
 import degrel.core
-import degrel.utils.FlyWrite._
 import degrel.core.Rule
+import degrel.utils.FlyWrite._
 
 /**
  * 抽象構文木のコンテナクラス
@@ -85,11 +85,6 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
  */
 case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges: Seq[AstEdge]) extends AstRoot {
 
-  def captureExpr: Option[String] = name match {
-    case AstName(Some(AstCapture(cap)), _) => Some(cap)
-    case _ => None
-  }
-
   /**
    * 頂点を表すVertexを作成します．参照頂点の場合はContextから探索し見つかったものを参照します
    * @param context 現在このグラフが存在するContext
@@ -146,6 +141,11 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
       }
       case None =>
     }
+  }
+
+  def captureExpr: Option[String] = name match {
+    case AstName(Some(AstCapture(cap)), _) => Some(cap)
+    case _ => None
   }
 
   private def captureEdges(context: LexicalContext): Unit = {

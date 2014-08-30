@@ -1,10 +1,16 @@
 package degrel.utils
 
-import scala.language.implicitConversions
-import scala.collection.mutable.ListBuffer
 import degrel.utils.collection.LookaheadIterator
 
+import scala.collection.mutable.ListBuffer
+import scala.language.implicitConversions
+
 object IterableExtensions {
+
+  implicit def iterableExtensions[T](it: Iterable[T]) = new IterableExtensions(it.iterator)
+
+  implicit def iteratorExtensions[T](it: Iterator[T]) = new IterableExtensions(it)
+
   class IterableExtensions[T](it: Iterator[T]) {
 
     def mapUntil[V](f: T => Option[V]): Iterator[V] = {
@@ -12,7 +18,7 @@ object IterableExtensions {
         val srcBuf = new LookaheadIterator(it.map(f))
 
         def hasNext: Boolean = {
-          if(!srcBuf.hasNext) return false
+          if (!srcBuf.hasNext) return false
           srcBuf.head match {
             case Some(_) => true
             case None => false
@@ -36,20 +42,16 @@ object IterableExtensions {
     def mapAllOrNone[V](f: T => Option[V]): Option[Seq[V]] = {
       val ret = new ListBuffer[V]
       var failed = false
-      while(!failed && it.hasNext) {
+      while (!failed && it.hasNext) {
         f(it.next()) match {
           case Some(v) => ret += v
           case None => failed = true
         }
       }
-      if(!failed)
+      if (!failed)
         Some(ret.toList)
       else
         None
     }
   }
-
-  implicit def iterableExtensions[T](it: Iterable[T]) = new IterableExtensions(it.iterator)
-
-  implicit def iteratorExtensions[T](it: Iterator[T]) = new IterableExtensions(it)
 }

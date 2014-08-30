@@ -1,6 +1,6 @@
 package degrel.visualize.viewmodel
 
-import degrel.core.{Vertex, Element}
+import degrel.core.{Element, Vertex}
 
 trait ElementViewModel {
   val target: Element

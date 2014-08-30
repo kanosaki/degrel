@@ -25,6 +25,7 @@ libraryDependencies ++= Seq(
     "commons-io" % "commons-io" % "2.4",
 //    "org.scalanlp" %% "breeze" % "0.8.1",
 //    "org.scalanlp" %% "breeze-natives" % "0.8.1",
+    "org.scalafx" %% "scalafx" % "8.0.5-R5",
     "org.scalaz" %% "scalaz-core" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
@@ -37,7 +38,7 @@ libraryDependencies ++= Seq(
 
 scalacOptions ++= Seq("-feature", "-deprecation")
 
-scalacOptions in (Compile,doc) := Seq("-d doc/wiki/scaladoc")
+//scalacOptions in (Compile,doc) := Seq("-d doc/wiki/scaladoc")
 
 initialCommands in console := "import scalaz._, Scalaz._"
 

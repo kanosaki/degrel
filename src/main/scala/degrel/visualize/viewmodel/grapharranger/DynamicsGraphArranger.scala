@@ -1,6 +1,6 @@
 package degrel.visualize.viewmodel.grapharranger
 
-import degrel.core.{ID, Edge, Vertex}
+import degrel.core.{Edge, ID, Vertex}
 import degrel.utils.collection.mutable.RingBuffer
 import degrel.visualize.Vec
 
@@ -29,8 +29,33 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
    * 位置固定頂点．自動位置調整で操作されなくなります
    */
   val stickedVertices = new mutable.HashSet[ID]()
-
-  def vertices: Iterable[ArrangerVertexAdapter] = adapterMapping.values
+  /**
+   * すべてのノード間のクーロン定数
+   */
+  var coulombConstant: Float = 1000
+  /**
+   * 接続されているノード間のバネ係数
+   */
+  var springConstant: Float = -10
+  /**
+   * ノード間のバネの自然長
+   */
+  var neutralLength: Float = 100
+  /**
+   * 減衰
+   */
+  var attenuation = 0.5
+  /**
+   * 微少時間(単位なし)
+   */
+  var sliceTime = 0.2
+  var historySize = 10
+  var history = new RingBuffer[Double](historySize)
+  /**
+   * 変動係数を指定し，エネルギーの変動がこれを下回れば安定とします
+   */
+  var stableThresh = 0.005
+  var gravity = new Vec(0, 0.5)
 
   /**
    * @inheritdoc
@@ -47,40 +72,11 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
     stickedVertices += v.id
   }
 
-  /**
-   * すべてのノード間のクーロン定数
-   */
-  var coulombConstant: Float = 1000
+  def isCompleted = isStable
 
-  /**
-   * 接続されているノード間のバネ係数
-   */
-  var springConstant: Float = -10
-
-  /**
-   * ノード間のバネの自然長
-   */
-  var neutralLength: Float = 100
-
-  /**
-   * 減衰
-   */
-  var attenuation = 0.5
-
-  /**
-   * 微少時間(単位なし)
-   */
-  var sliceTime = 0.2
-
-  var historySize = 10
-  var history = new RingBuffer[Double](historySize)
-
-  /**
-   * 変動係数を指定し，エネルギーの変動がこれを下回れば安定とします
-   */
-  var stableThresh = 0.005
-
-  var gravity = new Vec(0, 0.5)
+  def isStable: Boolean = {
+    history.size == history.maxSize && this.cofficientVariationOfEnergy < stableThresh
+  }
 
   def cofficientVariationOfEnergy = {
     val energySum = history.sum
@@ -90,12 +86,6 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
     math.sqrt(variance) / energyAve
   }
 
-  def isStable: Boolean = {
-    history.size == history.maxSize && this.cofficientVariationOfEnergy < stableThresh
-  }
-
-  def isCompleted = isStable
-
   def tick() = {
     for (v <- vertices.filterNot(p => stickedVertices(p.origin.id))) {
       v.step()
@@ -104,9 +94,18 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
   }
 
   def grossEnergy = {
-    vertices.foldLeft(0d)((p, vs) => {p + vs.velocity.norm * vs.weight})
+    vertices.foldLeft(0d)((p, vs) => {
+      p + vs.velocity.norm * vs.weight
+    })
   }
 
+  def vertices: Iterable[ArrangerVertexAdapter] = adapterMapping.values
+
+  override def clear(): Unit = {
+    adapterMapping.clear()
+    stickedVertices.clear()
+    edges.clear()
+  }
 
   class ArrangerVertexAdapter(val origin: Vertex) extends ArrangerVertexInfo {
     var isFixed = false
@@ -153,11 +152,5 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
     override def to: Vec = {
       adapterMapping(origin.dst.id).location
     }
-  }
-
-  override def clear(): Unit = {
-    adapterMapping.clear()
-    stickedVertices.clear()
-    edges.clear()
   }
 }

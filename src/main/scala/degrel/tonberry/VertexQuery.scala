@@ -3,15 +3,13 @@ package degrel.tonberry
 import degrel.core
 import degrel.core.Vertex
 
-class VertexQuery(val src : Iterable[core.Vertex], val expr: String, val parent: Query[core.Element] = null) extends Query[core.Vertex] {
-  val pattern = this.mkPattern(expr)
-
+class VertexQuery(val src: Iterable[core.Vertex], val expr: String, val parent: Query[core.Element] = null) extends Query[core.Vertex] {
   lazy val matched = src.filter(v => v.label.expr match {
     case pattern() => true
     case _ => false
   })
-
   lazy val matchedItor = matched.iterator
+  val pattern = this.mkPattern(expr)
 
   def hasNext: Boolean = matchedItor.hasNext
 

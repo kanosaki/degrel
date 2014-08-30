@@ -18,12 +18,42 @@ import scala.concurrent.{Await, ExecutionContext, Future}
  */
 object FXUtil {
   val FXML_DIRECTORY = Paths.get("/degrel/visualize/view").toString
+  implicit val execContext = ExecutionContext.global
   /**
    * JavaFXでFXMLをロードするときに使用されるClassLoaderはキャッシュを行わないため一般に低速．
    * なので，ロードされたクラスをキャッシュして高速化を図ります
    */
   var classLoader = new CachedClassLoader(FXMLLoader.getDefaultClassLoader)
-  implicit val execContext = ExecutionContext.global
+
+  /**
+   * JavaFXのステージをロードします
+   * @param controller 使用するコントローラ
+   * @param fxmlPath FXMLファイルの場所．Class.getResourceを使用します．nullの場合はloadViewのルールに従いFXMLが探索されます
+   * @param absolutePath trueの場合は`fxmlPath`を絶対パスとして扱います．`fxmlPath`がnullの時は無視されます．
+   * @return ロードされた`Stage`
+   */
+  def loadStage(controller: ViewBase,
+                fxmlPath: String = null,
+                absolutePath: Boolean = false): Stage = {
+    val root =
+      if (fxmlPath == null)
+        this.loadView[Parent](controller)
+      else {
+        if (absolutePath)
+          this.loadAbsolute[Parent](fxmlPath, controller)
+        else
+          this.load[Parent](fxmlPath, controller)
+      }
+    this.runAndWait(
+    {
+      val scene = new Scene(root)
+      val stage = new Stage()
+      controller.scene = scene
+      controller.stage = stage
+      stage.setScene(scene)
+      stage
+    })
+  }
 
   /**
    * デフォルトのViewフォルダよりビューをロードします．
@@ -80,50 +110,6 @@ object FXUtil {
   }
 
   /**
-   * JavaFXのステージをロードします
-   * @param controller 使用するコントローラ
-   * @param fxmlPath FXMLファイルの場所．Class.getResourceを使用します．nullの場合はloadViewのルールに従いFXMLが探索されます
-   * @param absolutePath trueの場合は`fxmlPath`を絶対パスとして扱います．`fxmlPath`がnullの時は無視されます．
-   * @return ロードされた`Stage`
-   */
-  def loadStage(controller: ViewBase,
-                fxmlPath: String = null,
-                absolutePath: Boolean = false): Stage = {
-    val root =
-      if (fxmlPath == null)
-        this.loadView[Parent](controller)
-      else {
-        if (absolutePath)
-          this.loadAbsolute[Parent](fxmlPath, controller)
-        else
-          this.load[Parent](fxmlPath, controller)
-      }
-    this.runAndWait(
-    {
-      val scene = new Scene(root)
-      val stage = new Stage()
-      controller.scene = scene
-      controller.stage = stage
-      stage.setScene(scene)
-      stage
-    })
-  }
-
-  /**
-   * デフォルトのjavafx Applicationのディスパッチスレッドでアクションを実行します
-   */
-  def runLater[T](f: => T): Unit = {
-    FXManager.runLater(f)
-  }
-
-  /**
-   * デフォルトのjavafx Applicationのディスパッチスレッドでアクションを実行します
-   */
-  def runLater[T](runnable: Runnable): Unit = {
-    FXManager.runLater(runnable)
-  }
-
-  /**
    * 処理をJavaFXの Applicationスレッドで実行して，その結果を待ちます
    * @param f 実行する処理
    * @param atMost 最大で待機する時間
@@ -149,7 +135,23 @@ object FXUtil {
       val ret = f
       channel.put(ret)
     })
-    Future({channel.take})
+    Future({
+      channel.take
+    })
+  }
+
+  /**
+   * デフォルトのjavafx Applicationのディスパッチスレッドでアクションを実行します
+   */
+  def runLater[T](f: => T): Unit = {
+    FXManager.runLater(f)
+  }
+
+  /**
+   * デフォルトのjavafx Applicationのディスパッチスレッドでアクションを実行します
+   */
+  def runLater[T](runnable: Runnable): Unit = {
+    FXManager.runLater(runnable)
   }
 
 }

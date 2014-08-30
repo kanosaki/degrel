@@ -8,20 +8,26 @@ class ViewBase {
   protected var _scene: Scene = null
   protected var _fxmlRoot: Parent = null
 
-  protected def onStageSet(s: Stage): Unit = {}
+  def scene = _scene
+
+  def scene_=(s: Scene) = {
+    _scene = s
+    onSceneSet(s)
+  }
 
   protected def onSceneSet(s: Scene): Unit = {}
 
-  def onDocumentLoaded(): Unit = {}
+  def stage = _stage
 
   def stage_=(s: Stage) = {
     _stage = s
     onStageSet(s)
   }
 
-  def scene_=(s: Scene) = {
-    _scene = s
-    onSceneSet(s)
+  protected def onStageSet(s: Stage): Unit = {}
+
+  def documentRoot: Parent = {
+    _fxmlRoot
   }
 
   def documentRoot_=(r: Parent) = {
@@ -29,14 +35,7 @@ class ViewBase {
     onDocumentLoaded()
   }
 
-
-  def scene = _scene
-
-  def stage = _stage
-
-  def documentRoot: Parent = {
-    _fxmlRoot
-  }
+  def onDocumentLoaded(): Unit = {}
 
   def onStopping() = {
 

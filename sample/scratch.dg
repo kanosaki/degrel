@@ -1,0 +1,136 @@
+
+
+
+List -> {
+    import Iterable
+
+    $root: nil
+    $length: 0 
+
+    new() -> {
+        $cons = nil
+        $length = 0
+    }
+
+    size() -> {
+        yield $length
+    }
+}
+
+main(args: A) -> {
+    $list = List.new
+}
+
+
+
+foobar(hoge: F) -> {
+}
+
+// NOTE
+* !:
+
+// Keywords
+self
+
+// Macros
+// return <expr> -> __return__(__val__!: <expr>)
+return <expr> 
+---> <expr> -> __return__(__val__: <expr>)
+yield <expr> ---> <expr> -> __return__(__val__: <expr>, __continue__: self)
+
+// Macros(test)
+return $x
+--> $x -> __return__(__val__: $x)
+--> x(__val__: X) -> X -> __return__(__val__: X)
+--> x(__val__: X) -> __return__(__val__: X)
+
+/* 
+// Assign
+$foo := a
+---> foo(__val__: a)
+
+// Assign of rule
+// Is $f a rule, or $f's return value?
+$f := foo(hoge: X) -> hogehoge(bar: X)
+
+
+// Value of a cell
+$ret := {
+    $x := foo(hoge: fuga)
+    $v := foo(hoge: X) -> hogehoge(bar: X)
+    return $v
+}
+
+// Call
+hoge(arg: $foo)
+---> foo(__val__: X) -> hoge(arg: X)
+// With multiple parameters
+hoge(arg1: $foo, arg2: $bar)
+---> foo(__val__: X1) -> $bar(__val__: X2) -> hoge(arg1: X1, arg2: X2)
+     == foo(__val__: X1) -> {$bar(__val__: X2) -> hoge(arg1: X1, arg2: X2)}
+foo() -> {
+    $x = 1
+    return $x
+}
+--->
+    foo() -> {
+        x(__val__: 1)
+        x(__val__:X) -> __return__(__val__: X)
+    }
+    __return__(__val__ !: V)
+    __return__(__val__ !: V, __continute__: self)
+
+// Return value hook
+$ret := {
+    funcall(hoge: $value) // yields some value
+}
+--->
+ret(__val__: X)
+
+
+// As
+foo as bar
+foo(*: X) -> bar(*: X)
+
+// Attribute access
+
+$foo.bar
+---> foo(__val__: X) -> X(bar: Y) -> Y
+
+Klass -> {
+    implicit_method(arg: V) -> {
+        // ...
+    }
+
+    explicit_method(arg: V) -> {
+    }
+
+    hoge -> {
+        super.implicit_method as someval // implicit use
+        $someval := funcall(...) // implicit_method will be applied
+
+        // NOTE: another_funcallの評価がexplicit_call内で行われる?
+        // TODO: ルールの評価は，placeholderの書き換えが終了してから?
+        $anotherval := super.explicit_call(arg: another_funcall(...))
+        
+        return ($anotherval, $someval)
+    }
+}
+
+// Cap Switch
+foo -> hoge
+| foo(hoge: F, fuga: B) -> fuga
+| foo(hoge: F) -> piyo
+
+---> 
+foo@E -> {
+    __case__(step: 0, value: E) 
+    __case__(step: 0, value: E) -> foo(hoge: F, fuga: B) -> 
+}
+
+// JVM Interop
+
+
+*/ 
+
+

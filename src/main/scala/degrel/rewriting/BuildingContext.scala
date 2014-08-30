@@ -1,6 +1,7 @@
 package degrel.rewriting
 
-import degrel.core.{Vertex, Edge, Element}
+import degrel.core.{Edge, Vertex}
+
 import scala.collection.mutable
 
 class BuildingContext(val binding: Binding) {

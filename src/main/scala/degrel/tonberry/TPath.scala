@@ -1,8 +1,9 @@
 package degrel.tonberry
 
 import degrel.core
-import scala.util.parsing.combinator.RegexParsers
 import degrel.core.Element
+
+import scala.util.parsing.combinator.RegexParsers
 
 object TPath {
   def select(v: core.Vertex, expr: String) = {
@@ -34,10 +35,10 @@ object TPathParser extends RegexParsers {
 
   val vBlock =
     eSep ~> pat_label ^^ (s => Seq(AstEdgeQuery(s))) |
-    pat_label ~ opt(eSep ~ pat_label) ^^ {
-      case vl ~ Some(_ ~ el) => Seq(AstVertexQuery(vl), AstEdgeQuery(el))
-      case vl ~ None => Seq(AstVertexQuery(vl))
-    }
+      pat_label ~ opt(eSep ~ pat_label) ^^ {
+        case vl ~ Some(_ ~ el) => Seq(AstVertexQuery(vl), AstEdgeQuery(el))
+        case vl ~ None => Seq(AstVertexQuery(vl))
+      }
 
   val path = opt("/") ~ repsep(vBlock, vSep) ^^ {
     case Some(_) ~ blocks => (true, blocks.flatten)
@@ -46,11 +47,13 @@ object TPathParser extends RegexParsers {
 
   def query(v: core.Vertex, expr: String): Query[Element] = {
     parseAll(path, expr) match {
-      case Success((true, blocks), _) => { // Absolute query
+      case Success((true, blocks), _) => {
+        // Absolute query
         val init = new RootQuery(v).asInstanceOf[Query[Element]]
         blocks.foldLeft(init)((q, ast) => ast.chain(q))
       }
-      case Success((false, blocks), _) => { // Relative query
+      case Success((false, blocks), _) => {
+        // Relative query
         val init = new VertexQuery(Seq(v), Query.any).asInstanceOf[Query[Element]]
         blocks.foldLeft(init)((q, ast) => ast.chain(q))
       }

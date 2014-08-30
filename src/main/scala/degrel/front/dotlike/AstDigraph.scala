@@ -41,17 +41,17 @@ case class AstDigraphBody(elements: Iterable[AstDigraphElement]) {
 case class AstDigraphIdentifier(label: Option[String], identifier: Option[String])
   extends AstDigraphElement {
 
-  private def optionToString(v: Option[String]): String = {
-    v match {
-      case None => ""
-      case Some(s) => s
-    }
-  }
-
   def toIdentifier: String = {
     identifier match {
       case None => optionToString(label)
       case Some(ident) => optionToString(label) ++ AstDigraphElement.IDENTIFIER_SEPARATOR ++ ident
+    }
+  }
+
+  private def optionToString(v: Option[String]): String = {
+    v match {
+      case None => ""
+      case Some(s) => s
     }
   }
 }

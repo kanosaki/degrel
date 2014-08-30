@@ -27,6 +27,16 @@ class Vec(var x: Double, var y: Double) {
   }
 
   /**
+   * ベクトルの長さ
+   */
+  def norm = math.sqrt(this.normSq)
+
+  /**
+   * ベクトルの長さの平方
+   */
+  def normSq = x * x + y * y
+
+  /**
    * ベクトルの向きを変えず，長さのみを調整します
    */
   def normalize(norm: Double) = {
@@ -63,16 +73,6 @@ class Vec(var x: Double, var y: Double) {
     y /= o.y
   }
 
-  /**
-   * ベクトルの長さ
-   */
-  def norm = math.sqrt(this.normSq)
-
-  /**
-   * ベクトルの長さの平方
-   */
-  def normSq = x * x + y * y
-
   override def equals(o: Any) = o match {
     case v: Vec => this.x == v.x && this.y == v.y
     case _ => false
@@ -94,11 +94,11 @@ object Vec {
    */
   def zero: Vec = Vec(0, 0)
 
+  def apply(x: Double, y: Double) = new Vec(x, y)
+
   /**
    * 0 <= x <= 1, 0 <= y <= 1を満たす(x,y)ベクトルをランダムに返します
    */
   def random(): Vec = new Vec(math.random, math.random)
-
-  def apply(x: Double, y: Double) = new Vec(x, y)
 }
 

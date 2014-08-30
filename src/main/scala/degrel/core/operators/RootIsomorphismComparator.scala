@@ -1,9 +1,9 @@
 package degrel.core.operators
 
 import degrel.core._
+
 import scala.collection.mutable
-import scalaz._
-import Scalaz._
+import scalaz.Scalaz._
 
 class RootIsomorphismComparator(self: Vertex, another: Vertex) {
   type History = mutable.Map[Vertex, Vertex]
@@ -21,8 +21,8 @@ class RootIsomorphismComparator(self: Vertex, another: Vertex) {
       case None => {
         history += self -> that
         self.label == that.label &&
-        self.edges().size == that.edges().size &&
-        areIsoEdges(history, self, that)
+          self.edges().size == that.edges().size &&
+          areIsoEdges(history, self, that)
       }
     }
   }
@@ -39,19 +39,25 @@ class RootIsomorphismComparator(self: Vertex, another: Vertex) {
       // Without polyvalent edges
       areIsoMonovalentEdges(history, self_edges, that_edges)
     } else {
-      areIsoPolyvalentEdges(history, self_grouped_edges,
-                            that_edges.groupBy(_.label).values.toSeq)
+      areIsoPolyvalentEdges(
+        history,
+        self_grouped_edges,
+        that_edges
+          .groupBy(_.label)
+          .values
+          .toSeq)
     }
   }
 
   private def areIsoMonovalentEdges(history: History,
                                     self_edges: Seq[Edge],
                                     that_edges: Seq[Edge]): Boolean = {
-    self_edges.zip(that_edges).
-      forall({
-               case (e1, e2) => e1.label == e2.label &&
-                                areIsoVertex(history, e1.dst, e2.dst)
-             })
+    self_edges
+      .zip(that_edges)
+      .forall({
+      case (e1, e2) => e1.label == e2.label &&
+        areIsoVertex(history, e1.dst, e2.dst)
+    })
   }
 
   private def areIsoPolyvalentEdges(history: History,

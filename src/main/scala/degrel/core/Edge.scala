@@ -1,7 +1,6 @@
 package degrel.core
 
-import degrel.rewriting._
-import degrel.rewriting.EdgeBridge
+import degrel.rewriting.{EdgeBridge, _}
 
 object Edge {
   def apply(src: => Vertex, label: Label, dst: => Vertex): Edge = {
@@ -11,35 +10,10 @@ object Edge {
 
 class Edge(_src: => Vertex, _label: Label, _dst: => Vertex)
   extends Product2[String, Vertex]
-          with Element
-          with Comparable[Edge] {
-  def label = _label
-
+  with Element
+  with Comparable[Edge] {
   lazy val dst = _dst
-
   private var __sourceVertex: Vertex = null
-
-  def src: Vertex = {
-    __sourceVertex match {
-      case null => {
-        __sourceVertex = _src
-        if (__sourceVertex == null) throw new AssertionError("Source of an edge cannot be null")
-        __sourceVertex
-      }
-      case _ => __sourceVertex
-    }
-  }
-
-
-  def src_=(v: Vertex) = {
-    if (v == null) {
-      throw new NullPointerException("Argument cannot be null")
-    }
-    if (__sourceVertex != null && (__sourceVertex eq v)) {
-      throw new AssertionError("Souce can set only once.")
-    }
-    __sourceVertex = v
-  }
 
   def _1: String = label.expr
 
@@ -83,8 +57,31 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex)
       NoMatching
   }
 
+  def label = _label
+
   def build(context: BuildingContext): Edge = {
     Edge(this.src, this.label, dst.build(context))
+  }
+
+  def src: Vertex = {
+    __sourceVertex match {
+      case null => {
+        __sourceVertex = _src
+        if (__sourceVertex == null) throw new AssertionError("Source of an edge cannot be null")
+        __sourceVertex
+      }
+      case _ => __sourceVertex
+    }
+  }
+
+  def src_=(v: Vertex) = {
+    if (v == null) {
+      throw new NullPointerException("Argument cannot be null")
+    }
+    if (__sourceVertex != null && (__sourceVertex eq v)) {
+      throw new AssertionError("Souce can set only once.")
+    }
+    __sourceVertex = v
   }
 
   def freeze: Edge = Edge(this.src, this.label, this.dst.freeze)

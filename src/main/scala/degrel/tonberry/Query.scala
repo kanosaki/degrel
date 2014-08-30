@@ -9,6 +9,10 @@ trait Query[+E] extends Iterator[E] {
 
   def nextE(expr: String = Query.any): EdgeQuery
 
+  def exactAs[T]: T = {
+    this.exact.asInstanceOf[T]
+  }
+
   def exact: E = {
     if (this.hasNext) {
       val ret = this.next()
@@ -19,10 +23,6 @@ trait Query[+E] extends Iterator[E] {
     } else {
       throw new QueryException(s"This query(${this.toString()}) has no result.")
     }
-  }
-
-  def exactAs[T]: T = {
-    this.exact.asInstanceOf[T]
   }
 
   def singleV: Vertex = {

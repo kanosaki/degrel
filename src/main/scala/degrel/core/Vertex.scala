@@ -1,7 +1,7 @@
 package degrel.core
 
 
-import degrel.rewriting.{MatchingContext, VertexMatching, BuildingContext}
+import degrel.rewriting.{BuildingContext, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
   def edges(label: Label = Label.wildcard): Iterable[Edge]
@@ -106,9 +106,9 @@ object Vertex {
    * @return
    */
   def create(label: String,
-            attributes: Map[String, String] = Map(),
-            id: ID = ID.NA)
-           (edgeInit: Vertex => Iterable[Edge]): Vertex = {
+             attributes: Map[String, String] = Map(),
+             id: ID = ID.NA)
+            (edgeInit: Vertex => Iterable[Edge]): Vertex = {
     val vh = new VertexHeader(null)
     val edges = edgeInit(vh)
     val body = VertexBody(Label(label), attributes, edges.toSeq, id)

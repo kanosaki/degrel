@@ -4,10 +4,14 @@ import java.util.concurrent._
 
 import degrel.utils.collection.mutable.ConcurrentHashSet
 import degrel.utils.concurrent.ResourceGuard
+
 import scala.language.implicitConversions
 
 class WorkerMaster(threadNum: Int = -1) {
-  val threadNumber = if (threadNum > 0) threadNum else {Runtime.getRuntime.availableProcessors()}
+  val threadNumber = if (threadNum > 0) threadNum
+  else {
+    Runtime.getRuntime.availableProcessors()
+  }
 
   val executor = Executors.newFixedThreadPool(threadNumber).asInstanceOf[ThreadPoolExecutor]
 
@@ -50,15 +54,15 @@ class WorkerMaster(threadNum: Int = -1) {
   def onTaskSucceed(task: WorkerTask, result: TaskResult) = {
     if (result.shouldResetTasks) {
       modifying.lock {
-                       queued.put(task)
-                       working -= task
-                       this.requeueWorkers()
-                     }
+        queued.put(task)
+        working -= task
+        this.requeueWorkers()
+      }
     } else {
       modifying.lock {
-                       working -= task
-                       stopped.add(task)
-                     }
+        working -= task
+        stopped.add(task)
+      }
     }
   }
 
@@ -66,7 +70,9 @@ class WorkerMaster(threadNum: Int = -1) {
     throw e
   }
 
-  def isStopped: Boolean = modifying.lock {queued.isEmpty && working.isEmpty}
+  def isStopped: Boolean = modifying.lock {
+    queued.isEmpty && working.isEmpty
+  }
 }
 
 trait WorkerTask {

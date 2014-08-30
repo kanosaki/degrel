@@ -1,8 +1,9 @@
 package degrel.utils.signal
 
+import degrel.utils.concurrent.ReadWriteGuard
+
 import scala.collection.mutable
 import scala.ref.WeakReference
-import degrel.utils.concurrent.ReadWriteGuard
 
 class WeakSequentialSignal[T] extends Signal[T] {
   private val handlers = new mutable.ListBuffer[WeakReference[Handler]]

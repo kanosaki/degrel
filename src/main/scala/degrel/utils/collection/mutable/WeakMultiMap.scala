@@ -16,10 +16,10 @@ class WeakMultiMap[K, V <: AnyRef] extends MutableMap[K, MutableSet[V]] with Mut
   private val _reverseMap = new MutableHashMap[WeakReference[V], K]()
   private val _refQueue = new ReferenceQueue[V]()
 
-  protected def mkWeakRef(k: K, v: V) = {
-    val ref = new WeakReference(v, _refQueue)
-    _reverseMap += (ref -> k)
-    ref
+  def addBindings(kvs: Iterable[(K, V)]) = {
+    for ((k, v) <- kvs) {
+      this.addBinding(k, v)
+    }
   }
 
   override def addBinding(k: K, v: V) =
@@ -43,37 +43,6 @@ class WeakMultiMap[K, V <: AnyRef] extends MutableMap[K, MutableSet[V]] with Mut
       _map += (k -> newset)
     })
 
-  def addBindings(kvs: Iterable[(K, V)]) = {
-    for ((k, v) <- kvs) {
-      this.addBinding(k, v)
-    }
-  }
-
-  override def entryExists(key: K, p: V => Boolean): Boolean = {
-    this.get(key) match {
-      case None => false
-      case Some(set) =>
-        lock.read(
-        {
-          set.exists(p)
-        })
-    }
-  }
-
-  override def removeBinding(key: K, value: V): this.type =
-    lock.read(
-    {
-      _map.get(key) match {
-        case Some(set) => set.retain(_.get != value)
-        case _ =>
-      }
-      this
-    })
-
-  private def retainLiveEntriesIn(vs: MutableSet[WeakReference[V]]) = {
-    vs.retain(_.get != null)
-  }
-
   def removeDeadEntries() =
     lock.write(
     {
@@ -82,6 +51,10 @@ class WeakMultiMap[K, V <: AnyRef] extends MutableMap[K, MutableSet[V]] with Mut
         .map(_reverseMap.apply).distinct
       keysWhichHasDeads.foreach(e => this.retainLiveEntriesIn(_map.apply(e)))
     })
+
+  private def retainLiveEntriesIn(vs: MutableSet[WeakReference[V]]) = {
+    vs.retain(_.get != null)
+  }
 
   private def refQueueToList = {
     var hasElement = true
@@ -96,29 +69,16 @@ class WeakMultiMap[K, V <: AnyRef] extends MutableMap[K, MutableSet[V]] with Mut
     ret
   }
 
-  override def +=(kv: (K, MutableSet[V])) = {
-    val key = kv._1
-    val values = kv._2.map(v => {
-      this.mkWeakRef(key, v)
-    })
-    lock.write(
-    {
-      _map += (key -> values)
-    })
-    this
+  override def entryExists(key: K, p: V => Boolean): Boolean = {
+    this.get(key) match {
+      case None => false
+      case Some(set) =>
+        lock.read(
+        {
+          set.exists(p)
+        })
+    }
   }
-
-  override def -=(key: K) =
-    lock.write(
-    {
-      _map.get(key) match {
-        case Some(values) => {
-          values.foreach(_reverseMap -= _)
-        }
-        case _ =>
-      }
-      this
-    })
 
   override def get(key: K) =
     lock.read(
@@ -133,6 +93,46 @@ class WeakMultiMap[K, V <: AnyRef] extends MutableMap[K, MutableSet[V]] with Mut
         }
         case _ => None
       }
+    })
+
+  override def removeBinding(key: K, value: V): this.type =
+    lock.read(
+    {
+      _map.get(key) match {
+        case Some(set) => set.retain(_.get != value)
+        case _ =>
+      }
+      this
+    })
+
+  override def +=(kv: (K, MutableSet[V])) = {
+    val key = kv._1
+    val values = kv._2.map(v => {
+      this.mkWeakRef(key, v)
+    })
+    lock.write(
+    {
+      _map += (key -> values)
+    })
+    this
+  }
+
+  protected def mkWeakRef(k: K, v: V) = {
+    val ref = new WeakReference(v, _refQueue)
+    _reverseMap += (ref -> k)
+    ref
+  }
+
+  override def -=(key: K) =
+    lock.write(
+    {
+      _map.get(key) match {
+        case Some(values) => {
+          values.foreach(_reverseMap -= _)
+        }
+        case _ =>
+      }
+      this
     })
 
   override def iterator =

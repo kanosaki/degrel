@@ -1,8 +1,9 @@
 package degrel.front
 
+import degrel.core
+
 import scala.collection.mutable
 import scala.reflect.ClassTag
-import degrel.core
 
 /**
  * 名前解決エラー．指定された変数名等が見つからない場合にthrowされる．
@@ -21,17 +22,16 @@ class NameError(expr: String) extends FrontException(s"$expr not found") {
  */
 trait LexicalContext {
   protected val parent: LexicalContext
-
-  /**
-   * 現在，パターン(ルール左辺)であるかどうかを返します
-   */
-  def isPattern = false
-
   /**
    * シンボルと値のテーブル
    */
   protected val symbolMap: mutable.MultiMap[String, Any] =
     new mutable.HashMap[String, mutable.Set[Any]] with mutable.MultiMap[String, Any]
+
+  /**
+   * 現在，パターン(ルール左辺)であるかどうかを返します
+   */
+  def isPattern = false
 
   /**
    * シンボルから値のリストを返します

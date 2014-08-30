@@ -1,18 +1,19 @@
 package degrel.engine
 
 import akka.actor.{Actor, Props}
-import degrel.rewriting.{Rewriter, Reserve}
+import degrel.rewriting.{Reserve, Rewriter}
 
 object RewriterWorker {
-  def props(rewriter: Rewriter): Props = Props(classOf[RewriterWorker], rewriter)
-
   def apply(rewriter: Rewriter) = {
     system.actorOf(this.props(rewriter))
   }
 
+  def props(rewriter: Rewriter): Props = Props(classOf[RewriterWorker], rewriter)
+
   case class Step(reserve: Reserve)
 
   case class Result(rewrote: Boolean)
+
 }
 
 class RewriterWorker(rewriter: Rewriter) extends Actor {

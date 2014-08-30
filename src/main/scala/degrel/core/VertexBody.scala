@@ -15,56 +15,24 @@ object VertexBody {
 class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
 
   private val _id = _previd.autoValidate
-
-  def id: ID = _id
-
-  def label: Label = _label
-
   private var _edges: Iterable[Edge] = null
 
-  this.writeEdges(_allEdges)
-
-  protected def allEdges: Iterable[Edge] = {
-    if (_edges == null) throw new Exception("You cannot refer edges untill initialized.")
-    _edges
-  }
-
   def writeEdges(es: Iterable[Edge]) = {
-    if(_edges != null) throw new Exception("Duplicated initialization")
+    if (_edges != null) throw new Exception("Duplicated initialization")
     for (e <- es) {
       e.src = this
     }
     _edges = es
   }
 
-
-  def edges(label: Label): Iterable[Edge] = {
-    label match {
-      case Label.wildcard => allEdges
-      case _ => allEdges.filter(_.label == label)
-    }
-  }
-
   def attr(key: String): Option[String] = {
     attributes.get(key)
   }
 
+  this.writeEdges(_allEdges)
 
   def groupedEdges: Iterable[Iterable[Edge]] = {
     allEdges.groupBy(_.label).values
-  }
-
-  def repr: String = {
-    val id = this.id.shorten
-    s"${this.reprLabel}@${id}${this.reprAttrs}"
-  }
-
-
-  def reprLabel: String = {
-    this.attributes.get("__captured_as__") match {
-      case Some(capExpr) => s"$capExpr[${this.label.expr}]"
-      case None => s"${this.label.expr}"
-    }
   }
 
   def reprRecursive(trajectory: Trajectory): String = {
@@ -83,11 +51,39 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
     }
   }
 
+  protected def allEdges: Iterable[Edge] = {
+    if (_edges == null) throw new Exception("You cannot refer edges untill initialized.")
+    _edges
+  }
+
+  def edges(label: Label): Iterable[Edge] = {
+    label match {
+      case Label.wildcard => allEdges
+      case _ => allEdges.filter(_.label == label)
+    }
+  }
+
+  def repr: String = {
+    val id = this.id.shorten
+    s"${this.reprLabel}@${id}${this.reprAttrs}"
+  }
+
+  def id: ID = _id
+
+  def reprLabel: String = {
+    this.attributes.get("__captured_as__") match {
+      case Some(capExpr) => s"$capExpr[${this.label.expr}]"
+      case None => s"${this.label.expr}"
+    }
+  }
+
+  def label: Label = _label
+
   def reprAttrs: String = {
     val targetKvs = attributes
-      .filter {case (k, v) => !k.startsWith("_")}
+      .filter { case (k, v) => !k.startsWith("_")}
     if (!targetKvs.isEmpty) {
-      val kvsExpr = targetKvs.map {case (k, v) => s"$k:$v"}.mkString(", ")
+      val kvsExpr = targetKvs.map { case (k, v) => s"$k:$v"}.mkString(", ")
       s"{$kvsExpr}"
     } else {
       ""
@@ -105,11 +101,11 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
       case Some(matchedV) => {
         val matchedEdges = this.edges().map(context.matchedEdgeExact).toSet
         val builtEdges = matchedV
-                           .edges()
-                           .filter(!matchedEdges.contains(_))
-                           .map(_.duplicate()) ++
-                         this.edges()
-                           .map(_.build(context))
+          .edges()
+          .filter(!matchedEdges.contains(_))
+          .map(_.duplicate()) ++
+          this.edges()
+            .map(_.build(context))
         Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
       }
       case None => {

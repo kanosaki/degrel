@@ -18,7 +18,7 @@ trait Label extends Ordered[Label] {
 
   def matches(pattern: Label) = {
     pattern.expr == "*" ||
-    this.expr == pattern.expr
+      this.expr == pattern.expr
   }
 
   override def compare(that: Label): Int = {
@@ -28,8 +28,9 @@ trait Label extends Ordered[Label] {
 
 object Label {
   val specials: Map[String, Label] =
-    Map("*" -> WildcardLabel,
-        "@" -> ReferenceLabel)
+    Map(
+      "*" -> WildcardLabel,
+      "@" -> ReferenceLabel)
   val wildcard = WildcardLabel
   val reference = ReferenceLabel
 

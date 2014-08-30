@@ -1,8 +1,6 @@
 package degrel.engine
 
 import akka.actor.ActorSystem
-import com.typesafe.config.{Config, ConfigFactory}
-import akka.util.Timeout
 
 class Engine(val name: String) {
   // From http://doc.akka.io/docs/akka/snapshot/java/dispatchers.html (2.3-SNAPSHOT)

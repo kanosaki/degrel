@@ -3,8 +3,8 @@ package degrel.core.operators
 import degrel.core._
 
 import scala.collection.mutable
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
 // Ported from regrel/graph.py Graph.is_isomorphic
 /**
@@ -47,7 +47,11 @@ class GraphIsomorphismComparator(self: Graph, that: Graph) {
     }
 
     def isContain(src: Vertex, attr: Label, dst: Vertex): Boolean = {
-      edge_table.get(src) >>= {_.get(attr)} >>= {_.apply(dst).some} match {
+      edge_table.get(src) >>= {
+        _.get(attr)
+      } >>= {
+        _.apply(dst).some
+      } match {
         case Some(tf) => tf
         case None => false
       }

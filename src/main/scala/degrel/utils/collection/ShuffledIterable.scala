@@ -15,10 +15,12 @@ class ShuffledIterator[A](inner: Iterator[A], val bufferSize: Int) extends Itera
 
   this.fillBuffer()
 
-  def insertItem(item: A) = {
-    bufferLock.write {
-      buffer.enqueue(new ItemWrapper(item))
+  override def next(): A = {
+    val ret = bufferLock.write {
+      buffer.dequeue().item
     }
+    this.fillBuffer()
+    ret
   }
 
   def fillBuffer() = {
@@ -29,12 +31,10 @@ class ShuffledIterator[A](inner: Iterator[A], val bufferSize: Int) extends Itera
     }
   }
 
-  override def next(): A = {
-    val ret = bufferLock.write {
-      buffer.dequeue().item
+  def insertItem(item: A) = {
+    bufferLock.write {
+      buffer.enqueue(new ItemWrapper(item))
     }
-    this.fillBuffer()
-    ret
   }
 
   override def hasNext: Boolean = {

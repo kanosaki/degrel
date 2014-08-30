@@ -1,6 +1,7 @@
 package degrel.rewriting
 
-import degrel.core.{Vertex, Rule, Traverser, Edge}
+import degrel.core.{Edge, Rule, Traverser, Vertex}
+
 import scala.collection.mutable
 
 trait Reserve {
@@ -46,7 +47,7 @@ trait Reserve {
 
   def repr() = {
     s"Rules:\n    ${this.rewriters.map(_.rule.toString).mkString("\n    ")}\n" +
-    s"Vertices:\n    ${this.roots.map(_.toString).mkString("\n    ")}"
+      s"Vertices:\n    ${this.roots.map(_.toString).mkString("\n    ")}"
   }
 
 }

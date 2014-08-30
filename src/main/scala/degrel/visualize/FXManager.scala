@@ -16,9 +16,9 @@ class FXManager extends Application {
     FXManager.instance = this
   })
 
+  private val childControllersLock = new Object()
   var primaryStage: Stage = null
   private var childControllers = List[WeakReference[ViewBase]]()
-  private val childControllersLock = new Object()
 
   override def start(primaryStage: Stage): Unit = {
     this.primaryStage = primaryStage
@@ -44,7 +44,7 @@ class FXManager extends Application {
     childControllersLock.synchronized(
     {
       this.childControllers = new WeakReference[ViewBase](view) ::
-                              childControllers.filter(_.get.nonEmpty)
+        childControllers.filter(_.get.nonEmpty)
     })
   }
 
@@ -66,19 +66,35 @@ class FXManager extends Application {
 object FXManager {
   private val __launch_lock = new Object()
   private val __initialize_lock = new Object()
-  private var instance: FXManager = null
   private val initLatch = new CountDownLatch(1)
-  private var __is_launching = false
-  protected var _isLaunchd = false
   implicit private val ec = ExecutionContext.global
-
-  def isLaunchd = _isLaunchd
+  protected var _isLaunchd = false
+  private var instance: FXManager = null
+  private var __is_launching = false
 
   def registerController(view: ViewBase) = {
     instance match {
       case null =>
       case _ => instance.addChildController(view)
     }
+  }
+
+  /**
+   * Use FXUtil.runLater
+   */
+  def runLater(runnable: Runnable) = {
+    if (!isLaunchd) {
+      FXManager.launch()
+    }
+    instance.runLater(runnable)
+  }
+
+  def isLaunchd = _isLaunchd
+
+  def launch(args: Array[String] = Array()): Boolean = {
+    val ret = this.launchAsync(args)
+    this.waitForInitialize()
+    ret
   }
 
   /**
@@ -107,12 +123,6 @@ object FXManager {
     })
   }
 
-  def launch(args: Array[String] = Array()): Boolean = {
-    val ret = this.launchAsync(args)
-    this.waitForInitialize()
-    ret
-  }
-
   def waitForInitialize(timeout: Long = -1,
                         unit: TimeUnit = TimeUnit.MILLISECONDS) = {
     if (timeout < 0) {
@@ -120,16 +130,5 @@ object FXManager {
     } else {
       initLatch.await(timeout, unit)
     }
-  }
-
-
-  /**
-   * Use FXUtil.runLater
-   */
-  def runLater(runnable: Runnable) = {
-    if (!isLaunchd) {
-      FXManager.launch()
-    }
-    instance.runLater(runnable)
   }
 }

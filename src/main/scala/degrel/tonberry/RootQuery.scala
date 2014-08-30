@@ -8,12 +8,12 @@ class RootQuery(val rootVertex: core.Vertex) extends Query[core.Element] {
 
   def next(): Element = throw new IllegalStateException()
 
-  def nextV(expr: String): VertexQuery = {
-    new VertexQuery(Seq(rootVertex), expr)
-  }
-
   def nextE(expr: String): EdgeQuery = {
     this.nextV(Query.any).nextE(expr)
+  }
+
+  def nextV(expr: String): VertexQuery = {
+    new VertexQuery(Seq(rootVertex), expr)
   }
 
   def freeze: RootQuery = {
