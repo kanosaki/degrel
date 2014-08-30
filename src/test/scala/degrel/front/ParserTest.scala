@@ -7,7 +7,7 @@ object ParseTestUtils {
     val attrs = if (attributes.isEmpty) {
       None
     } else {
-      Some(attributes.map {case (k, v) => AstAttribute(k, v)}.toSeq)
+      Some(attributes.map { case (k, v) => AstAttribute(k, v)}.toSeq)
     }
     AstVertex(AstName(None, Some(AstLabel(lbl))), attrs, mkEdges(edges))
   }
@@ -32,7 +32,7 @@ object ParseTestUtils {
 
 class DefaultTermParserTest extends FlatSpec {
 
-  import ParseTestUtils._
+  import degrel.front.ParseTestUtils._
 
   val parser = DefaultTermParser
 
@@ -46,44 +46,44 @@ class DefaultTermParserTest extends FlatSpec {
 
   it should "parse term simple labeled graph" in {
     assert_graph("foo(bar:baz, joe:jack(duke:togo))",
-                  mkVertex("foo",
-                            Seq(("bar", mkVertex("baz")),
-                                 ("joe", mkVertex("jack",
-                                                   Seq(("duke", mkVertex("togo")))))
-                               ))
-                )
+      mkVertex("foo",
+        Seq(("bar", mkVertex("baz")),
+          ("joe", mkVertex("jack",
+            Seq(("duke", mkVertex("togo")))))
+        ))
+    )
   }
 
   it should "parse term with capture" in {
     assert_graph("Hoge[snake](eater: X[foo])",
-                  AstVertex(mkName(label = "snake", capture = "Hoge"),
-                             None,
-                             mkEdges(Seq(("eater",
-                               AstVertex(mkName(label = "foo", capture = "X"),
-                                          None,
-                                          Seq())))))
-                )
+      AstVertex(mkName(label = "snake", capture = "Hoge"),
+        None,
+        mkEdges(Seq(("eater",
+          AstVertex(mkName(label = "foo", capture = "X"),
+            None,
+            Seq())))))
+    )
   }
 
   it should "parse rules" in {
     assert_graph("foo(bar: baz) -> hoge(fuga: piyo)",
-                  AstRule(mkVertex("foo", Seq(("bar", mkVertex("baz")))),
-                           mkVertex("hoge", Seq(("fuga", mkVertex("piyo"))))
-                         )
-                )
+      AstRule(mkVertex("foo", Seq(("bar", mkVertex("baz")))),
+        mkVertex("hoge", Seq(("fuga", mkVertex("piyo"))))
+      )
+    )
   }
 
   it should "parse rules with capturing" in {
     assert_graph("foo(bar: X[baz]) -> hoge(fuga: X)",
-                  AstRule(mkVertex("foo", Seq(("bar", AstVertex(mkName(label = "baz", capture = "X"),
-                                                                 None,
-                                                                 Seq())))),
-                           mkVertex("hoge", Seq(("fuga",
-                             AstVertex(mkName(capture = "X"),
-                                        None,
-                                        Seq()))))
-                         )
-                )
+      AstRule(mkVertex("foo", Seq(("bar", AstVertex(mkName(label = "baz", capture = "X"),
+        None,
+        Seq())))),
+        mkVertex("hoge", Seq(("fuga",
+          AstVertex(mkName(capture = "X"),
+            None,
+            Seq()))))
+      )
+    )
   }
 
   it should "reject unmatched braces" in {
@@ -94,6 +94,6 @@ class DefaultTermParserTest extends FlatSpec {
 
   it should "parse attribute" in {
     assert_graph("foo{hoge: fuga, a: b}(bar: baz)",
-                  mkVertex("foo", Seq("bar" -> mkVertex("baz")), Map("hoge" -> "fuga", "a" -> "b")))
+      mkVertex("foo", Seq("bar" -> mkVertex("baz")), Map("hoge" -> "fuga", "a" -> "b")))
   }
 }
