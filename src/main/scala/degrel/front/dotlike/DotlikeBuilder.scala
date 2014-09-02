@@ -100,10 +100,10 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
     val header = new core.VertexHeader(null)
     vertices += identifier -> header
     val edges = edgeDestinationMap.getOrElse(identifier, mutable.Seq[String @@ I]()).toSeq
-      .map(dstLabel => Edge(header, edgeLabelMap(identifier -> dstLabel), {
+      .map(dstLabel => Edge(header, Tag.unwrap(edgeLabelMap(identifier -> dstLabel)), {
       this.vertexFor(dstLabel)
     }))
-    val body = VertexBody(identifierLabelMap(identifier), this.attributesFor(identifier), edges, ID.NA)
+    val body = VertexBody(Tag.unwrap(identifierLabelMap(identifier)), this.attributesFor(identifier), edges, ID.NA)
     header.write(body)
   }
 

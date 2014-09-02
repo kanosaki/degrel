@@ -1,7 +1,6 @@
 package degrel
 
-import com.typesafe.scalalogging.slf4j.LazyLogging
-
+import com.typesafe.scalalogging.LazyLogging
 
 /**
  * 実際にログを行うライブラリとのアダプター
