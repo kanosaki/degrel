@@ -3,7 +3,7 @@ import AssemblyKeys._
 
 name := "degrel"
 
-scalaVersion := "2.11.1"
+scalaVersion := "2.11.2"
 
 //resolvers += "Twitter Repository" at "http://maven.twitter.com"
 
