@@ -15,8 +15,6 @@ import degrel.visualize.viewmodel.grapharranger.{DynamicsGraphArranger, GraphArr
 import degrel.visualize.{GraphicsContextWrapper, UpdateTimer, Vec, ViewBase}
 
 class GraphView extends ViewBase {
-  var drawer: GraphArranger = new DynamicsGraphArranger()
-  var drawerUpdater: ScheduledExecutorService = null
   val updateTimer = new UpdateTimer(15) {
     override def update(now: Long): Unit = {
       drawGraph()
@@ -27,7 +25,8 @@ class GraphView extends ViewBase {
       }
     }
   }
-
+  var drawer: GraphArranger = new DynamicsGraphArranger()
+  var drawerUpdater: ScheduledExecutorService = null
   // ------------------------------------------
   // FXML Bindings
   // ------------------------------------------
@@ -49,6 +48,12 @@ class GraphView extends ViewBase {
     stopDrawerUpdates()
   }
 
+  private def stopDrawerUpdates(): Unit = {
+    if (drawerUpdater == null) return
+    drawerUpdater.shutdown()
+    updateTimer.stop()
+  }
+
   override def onDocumentLoaded() = {
     // 描画領域のサイズが外側に応じて変化するようにbind
     drawArea.heightProperty().bind(drawAreaWrap.heightProperty())
@@ -68,32 +73,39 @@ class GraphView extends ViewBase {
   }
 
   def drawGraph() = {
-    val topLeftPad = Vec(drawArea.getWidth / 10, drawArea.getHeight / 10)
     val g = new GraphicsContextWrapper(drawArea.getGraphicsContext2D)
     val h = drawArea.getHeight
     val w = drawArea.getWidth
     val vertexW: Double = 60
     val vertexH: Double = 30
+
+    g.setTransform(1, 0, 0, 1, 0, 0)
     g.clearRect(0, 0, w, h)
+    // translateは蓄積してしまうので，setTransformを使ってTransformのリセットも同時に行う
+    g.setTransform(1, 0, 0, 1, drawArea.getWidth / 10, drawArea.getHeight / 10)
+    g.clearRect(0, 0, w, h)
+
 
     // 接続を描画
     for (e <- drawer.edges) {
+      // 頂点は現状楕円で描画されいるので，楕円と接続を表すベクトルとの交点を求めて，
+      // 接続の矢印を描画します
       val rev = e.from - e.to
       val p = rev.x
       val q = rev.y
       val a = vertexW / 2
       val b = vertexH / 2
-      val crossX = (a * b * p) / math.sqrt(math.pow(a * q, 2) + math.pow(b * p, 2)) + topLeftPad.x + e.to.x
-      val crossY = (a * b * q) / math.sqrt(math.pow(a * q, 2) + math.pow(b * p, 2)) + topLeftPad.y + e.to.y
+      val crossX = (a * b * p) / math.sqrt(math.pow(a * q, 2) + math.pow(b * p, 2)) + e.to.x
+      val crossY = (a * b * q) / math.sqrt(math.pow(a * q, 2) + math.pow(b * p, 2)) + e.to.y
       g.setFill(Color.BLACK)
-      g.fillArrow(e.from + topLeftPad, Vec(crossX, crossY))
+      g.fillArrow(e.from, Vec(crossX, crossY))
     }
 
     g.setLineWidth(1)
 
     // 頂点を描画
     for (v <- drawer.vertices) {
-      val loc = v.location + topLeftPad
+      val loc = v.location
       g.setFill(Color.WHITE)
       g.fillOvalCenter(loc, vertexW, vertexH)
       g.setStroke(Color.BLACK)
@@ -108,6 +120,10 @@ class GraphView extends ViewBase {
       g.fillRect(10, 10, 20, 20) // Stop sign..? only for debugging
     }
   }
+
+  // ------------------------------------------
+  // Private methods
+  // ------------------------------------------
 
   // ------------------------------------------
   // Public methods
@@ -126,10 +142,6 @@ class GraphView extends ViewBase {
     startDrawerUpdates()
   }
 
-  // ------------------------------------------
-  // Private methods
-  // ------------------------------------------
-
   private def startDrawerUpdates() = {
     drawerUpdater = new ScheduledThreadPoolExecutor(1, Executors.defaultThreadFactory())
     drawerUpdater.scheduleWithFixedDelay(
@@ -137,12 +149,6 @@ class GraphView extends ViewBase {
       drawer.tick()
     }, 0, 10, TimeUnit.MILLISECONDS)
     updateTimer.start()
-  }
-
-  private def stopDrawerUpdates(): Unit = {
-    if (drawerUpdater == null) return
-    drawerUpdater.shutdown()
-    updateTimer.stop()
   }
 
 
