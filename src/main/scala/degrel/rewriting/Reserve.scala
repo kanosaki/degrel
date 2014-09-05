@@ -1,10 +1,11 @@
 package degrel.rewriting
 
+import degrel.Logger
 import degrel.core.{Edge, Rule, Traverser, Vertex}
 
 import scala.collection.mutable
 
-trait Reserve {
+trait Reserve extends Logger {
   def rewriters: Iterable[Rewriter]
 
   def iterVertices: Iterable[Vertex] = {
