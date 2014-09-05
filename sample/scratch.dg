@@ -30,7 +30,13 @@ foobar(hoge: F) -> {
 * !:
 
 // Keywords
-self
+self // self cell
+defop, defbin
+
+// define binop
+defop 'return' -1
+defbin '>>=' -2
+
 
 // Macros
 // return <expr> -> __return__(__val__!: <expr>)
@@ -92,10 +98,14 @@ ret(__val__: X)
 foo as bar
 foo(*: X) -> bar(*: X)
 
-// Attribute access
+// Attribute read (Message Send)
+$foo.bar --->
+foo(__val__: __cell__(__var__: A)) -> A
 
-$foo.bar
----> foo(__val__: X) -> X(bar: Y) -> Y
+$foo.bar(hoge: fuga) --->
+foo(__val__: __cell__(*: X)) 
+    -> foo(__val__: __cell__(__item__: bar(hoge: fuga), *: X))
+
 
 Klass -> {
     implicit_method(arg: V) -> {
@@ -105,27 +115,68 @@ Klass -> {
     explicit_method(arg: V) -> {
     }
 
-    hoge -> {
+    hoge(self) -> {
         super.implicit_method as someval // implicit use
         $someval := funcall(...) // implicit_method will be applied
 
         // NOTE: another_funcallの評価がexplicit_call内で行われる?
         // TODO: ルールの評価は，placeholderの書き換えが終了してから?
         $anotherval := super.explicit_call(arg: another_funcall(...))
+        super.explicit_call.__lhs__ -> 
         
         return ($anotherval, $someval)
     }
 }
 
 // Cap Switch
+// よりより強い制約と弱い制約の分岐をどうするか
+// MEMO: 上から下にパターンマッチ．一番上は探索用
 foo -> hoge
 | foo(hoge: F, fuga: B) -> fuga
 | foo(hoge: F) -> piyo
 
 ---> 
-foo@E -> {
-    __case__(step: 0, value: E) 
-    __case__(step: 0, value: E) -> foo(hoge: F, fuga: B) -> 
+// 難しい．パターンマッチエンジンに組み込んだほうがいいかも
+
+
+// Cell Extractor
+// Cellから値を取り出す仕組み
+* Default Extractor
+// Proposal 1 "return"
+foo -> {
+    ...
+    return someContV@V -> __continue__(__val__: V, __next__: self)
+    return someRetV@V -> V
+}
+
+// Cell Building
+hoge(arg: X) -> {
+   $foo = 1
+   $bar = X
+   rule(hoge: F) -> hoge(bar: F)
+   fin hoge@H -> H
+}
+hoge(arg: X) -> __cell__(
+  __var__: foo(__val__: 1),
+  __var__: bar(__val__: X),
+  __rule__: __rule__(__lhs__: rule(hoge: *@F), __rhs__: foo(bar: F)),
+  __return__: __rule__(__lhs__: hoge@H, __rhs__: H)
+)
+
+// Curring Rule
+foo(a: X) -> bar(b: Y) -> baz(a: X, b: Y)
+__rule__(
+  __lhs__: foo(a: *[X]), 
+  __rhs__: 
+    __rule__(
+      __lhs__: bar(b: *[Y]), 
+      __rhs__: baz(a: X, b: Y)))
+
+// Bind operator
+funcA >>= funcB
+FA >>= FB -> _(*: A) -> {
+    $1 = FA(*: A)
+    return FB(*: $1)
 }
 
 // JVM Interop
