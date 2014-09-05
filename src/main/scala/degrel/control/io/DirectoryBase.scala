@@ -1,7 +1,9 @@
 package degrel.control.io
 
 import java.io.File
+
 import degrel.control.env.OS
+
 import scala.io.Source
 
 trait DirectoryBase {
@@ -19,7 +21,7 @@ trait DirectoryBase {
 
   def mkFile(relpath: String, createIfNotExists: Boolean = true) = {
     val ret = new File(this.mkPath(relpath))
-    if(!ret.exists && createIfNotExists) {
+    if (!ret.exists && createIfNotExists) {
       ret.createNewFile()
     }
     ret

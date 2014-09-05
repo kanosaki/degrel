@@ -9,7 +9,7 @@ class InitialContext extends MatchingContext {
 }
 
 object MatchingContext {
-  def empty : MatchingContext = {
+  def empty: MatchingContext = {
     new InitialContext()
   }
 }

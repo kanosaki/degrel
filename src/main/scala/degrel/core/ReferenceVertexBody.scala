@@ -2,26 +2,29 @@ package degrel.core
 
 import degrel.rewriting.BuildingContext
 
-class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: Iterable[Edge], _id: ID) extends VertexBody(label,
-                                                                                                                            attrs,
-                                                                                                                            all_edges,
-                                                                                                                            _id) {
+class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: Iterable[Edge], _id: ID)
+  extends VertexBody(
+    label,
+    attrs,
+    all_edges,
+    _id) {
   private lazy val unreferenceEdges = all_edges.filter(!_.isReference)
-
-  override def repr: String = {
-    s"@<${this.referenceTarget.repr}>"
-  }
 
   override def build(context: BuildingContext): Vertex = {
     val matchedV = context.matchedVertexExact(this.referenceTarget)
     val matchedEdges = this.referenceTarget.edges().map(context.matchedEdgeExact).toSet
     val builtEdges = matchedV
-                       .edges()
-                       .filter(!matchedEdges.contains(_))
-                       .map(_.duplicate()) ++
-                     unreferenceEdges
-                       .map(_.build(context))
-    Vertex(matchedV.label.expr, builtEdges, matchedV.attributes, matchedV.id)
+      .edges()
+      .filter(!matchedEdges.contains(_))
+      .map(_.duplicate()) ++
+      unreferenceEdges
+        .map(_.build(context))
+    Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
+  }
+
+  def referenceTarget: Vertex = {
+    val refEdges = this.edges("_ref")
+    refEdges.head.dst
   }
 
   override def reprRecursive(history: Trajectory): String = {
@@ -40,9 +43,8 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
     }
   }
 
-  def referenceTarget: Vertex = {
-    val refEdges = this.edges("_ref")
-    refEdges.head.dst
+  override def repr: String = {
+    s"@<${this.referenceTarget.repr}>"
   }
 }
 

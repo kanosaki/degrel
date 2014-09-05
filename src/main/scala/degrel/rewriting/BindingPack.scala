@@ -1,10 +1,9 @@
 package degrel.rewriting
 
 import degrel.core.Element
-import degrel.core
 
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
 trait BindingPack /* extends Iterable[Binding] */ {
   def join(other: BindingPack): BindingPack

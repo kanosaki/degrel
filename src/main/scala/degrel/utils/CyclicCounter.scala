@@ -5,6 +5,14 @@ class CyclicCounter(val cycle: Int) {
 
   private var current = cycle
 
+  def next(): Boolean = {
+    if (current == 0) {
+      this.reset()
+    }
+    this.proceedCount()
+    current == 0
+  }
+
   def reset() {
     current = cycle
   }
@@ -12,13 +20,5 @@ class CyclicCounter(val cycle: Int) {
   def proceedCount(): Int = {
     current -= 1
     current
-  }
-
-  def next(): Boolean = {
-    if (current == 0) {
-      this.reset()
-    }
-    this.proceedCount()
-    current == 0
   }
 }

@@ -16,11 +16,10 @@ class Transaction() {
 
 object Transaction {
 
+  def bot: Transaction = new Bottom()
+
   class Bottom extends Transaction {
     override protected val _status: stm.Ref[TransactionStatus] = stm.Ref(TransacrionStatus.Commited)
   }
-
-
-  def bot: Transaction = new Bottom()
 
 }

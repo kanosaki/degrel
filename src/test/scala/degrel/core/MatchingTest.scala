@@ -25,9 +25,10 @@ class MatchingTest extends FlatSpec {
 
   it should "not matches different labeled vertex" in {
     val pattern = vHead("foo")
-    val verticies = Seq(vHead("hoge"),
-                         vHead("bar"),
-                         "baz" |^|("piyo", vHead("hoge")))
+    val verticies = Seq(
+      vHead("hoge"),
+      vHead("bar"),
+      "baz" |^|("piyo", vHead("hoge")))
     for (v <- verticies) {
       val mch = v.matches(pattern)
       assert(!mch.success)
@@ -36,9 +37,10 @@ class MatchingTest extends FlatSpec {
 
   it should "all vertex matches with wildcard vertex" in {
     val pattern = vHead("*")
-    val verticies = Seq(vHead("foo"),
-                         vHead("bar"),
-                         "baz" |^|("foo", vHead("hoge")))
+    val verticies = Seq(
+      vHead("foo"),
+      vHead("bar"),
+      "baz" |^|("foo", vHead("hoge")))
     for (v <- verticies) {
       val mch = v.matches(pattern)
       assert(mch.success)
@@ -47,8 +49,9 @@ class MatchingTest extends FlatSpec {
 
   it should "matches by partial pattern" in {
     val pattern = parse("foo(bar: *)")
-    val verticies = Seq("foo(bar: baz)",
-                         "foo(hoge: fuga, bar: baz)").map(parse)
+    val verticies = Seq(
+      "foo(bar: baz)",
+      "foo(hoge: fuga, bar: baz)").map(parse)
     for (v <- verticies) {
       val mch = v.matches(pattern)
       assert(mch.success)
@@ -57,8 +60,9 @@ class MatchingTest extends FlatSpec {
 
   it should "reject composite pattern with difference edge name" in {
     val pattern = parse("foo(piyo: *)")
-    val verticies = Seq("foo(bar: baz)",
-                         "foo(hoge: fuga, bar: baz)").map(parse)
+    val verticies = Seq(
+      "foo(bar: baz)",
+      "foo(hoge: fuga, bar: baz)").map(parse)
     for (v <- verticies) {
       val mch = v.matches(pattern)
       assert(!mch.success)
@@ -67,8 +71,9 @@ class MatchingTest extends FlatSpec {
 
   it should "reject composite pattern with difference child vertex" in {
     val pattern = parse("foo(piyo: baz(hoge: fuga), bar: *)")
-    val verticies = Seq("foo(bar: baz, piyo: bazbaz(hoge: fuga))",
-                         "foo(hoge: fuga, bar: baz)").map(parse)
+    val verticies = Seq(
+      "foo(bar: baz, piyo: bazbaz(hoge: fuga))",
+      "foo(hoge: fuga, bar: baz)").map(parse)
     for (v <- verticies) {
       val mch = v.matches(pattern)
       assert(!mch.success)

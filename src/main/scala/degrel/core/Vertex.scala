@@ -1,7 +1,7 @@
 package degrel.core
 
 
-import degrel.rewriting.{MatchingContext, VertexMatching, BuildingContext}
+import degrel.rewriting.{BuildingContext, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
   def edges(label: Label = Label.wildcard): Iterable[Edge]
@@ -55,10 +55,10 @@ trait Vertex extends Element with Comparable[Vertex] {
     Rule(lhs, rhs)
   }
 
-  def asRoot: Graph = {
+  def toGraph: Graph = {
     this match {
       case g: Graph => g
-      case _ => new Graph(this)
+      case _ => new RawRootedGraph(this)
     }
   }
 
@@ -89,8 +89,30 @@ trait Vertex extends Element with Comparable[Vertex] {
 }
 
 object Vertex {
-  def apply(label: String, edges: Iterable[Edge], attributes: Map[String, String] = Map(), id: ID = ID.NA): Vertex = {
+  def apply(label: String,
+            edges: Iterable[Edge],
+            attributes: Map[String, String] = Map(),
+            id: ID = ID.NA): Vertex = {
     val body = VertexBody(Label(label), attributes, edges.toSeq, id)
     new VertexHeader(body)
+  }
+
+  /**
+   * Note: edgeInitに渡されるVertexはVertexHeaderのみなので注意
+   * @param label
+   * @param attributes
+   * @param id
+   * @param edgeInit
+   * @return
+   */
+  def create(label: String,
+             attributes: Map[String, String] = Map(),
+             id: ID = ID.NA)
+            (edgeInit: Vertex => Iterable[Edge]): Vertex = {
+    val vh = new VertexHeader(null)
+    val edges = edgeInit(vh)
+    val body = VertexBody(Label(label), attributes, edges.toSeq, id)
+    vh.write(body)
+    vh
   }
 }

@@ -14,9 +14,9 @@ trait VertexMatching extends MatchedGraph {
 }
 
 case class MonoVertexMatching(vBind: VertexBridge, eMatches: Iterable[EdgeMatching]) extends VertexMatching {
-  def iterator: Iterator[BindingPack] = ???
-
   private lazy val _success: Boolean = eMatches.isEmpty || eMatches.forall(_.success)
+
+  def iterator: Iterator[BindingPack] = ???
 
   override def success = _success
 
@@ -26,9 +26,9 @@ case class MonoVertexMatching(vBind: VertexBridge, eMatches: Iterable[EdgeMatchi
 }
 
 case class PolyVertexMatching(matches: Iterable[VertexMatching]) extends VertexMatching {
-  def iterator: Iterator[BindingPack] = ???
-
   private lazy val _success: Boolean = !matches.isEmpty
+
+  def iterator: Iterator[BindingPack] = ???
 
   override def success = _success
 

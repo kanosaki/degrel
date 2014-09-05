@@ -7,8 +7,6 @@ class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit tra
   protected val _oldV: stm.Ref[VertexBody] = stm.Ref(_oldVertex)
   protected val _newV: stm.Ref[VertexBody] = stm.Ref(_newVertex)
 
-  def status: TransactionStatus = transaction.status
-
   def tryCommit(v: Vertex): Boolean = {
     val vb = v match {
       case vh: VertexHeader => vh.body
@@ -25,14 +23,6 @@ class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit tra
     }
   }
 
-  def oldVertex: VertexBody = {
-    _oldV.single.get
-  }
-
-  def newVertex: VertexBody = {
-    _newV.single.get
-  }
-
   def activeVertex: VertexBody = {
     val S = TransacrionStatus
     this.status match {
@@ -40,6 +30,16 @@ class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit tra
       case S.Aborted => this.oldVertex
       case S.Commited => this.newVertex
     }
+  }
+
+  def status: TransactionStatus = transaction.status
+
+  def oldVertex: VertexBody = {
+    _oldV.single.get
+  }
+
+  def newVertex: VertexBody = {
+    _newV.single.get
   }
 
 }

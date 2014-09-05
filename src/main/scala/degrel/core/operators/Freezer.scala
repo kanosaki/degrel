@@ -2,9 +2,8 @@ package degrel.core.operators
 
 
 import degrel.core._
+
 import scala.collection.mutable
-import scalaz.Free
-import java.util.NoSuchElementException
 
 class Freezer(val root: Vertex) {
   val traverser = Traverser(root)
@@ -19,15 +18,16 @@ class Freezer(val root: Vertex) {
 
   val builtRoot = vMap(root)
 
+  def freeze: Vertex = builtRoot
 
   private def buildVertex(v: Vertex): VertexBody = {
     val edges = v.edges().map(e => {
-      Edge(null, e.label, {vMap(e.dst)})
+      Edge(null, e.label, {
+        vMap(e.dst)
+      })
     })
     VertexBody(v.label, v.attributes, edges, ID.NA)
   }
-
-  def freeze: Vertex = builtRoot
 }
 
 object Freezer {

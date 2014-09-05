@@ -1,11 +1,17 @@
 package degrel.utils
 
 import java.util.concurrent._
-import degrel.utils.collection.ConcurrentHashSet
+
+import degrel.utils.collection.mutable.ConcurrentHashSet
 import degrel.utils.concurrent.ResourceGuard
 
+import scala.language.implicitConversions
+
 class WorkerMaster(threadNum: Int = -1) {
-  val threadNumber = if (threadNum > 0) threadNum else {Runtime.getRuntime.availableProcessors()}
+  val threadNumber = if (threadNum > 0) threadNum
+  else {
+    Runtime.getRuntime.availableProcessors()
+  }
 
   val executor = Executors.newFixedThreadPool(threadNumber).asInstanceOf[ThreadPoolExecutor]
 
@@ -19,19 +25,18 @@ class WorkerMaster(threadNum: Int = -1) {
 
 
   private def requeueWorkers() = {
-    for (tsk <- stopped) {
-      queued.put(tsk)
-    }
+    queued.addAll(stopped)
     stopped.clear()
   }
 
 
   def start() = {
+    implicit val master = this
     do {
       val next = queued.poll(100, TimeUnit.MILLISECONDS)
       if (next != null) {
         working += next
-        executor.submit(runnable(next.start))
+        executor.submit(next.start)
       }
     } while (!this.isStopped)
   }
@@ -65,7 +70,9 @@ class WorkerMaster(threadNum: Int = -1) {
     throw e
   }
 
-  def isStopped: Boolean = modifying.lock {queued.isEmpty && working.isEmpty}
+  def isStopped: Boolean = modifying.lock {
+    queued.isEmpty && working.isEmpty
+  }
 }
 
 trait WorkerTask {
@@ -78,7 +85,7 @@ trait WorkerTask {
     }
   }
 
-  abstract def run(): TaskResult
+  def run(): TaskResult
 
 }
 
