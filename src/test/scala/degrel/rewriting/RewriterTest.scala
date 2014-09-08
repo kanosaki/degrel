@@ -1,9 +1,9 @@
 package degrel.rewriting
 
+import degrel.Query._
 import degrel.front.ParserUtils
 import degrel.utils.TestUtils._
 import degrel.{core, front}
-import degrel.Query._
 import org.scalatest.FlatSpec
 import org.scalatest.concurrent.Timeouts._
 import org.scalatest.time.SpanSugar._
@@ -66,7 +66,7 @@ class RewriterTest extends FlatSpec {
     val rewrote = reserve.rewriteStep()
     assert(rewrote, "should be written")
     val expected = Set(parse("x(y: z(c: b(c: d)))"),
-                       parse("hoge(fuga: piyo)"))
+      parse("hoge(fuga: piyo)"))
     val actual = reserve.roots.toSet
     assertElementSet(expected, actual)
   }
@@ -89,10 +89,10 @@ class RewriterTest extends FlatSpec {
     reserve.addVertex(parse("a(x: foo)"))
     reserve.addVertex(parse("x(y: a(x: hoge(fuga: piyo)), b: c)"))
     failAfter(1 seconds) {
-                           reserve.rewriteUntilStop()
-                         }
+      reserve.rewriteUntilStop()
+    }
     val expected = Set(parse("x(y: c(d: foo(bar: hoge(fuga: piyo))), b: c)"),
-                       parse("c(d: foo(bar: foo))"))
+      parse("c(d: foo(bar: foo))"))
     val actual = reserve.roots.toSet
     assertElementSet(expected, actual)
   }
@@ -115,7 +115,14 @@ class RewriterTest extends FlatSpec {
     val dataV = parse("a(b: b, rewrote: false, hoge: fuga)")
     val binding = dataV.matches(rule.lhs).pack.pickFirst
     val result = rule.rhs.build(new BuildingContext(binding))
-    val expected = parse("foo(a: a(rewrote: true, b: b, hoge: fuga), b: b)")
+    val expected = parseDot(
+      """@foo{
+        | -> a: a
+        | a -> true: rewrote
+        | a -> b: b
+        | a -> fuga: hoge
+        | -> b: b
+        |}""".stripMargin)
     assert(result ===~ expected)
   }
 
