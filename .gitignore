@@ -1,7 +1,8 @@
-# Intellij
-.idea/
-*.iml
+# Intellij Environment specific files
+.idea/workspace.xml
+.idea/tasks.xml
 *.iws
+
 .history
 
 # Scala and Sbt
