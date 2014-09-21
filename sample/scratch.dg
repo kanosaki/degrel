@@ -83,8 +83,8 @@ foo() -> {
         x(__val__: 1)
         x(__val__:X) -> __return__(__val__: X)
     }
-    __return__(__val__ !: V)
-    __return__(__val__ !: V, __continute__: self)
+    x(__val__: V) -> __return__(__val__: V)
+    x(__val__: V) -> __return__(__val__: V, __continute__: self)
 
 // Return value hook
 $ret := {
@@ -92,6 +92,17 @@ $ret := {
 }
 --->
 ret(__val__: X)
+
+// If (case)
+$target_value -> {
+    fin | true -> foobar
+        | false -> hogehoge
+}
+
+$ifresult = $target_value -> {
+    true -> foobar
+    false -> hogehoge
+}
 
 
 // As
@@ -160,7 +171,9 @@ hoge(arg: X) -> __cell__(
   __var__: foo(__val__: 1),
   __var__: bar(__val__: X),
   __rule__: __rule__(__lhs__: rule(hoge: *@F), __rhs__: foo(bar: F)),
-  __return__: __rule__(__lhs__: hoge@H, __rhs__: H)
+
+  __send__: "msgid_1234567890(__val__: V) -> { $$SENDER_CELL$$.1234567890(__val__:V) }"
+  __fin__: __rule__(__lhs__: hoge@H, __rhs__: H)
 )
 
 // Curring Rule
