@@ -49,19 +49,9 @@ class RawRootedGraph(_root: Vertex) extends RootedGraph {
     Traverser(root).flatMap(_.edges()).toSeq
   }
 
-  override def freeze: Element = new FrozenRootedGraph(root, vertices, edges)
-
   override def reprRecursive(history: Trajectory): String = root.reprRecursive(history)
 
   override def repr: String = root.repr
-}
-
-class FrozenRootedGraph(_root: Vertex, _vertices: Seq[Vertex], _edges: Seq[Edge]) extends RawRootedGraph(_root) {
-  override def vertices: Seq[Vertex] = _vertices
-
-  override def edges: Seq[Edge] = _edges
-
-  override def freeze: Element = this
 }
 
 trait UnrootedGraph extends Graph {

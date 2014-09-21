@@ -70,8 +70,6 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
     _src = v
   }
 
-  def freeze: Edge = Edge(this.src, this.label, this.dst.freeze)
-
   def isReference: Boolean = this.label.expr == "_ref"
 
   def duplicate(): Edge = {
