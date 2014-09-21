@@ -1,13 +1,14 @@
 package degrel
 
-import degrel.rewriting.LocalReserve
 import degrel.control.Interpreter
+import degrel.rewriting.LocalReserve
+
 import scala.io.Source
 
 
 object Main {
   def main(args: Array[String]) = {
-    if(args.length == 1) {
+    if (args.length == 1) {
       this.startInterpreter(args(0))
     } else {
       this.startConsole()

@@ -1,7 +1,8 @@
 package degrel.control.env
 
-import degrel.control.io.{MacAppDirectory, AppDirectory}
 import java.io.File
+
+import degrel.control.io.{AppDirectory, MacAppDirectory}
 
 trait OS {
 

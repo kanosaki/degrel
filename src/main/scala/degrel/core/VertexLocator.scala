@@ -3,11 +3,8 @@ package degrel.core
 import scala.concurrent.stm
 
 class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit transaction: Transaction) {
-
   protected val _oldV: stm.Ref[VertexBody] = stm.Ref(_oldVertex)
   protected val _newV: stm.Ref[VertexBody] = stm.Ref(_newVertex)
-
-  def status: TransactionStatus = transaction.status
 
   def tryCommit(v: Vertex): Boolean = {
     val vb = v match {
@@ -25,14 +22,6 @@ class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit tra
     }
   }
 
-  def oldVertex: VertexBody = {
-    _oldV.single.get
-  }
-
-  def newVertex: VertexBody = {
-    _newV.single.get
-  }
-
   def activeVertex: VertexBody = {
     val S = TransacrionStatus
     this.status match {
@@ -42,6 +31,24 @@ class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit tra
     }
   }
 
+  def status: TransactionStatus = transaction.status
+
+  def oldVertex: VertexBody = {
+    _oldV.single.get
+  }
+
+  def newVertex: VertexBody = {
+    _newV.single.get
+  }
+
+  def repr = {
+    val S = TransacrionStatus
+    this.status match {
+      case S.Active => "a"
+      case S.Aborted => "A"
+      case S.Commited => "c"
+    }
+  }
 }
 
 object VertexLocator {

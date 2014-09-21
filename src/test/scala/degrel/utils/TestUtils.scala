@@ -1,8 +1,9 @@
 package degrel.utils
 
-import scala.language.implicitConversions
-import degrel.core.{Element, Vertex}
+import degrel.core.Element
 import org.scalatest.exceptions.TestFailedException
+
+import scala.language.implicitConversions
 
 
 object TestUtils {
@@ -26,9 +27,9 @@ object TestUtils {
 
   implicit def testUtilsVertexExtension(elem: Element) = new TestUtilsElementExtensions(elem)
 
-  def assertVertices(vA: Set[Vertex], vB: Set[Vertex]) = {
-    val vAmapped = vA.map(new VertexEqualityAdapter(_))
-    val vBmapped = vB.map(new VertexEqualityAdapter(_))
+  def assertElementSet(vA: Set[_ <: Element], vB: Set[_ <: Element]) = {
+    val vAmapped = vA.map(new ElementEqualityAdapter(_))
+    val vBmapped = vB.map(new ElementEqualityAdapter(_))
     if (vAmapped != vBmapped) {
       throw new TestFailedException(s"$vA not equals $vB", 0)
     }

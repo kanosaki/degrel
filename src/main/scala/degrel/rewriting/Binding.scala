@@ -1,7 +1,7 @@
 package degrel.rewriting
 
-import degrel.core.Element
 import degrel.core
+import degrel.core.Element
 
 object Binding {
   def apply(bridges: Seq[MatchBridge[Element]]) = {
@@ -11,6 +11,7 @@ object Binding {
 
 class Binding(bridges: Seq[MatchBridge[Element]]) extends Map[Element, Element] {
   protected val map: Map[Element, Element] = bridges.map(br => (br._1, br._2)).toMap
+
   def get(key: Element): Option[Element] = map.get(key)
 
   def iterator: Iterator[(Element, Element)] = map.iterator

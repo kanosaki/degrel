@@ -1,20 +1,12 @@
 package degrel.config
 
-trait Config extends Serializable {
-  def parent: Config
+class Config(val elems: Seq[ConfigBase]) {
 
-  def get(key: Symbol): List[Any]
+  def append(cfg: ConfigBase) = {
 
-  /**
-   * Resolve order: CLIArguments -> this -> parent -> parent.parent -> ... -> RootConfig
-   * @param key
-   * @return
-   */
-  def resolve(key: Symbol) = {
-    CLIArguments.get(key) ++ parent.resolveTree(key)
   }
 
-  protected def resolveTree(key: Symbol): List[Any] = {
-    this.get(key) ++ parent.resolveTree(key)
+  def prepend(cfg: ConfigBase, beforeOf: ConfigBase = null) = {
+
   }
 }

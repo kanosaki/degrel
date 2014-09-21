@@ -11,28 +11,26 @@ import scala.util.parsing.combinator.RegexParsers
  */
 object DefaultTermParser extends RegexParsers {
   /**
-   * 変数(Variable) varではなくcaptureという表現を使います
-   * FIXME: 束縛とかいう名前の方が良いかも?
-   */
-  def capture: Parser[AstCapture] = """[A-Z][a-zA-Z0-9]*""".r ^^ AstCapture
-
-  /**
    * 頂点のラベルとして使えるものの正規表現
    */
   val PAT_LABEL = """([_~=.+\-*a-z0-9][_~=.+\-*a-z0-9A-Z]*)|@|(->)""".r
-
   /**
    * 属性の値として使える文字．任意の文字が使えるが，構文解析上属性の区切り記号と終わりの記号である
    * ','と'}'は使用できません
    * @todo エスケープできるようにする
    */
   val PAT_ATTR_VALUE = """[^,}]*""".r
-
   /**
    * 属性のキーとして使える文字．任意の文字が使えるが，構文解析上属性値との区切り記号の':'は除外
    * @todo エスケープできるようにする
    */
   val PAT_ATTR_KEY = """[^:]+""".r
+
+  /**
+   * 変数(Variable) varではなくcaptureという表現を使います
+   * FIXME: 束縛とかいう名前の方が良いかも?
+   */
+  def capture: Parser[AstCapture] = """[A-Z][a-zA-Z0-9]*""".r ^^ AstCapture
 
   /**
    * ラベルのパーサー
@@ -46,9 +44,9 @@ object DefaultTermParser extends RegexParsers {
     (capture ~ opt("[" ~> label <~ "]")) ^^ {
       case cap ~ lbl => AstName(Some(cap), lbl)
     } |
-    label ^^ {
-      case l => AstName(None, Some(l))
-    }
+      label ^^ {
+        case l => AstName(None, Some(l))
+      }
 
   /**
    * 接続のパーサー

@@ -1,23 +1,20 @@
 package degrel.control
 
-import scala.io.Source
-import degrel.rewriting.LocalReserve
-import degrel.front.ParserUtils
-import degrel.core.{Vertex, Rule}
-import degrel.engine.RewriteScheduler
-import scala.concurrent.Await
-import akka.util.Timeout
-import scala.concurrent.duration._
 import akka.pattern.ask
+import akka.util.Timeout
+import degrel.core.{Rule, Vertex}
+import degrel.engine.RewriteScheduler
+import degrel.front.ParserUtils
+import degrel.rewriting.LocalReserve
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.io.Source
 
 class Interpreter(source: Source) {
   val reserve = new LocalReserve()
-  private val termParser = ParserUtils
   implicit val rewriteTimeout = Timeout(10.seconds)
-
-  def parse(s: String): Vertex = {
-    termParser.parseVertex(s)
-  }
+  private val termParser = ParserUtils
 
   def start() = {
     for (line <- source.getLines()) {
@@ -35,6 +32,10 @@ class Interpreter(source: Source) {
     this.rewriteMulti()
     println("-------- RESULT --------")
     println(reserve.repr())
+  }
+
+  def parse(s: String): Vertex = {
+    termParser.parseVertex(s)
   }
 
   def rewriteMulti() = {

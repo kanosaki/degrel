@@ -1,13 +1,12 @@
 package degrel.rewriting
 
-import org.scalatest.FlatSpec
-import org.scalatest.time.SpanSugar._
-import org.scalatest.concurrent.Timeouts._
-import degrel.front
-import degrel.core
+import degrel.Query._
 import degrel.front.ParserUtils
 import degrel.utils.TestUtils._
-import degrel.Query._
+import degrel.{core, front}
+import org.scalatest.FlatSpec
+import org.scalatest.concurrent.Timeouts._
+import org.scalatest.time.SpanSugar._
 
 class RewriterTest extends FlatSpec {
   val parser = front.DefaultTermParser
@@ -15,6 +14,8 @@ class RewriterTest extends FlatSpec {
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 
   def parseR(s: String): core.Rule = ParserUtils.parseRule(s)
+
+  def parseDot(s: String): core.Graph = ParserUtils.parseDot(s).toGraph
 
   it should "build simple vertex" in {
     val dataV = parse("foo(bar: baz)")
@@ -40,9 +41,9 @@ class RewriterTest extends FlatSpec {
     reserve.addVertex(parse("a"))
     val rewrote = reserve.rewriteStep()
     assert(rewrote, "should be written")
-    val expected = Set(parse("b")).map(_.freeze)
-    val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    val expected = Set(parse("b"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite single vertex with single rule at deep level" in {
@@ -51,9 +52,9 @@ class RewriterTest extends FlatSpec {
     reserve.addVertex(parse("x(y: z(c: a))"))
     val rewrote = reserve.rewriteStep()
     assert(rewrote, "should be written")
-    val expected = Set(parse("x(y: z(c: b))")).map(_.freeze)
-    val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    val expected = Set(parse("x(y: z(c: b))"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite single vertex if there are no rules which have nothing to do with" in {
@@ -65,9 +66,9 @@ class RewriterTest extends FlatSpec {
     val rewrote = reserve.rewriteStep()
     assert(rewrote, "should be written")
     val expected = Set(parse("x(y: z(c: b(c: d)))"),
-                        parse("hoge(fuga: piyo)")).map(_.freeze)
-    val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+      parse("hoge(fuga: piyo)"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite single vertex with capturing" in {
@@ -76,9 +77,9 @@ class RewriterTest extends FlatSpec {
     reserve.addVertex(parse("x(y: z(c: a(b: foo(bar: baz))))"))
     val rewrote = reserve.rewriteStep()
     assert(rewrote, "should be written")
-    val expected = Set(parse("x(y: z(c: b(c: foo(bar: baz))))")).map(_.freeze)
-    val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    val expected = Set(parse("x(y: z(c: b(c: foo(bar: baz))))"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite in multi steps" in {
@@ -91,21 +92,22 @@ class RewriterTest extends FlatSpec {
       reserve.rewriteUntilStop()
     }
     val expected = Set(parse("x(y: c(d: foo(bar: hoge(fuga: piyo))), b: c)"),
-                        parse("c(d: foo(bar: foo))")).map(_.freeze)
-    val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+      parse("c(d: foo(bar: foo))"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
   }
 
   it should "Rewrite with preserving unmatched edges" in {
     val reserve = new LocalReserve()
     reserve.addRule(parseR("top(x: x, y: A[a](rewrote: false)) -> foo(a: A(rewrote: true))"))
     reserve.addVertex(parse("top(x: x, y: a(rewrote: false, other_val: hoge))"))
-    failAfter(1 seconds) {
+    failAfter(1 seconds)(
+    {
       reserve.rewriteUntilStop()
-    }
-    val expected = Set(parse("foo(a: a(rewrote: true, other_val: hoge))")).map(_.freeze)
-    val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    })
+    val expected = Set(parse("foo(a: a(rewrote: true, other_val: hoge))"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
   }
 
   it should "able to handle nested capturing" in {
@@ -113,29 +115,71 @@ class RewriterTest extends FlatSpec {
     val dataV = parse("a(b: b, rewrote: false, hoge: fuga)")
     val binding = dataV.matches(rule.lhs).pack.pickFirst
     val result = rule.rhs.build(new BuildingContext(binding))
-    assert(result.freeze === parse("foo(a: a(rewrote: true, b: b, hoge: fuga), b: b)").freeze)
+    val expected = parseDot(
+      """@foo{
+        | -> a: a
+        | a -> true: rewrote
+        | a -> b: b
+        | a -> fuga: hoge
+        | -> b: b
+        |}""".stripMargin)
+    assert(result ===~ expected)
   }
 
   it should "able to build nested capturing" in {
+    // B(foo: bar)のように，変数に対し接続を追加すると，元の頂点をコピーし，それに与えられた接続を追加した物が新規に生成されます
     val rule = parseR("A[a](foo: B, rewrote: false) -> joe(a: A(rewrote: true, jack: B), b: B(extracted: true))")
     val dataV = parse("a(foo: b(hoge: fuga), rewrote: false)")
     val binding = dataV.matches(rule.lhs).pack.pickFirst
     val result = rule.rhs.build(new BuildingContext(binding))
-    assert(result.freeze === parse("joe(a: a(jack: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))").freeze)
+    val expected =
+      parseDot( """@joe{
+                  |  -> a: a
+                  |  a -> true$1: rewrote
+                  |  a -> b$1: jack
+                  |  b$1 -> fuga: hoge
+                  |  -> b$2 : b
+                  |  b$2 -> true$2: extracted
+                  |  b$2 -> fuga: hoge
+                  | }""".stripMargin)
+    assert(result.path(":a/:jack").singleV ==/~ result.path(":b").singleV)
+    assert(result.path(":a/:jack/:hoge").singleV ===~ result.path(":b/:hoge").singleV)
+    assert(result ===~ expected)
   }
 
   // Same pattern
-  ignore should "able to handle nested capturing in more complicated pattern" in {
+  it should "able to handle nested capturing in reserve" in {
     val reserve = new LocalReserve()
     reserve.addRule(parseR("A[a](foo: B, rewrote: false) -> joe(a: A(rewrote: true, jack: B), b: B(extracted: true))"))
     reserve.addVertex(parse("a(foo: b(hoge: fuga), rewrote: false)"))
-    failAfter(1 seconds) {
+    failAfter(1 seconds)(
+    {
       reserve.rewriteUntilStop()
-    }
-    println(reserve.repr())
-    val expected = Set(parse("joe(a: a(jack: b(hoge: fuga), rewrote: true), b: b(hoge: fuga, extracted: true))")).map(_.freeze)
-    val actual = reserve.freeze.roots.toSet
-    assert(expected === actual)
+    })
+    val expected = Set(parseDot( """@joe{
+                                   |  -> a: a
+                                   |  a -> true$1: rewrote
+                                   |  a -> b$1: jack
+                                   |  b$1 -> fuga: hoge
+                                   |  -> b$2 : b
+                                   |  b$2 -> true$2: extracted
+                                   |  b$2 -> fuga: hoge
+                                   | }""".stripMargin))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
+  }
+
+  it should "handle edge marging" in {
+    val reserve = new LocalReserve()
+    reserve.addRule(parseR("A(a: a) -> x(y: A(c: c))"))
+    reserve.addVertex(parse("foo(a: a)"))
+    failAfter(1 seconds)(
+    {
+      reserve.rewriteUntilStop()
+    })
+    val expected = Set(parse("x(y: foo(c: c))"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
   }
 
   it should "rewrite looped graph" in {

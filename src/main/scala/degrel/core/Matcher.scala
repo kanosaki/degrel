@@ -1,12 +1,9 @@
 package degrel.core
 
-import scalaz._
-import Scalaz._
+import degrel.rewriting.{MonoVertexMatching, PolyVertexMatching, VertexBridge, _}
 import degrel.utils.IterableExtensions._
-import degrel.rewriting._
-import degrel.rewriting.PolyVertexMatching
-import degrel.rewriting.VertexBridge
-import degrel.rewriting.MonoVertexMatching
+
+import scalaz.Scalaz._
 
 case class Matcher(self: Vertex) {
   // Perform as LhsVertex

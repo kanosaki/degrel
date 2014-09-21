@@ -1,27 +1,24 @@
 package degrel.core
 
 import degrel.rewriting.BuildingContext
+
 import scala.concurrent.stm
 
 
-class VertexHeader(f: => VertexBody) extends Vertex {
-  private var _locator: stm.Ref[VertexLocator] = null
+class VertexHeader(f: VertexBody) extends Vertex {
+  private val _locator = stm.Ref(VertexLocator.createNew(f))
+
+  def edges(label: Label): Iterable[Edge] = body.edges(label)
+
+  def groupedEdges: Iterable[Iterable[Edge]] = body.groupedEdges
 
   def body: VertexBody = {
     this.locator.single.get.activeVertex
   }
 
   protected def locator: stm.Ref[VertexLocator] = {
-    if (_locator == null) {
-      _locator = stm.Ref(VertexLocator.createNew(f))
-    }
     _locator
   }
-
-
-  def edges(label: Label): Iterable[Edge] = body.edges(label)
-
-  def groupedEdges: Iterable[Iterable[Edge]] = body.groupedEdges
 
   def label: Label = body.label
 
@@ -30,7 +27,6 @@ class VertexHeader(f: => VertexBody) extends Vertex {
   }
 
   def reprRecursive(trajectory: Trajectory) = {
-    val id = this.hashCode % 1000
     trajectory.walk(this) {
       case Right(nextHistory) => {
         s"<${body.reprRecursive(nextHistory)}>"
