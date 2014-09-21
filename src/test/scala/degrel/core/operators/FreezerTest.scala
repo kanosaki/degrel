@@ -17,13 +17,13 @@ class FreezerTest extends FlatSpec {
     ast.toGraph()
   }
 
-  it should "freeze treed graph" in {
+  ignore should "freeze treed graph" in {
     val graph = parseTerm("foo(a: bar, b: baz(hoge: fuga))")
     val frozen = graph.freeze
     assert(frozen.path(":b/baz").exact ===~ parseTerm("baz(hoge: fuga)").freeze)
   }
 
-  it should "freeze looped graph" in {
+  ignore should "freeze looped graph" in {
     val graph = parseDot(
                           """@root{
                             |  -> a : e

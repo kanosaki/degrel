@@ -9,7 +9,7 @@ import degrel.utils.TestUtils._
 class CoreTest extends FlatSpec {
   val parser = front.DefaultTermParser
 
-  def parse(s: String): Vertex = ParserUtils.parseVertex(s).freeze
+  def parse(s: String): Vertex = ParserUtils.parseVertex(s)
 
   it should "equals simple vertex" in {
     assert(parse("foo") ===~ parse("foo"))

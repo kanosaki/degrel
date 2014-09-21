@@ -169,6 +169,19 @@ class RewriterTest extends FlatSpec {
     assertElementSet(expected, actual)
   }
 
+  it should "handle edge marging" in {
+    val reserve = new LocalReserve()
+    reserve.addRule(parseR("A(a: a) -> x(y: A(c: c))"))
+    reserve.addVertex(parse("foo(a: a)"))
+    failAfter(1 seconds)(
+    {
+      reserve.rewriteUntilStop()
+    })
+    val expected = Set(parse("x(y: foo(c: c))"))
+    val actual = reserve.roots.toSet
+    assertElementSet(expected, actual)
+  }
+
   it should "rewrite looped graph" in {
     val reserve = new LocalReserve()
     reserve.addRule(parseR("A[a](b: B, c: C, rewrote: false) -> a(b: B(a: A, c: C), c: C(b: B, a: A), rewrote: true)"))

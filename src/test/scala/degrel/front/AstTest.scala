@@ -1,12 +1,11 @@
 package degrel.front
 
-import org.scalatest.FlatSpec
-
 import degrel.core
-import degrel.core.{Vertex, Label}
+import degrel.core.{Label, Vertex}
 import degrel.utils.FlyWrite._
 import degrel.utils.TestUtils._
 import degrel.Query._
+import org.scalatest.FlatSpec
 
 class AstTest extends FlatSpec {
   val parser = DefaultTermParser
@@ -26,15 +25,10 @@ class AstTest extends FlatSpec {
     assert(graph ===~ root)
   }
 
-  def freezeCaptureed(caps: List[(String, core.Vertex)]) = {
-    caps.map { case (l, v) => (l, v.freeze)}
-  }
-
-
   it should "construct simple rule" in {
     val v = parseFirstRoot("foo -> bar")
-    assertAst(v,
-              "foo".v |->| "bar".v)
+    val expected = "foo".v |->| "bar".v
+    assertAst(v, expected)
   }
 
   it should "construct single vertex" in {
@@ -69,7 +63,7 @@ class AstTest extends FlatSpec {
   def captureAndRetAsSet(v: AstVertex): Map[String, Vertex] = {
     val context = new LhsContext(parent = LexicalContext.empty)
     v.capture(context)
-    context.toSymMap.mapValues(_.freeze).toMap
+    context.toSymMap.toMap
   }
 
   def assertCaptures(cap1: Map[String, Vertex], cap2: Map[String, Vertex]) = {
@@ -85,22 +79,22 @@ class AstTest extends FlatSpec {
   it should "capture a variable from root vertex" in {
     val v = parseFirstRoot("A[foo](bar: baz)").asInstanceOf[AstVertex]
     assertCaptures(captureAndRetAsSet(v),
-                   Map("A" -> ("foo" |^| ("bar" |:| "baz".v)).freeze))
+      Map("A" -> ("foo" |^| ("bar" |:| "baz".v))))
   }
 
   it should "capture a variable from other vertex" in {
     val v = parseFirstRoot("hoge(fuga: A[foo](bar: baz))").asInstanceOf[AstVertex]
     assertCaptures(captureAndRetAsSet(v),
-                   Map("A" -> ("foo" |^| ("bar" |:| "baz".v)).freeze))
+      Map("A" -> ("foo" |^| ("bar" |:| "baz".v))))
   }
 
   it should "capture multiple variables" in {
     val v = parseFirstRoot("hoge(fuga: A[foo](bar: baz), piyo: B[bar](baz: foo), foobar: C[baz](foo: bar))")
       .asInstanceOf[AstVertex]
     assertCaptures(captureAndRetAsSet(v),
-                   Map("A" -> ("foo" |^| ("bar" |:| "baz".v)).freeze,
-                       "B" -> ("bar" |^| ("baz" |:| "foo".v)).freeze,
-                       "C" -> ("baz" |^| ("foo" |:| "bar".v)).freeze))
+      Map("A" -> ("foo" |^| ("bar" |:| "baz".v)),
+        "B" -> ("bar" |^| ("baz" |:| "foo".v)),
+        "C" -> ("baz" |^| ("foo" |:| "bar".v))))
   }
 
   it should "capture a variable in rule" in {
@@ -111,7 +105,7 @@ class AstTest extends FlatSpec {
     val expectedCapturedV = "foo" |^| ("bar" |:| "baz".v)
     val expectedValue = "foobar" |^| ("baz" |:| core
       .Vertex("@", Seq(core.Edge(null, core.Label("_ref"), expectedCapturedV))))
-    assert(rhs.freeze ===~ expectedValue.freeze)
+    assert(rhs ===~ expectedValue)
   }
 
   it should "captured vertex has same reference" in {

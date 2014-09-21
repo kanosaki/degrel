@@ -1,7 +1,6 @@
 package degrel.front.dotlike
 
-import degrel.core
-import degrel.core.{Edge, ID, Vertex, VertexBody}
+import degrel.core.{Edge, Vertex}
 import degrel.front.LexicalContext
 import degrel.utils.collection.mutable.BiHashMap
 
@@ -97,14 +96,13 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
    * @param identifier 作成する頂点のラベル
    */
   private def createVertex(identifier: String @@ I): Unit = {
-    val header = new core.VertexHeader(null)
-    vertices += identifier -> header
-    val edges = edgeDestinationMap.getOrElse(identifier, mutable.Seq[String @@ I]()).toSeq
-      .map(dstLabel => Edge(header, Tag.unwrap(edgeLabelMap(identifier -> dstLabel)), {
-      this.vertexFor(dstLabel)
-    }))
-    val body = VertexBody(Tag.unwrap(identifierLabelMap(identifier)), this.attributesFor(identifier), edges, ID.NA)
-    header.write(body)
+    Vertex.create(Tag.unwrap(identifierLabelMap(identifier)), this.attributesFor(identifier)) { v =>
+      vertices += identifier -> v
+      edgeDestinationMap.getOrElse(identifier, mutable.Seq[String @@ I]()).toSeq
+        .map(dstLabel => Edge(v, Tag.unwrap(edgeLabelMap(identifier -> dstLabel)), {
+        this.vertexFor(dstLabel)
+      }))
+    }
   }
 
   // Label Tag
@@ -112,4 +110,5 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalContext) {
 
   // Identifier Tag
   sealed trait I
+
 }

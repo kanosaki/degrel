@@ -6,6 +6,6 @@ case class VertexVersion(v: Vertex, vb: VertexBody) {
   def body: VertexBody = vb
 
   def ensure(): Boolean = {
-    header.body.id == vb.id
+    header.body == vb
   }
 }

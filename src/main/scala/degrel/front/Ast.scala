@@ -102,9 +102,10 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
   def mkReferenceVertex(cap: String, context: LexicalContext): core.Vertex = {
     // TODO: _ref 接続を持つ場合はエラー
     val label = SpecialLabel.Vertex.reference
-    val refEdge = core.Edge(null, SpecialLabel.Edge.ref, context.resolveExact[core.Vertex](cap))
-    val edges = Stream(refEdge) ++ this.edges.map(_.toEdge(context))
-    core.Vertex(label, edges, this.mkAttributesMap)
+    core.Vertex.create(label, this.mkAttributesMap) { v =>
+      val refEdge = core.Edge(v, SpecialLabel.Edge.ref, context.resolveExact[core.Vertex](cap))
+      Stream(refEdge) ++ this.edges.map(_.toEdge(context))
+    }
   }
 
   def mkLhsGraph(lhsContext: LhsContext): core.Vertex = {

@@ -3,17 +3,17 @@ package degrel.core
 import degrel.rewriting.{EdgeBridge, _}
 
 object Edge {
-  def apply(src: => Vertex, label: Label, dst: => Vertex): Edge = {
+  def apply(src: Vertex, label: Label, dst: Vertex): Edge = {
     new Edge(src, label, dst)
   }
 }
 
-class Edge(_src: => Vertex, _label: Label, _dst: => Vertex)
+class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
   extends Product2[String, Vertex]
   with Element
   with Comparable[Edge] {
-  lazy val dst = _dst
-  private var __sourceVertex: Vertex = null
+  def dst = _dst
+  def src = _src
 
   def _1: String = label.expr
 
@@ -63,25 +63,11 @@ class Edge(_src: => Vertex, _label: Label, _dst: => Vertex)
     Edge(this.src, this.label, dst.build(context))
   }
 
-  def src: Vertex = {
-    __sourceVertex match {
-      case null => {
-        __sourceVertex = _src
-        if (__sourceVertex == null) throw new AssertionError("Source of an edge cannot be null")
-        __sourceVertex
-      }
-      case _ => __sourceVertex
-    }
-  }
-
   def src_=(v: Vertex) = {
     if (v == null) {
       throw new NullPointerException("Argument cannot be null")
     }
-    if (__sourceVertex != null && (__sourceVertex eq v)) {
-      throw new AssertionError("Souce can set only once.")
-    }
-    __sourceVertex = v
+    _src = v
   }
 
   def freeze: Edge = Edge(this.src, this.label, this.dst.freeze)

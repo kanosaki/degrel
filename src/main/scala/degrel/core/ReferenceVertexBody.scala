@@ -8,7 +8,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
     attrs,
     all_edges,
     _id) {
-  private lazy val unreferenceEdges = all_edges.filter(!_.isReference)
+  private val unreferenceEdges = all_edges.filter(!_.isReference).toSeq
 
   /**
    * 束縛に従って頂点を生成・参照します
@@ -22,14 +22,17 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
     if (unreferenceEdges.isEmpty) {
       matchedV
     } else {
-      val matchedEdges = this.referenceTarget.edges().map(context.matchedEdgeExact).toSet
-      val builtEdges = matchedV
+      val matchedEdges = this.referenceTarget
+        .edges()
+        .map(context.matchedEdgeExact)
+        .toSet
+      val unmatchedEdges = matchedV
         .edges()
         .filter(!matchedEdges.contains(_))
-        .map(_.duplicate()) ++
-        unreferenceEdges
-          .map(_.build(context))
-      Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
+        .map(_.duplicate())
+      val margingEdges = unreferenceEdges.map(_.build(context))
+      val builtEdges = unmatchedEdges ++ margingEdges
+      Vertex(matchedV.label.expr, builtEdges.toSeq, matchedV.attributes)
     }
   }
 
