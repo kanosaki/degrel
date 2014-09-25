@@ -12,7 +12,7 @@ object VertexBody {
   }
 }
 
-class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
+class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
   private val _id = _previd.autoValidate
   private val _edges: Iterable[Edge] = _allEdges
 

@@ -1,26 +1,22 @@
 package degrel.front
 
+import degrel.Query._
 import degrel.core
 import degrel.core.{Label, Vertex}
 import degrel.utils.FlyWrite._
 import degrel.utils.TestUtils._
-import degrel.Query._
 import org.scalatest.FlatSpec
 
 class AstTest extends FlatSpec {
-  val parser = DefaultTermParser
+  val parser = TermParser.default
   val SE = SpecialLabel.Edge
   val SV = SpecialLabel.Vertex
 
-  def parseFirstRoot(expr: String): AstRoot = {
-    val ast = parser(expr)
-    ast.root match {
-      case AstGraph(root :: _) => root
-      case _ => throw new Exception("Unsupported syntax!")
-    }
+  def parseFirstRoot(expr: String): AstGraph = {
+    parser(expr).root
   }
 
-  def assertAst(astRoot: AstRoot, root: core.Vertex, context: LexicalContext = LexicalContext.empty) {
+  def assertAst(astRoot: AstGraph, root: core.Vertex, context: LexicalContext = LexicalContext.empty) {
     val graph = astRoot.toGraph(context)
     assert(graph ===~ root)
   }
