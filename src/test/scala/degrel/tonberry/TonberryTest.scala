@@ -1,40 +1,39 @@
 package degrel.tonberry
 
+import degrel.Query._
+import degrel.{core, front}
+import degrel.front.TermParser
+import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
-import degrel.front
-import degrel.core
-import degrel.Query._
-import degrel.utils.TestUtils._
-
 class TonberryTest extends FlatSpec {
-  val parser = front.DefaultTermParser
+  val parser = TermParser.default
 
   def parse(expr: String) = {
-    parser(expr).root.asInstanceOf[front.AstGraph].roots(0).toGraph(front.LexicalContext.empty)
+    parser(expr).root.asInstanceOf[front.AstCell].roots(0).toGraph(front.LexicalContext.empty)
   }
 
   def V(expr: String) = {
-    core.Vertex(expr, Nil).freeze
+    core.Vertex(expr, Nil)
   }
 
   it should "select a child node thru edge" in {
     val v = parse("foo(bar: baz)")
-    assert(v.nextE("bar").dst.freeze.exact ===~ V("baz").freeze)
+    assert(v.nextE("bar").dst.exact ===~ V("baz"))
   }
 
   it should "select child nodes thru edge" in {
     val v = parse("foo(x: bar, x: baz)")
-    assertElementSet(v.nextE("x").dst.freeze.toSet, Set(V("bar").freeze, V("baz").freeze))
+    assertElementSet(v.nextE("x").dst.toSet, Set(V("bar"), V("baz")))
   }
 
   it should "select a child node as neigbor" in {
     val v = parse("foo(bar: baz)")
     val byquery = v.nextV("baz").exact
     val bypath = v.path("baz").exact
-    val expected = V("baz").freeze
-    assert(byquery.freeze ===~ expected)
-    assert(bypath.freeze ===~ expected)
+    val expected = V("baz")
+    assert(byquery ===~ expected)
+    assert(bypath ===~ expected)
   }
 
   it should "select children by multi step thru edge" in {
@@ -76,9 +75,9 @@ class TonberryTest extends FlatSpec {
                       v.path("bar/x") /* ,
                       v.find("x"),
                       v.find("baz/x") */)
-    val expected = Set(V("x"), V("x"), V("x")).map(_.freeze)
+    val expected = Set(V("x"), V("x"), V("x"))
     for (q <- queries) {
-      assertElementSet(expected, q.freeze.toSet)
+      assertElementSet(expected, q.toSet)
     }
   }
 }

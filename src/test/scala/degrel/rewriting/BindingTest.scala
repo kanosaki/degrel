@@ -1,12 +1,11 @@
 package degrel.rewriting
 
-import org.scalatest.FlatSpec
-import degrel.front
 import degrel.core
-import degrel.front.ParserUtils
+import degrel.front.{ParserUtils, TermParser}
+import org.scalatest.FlatSpec
 
 class BindingTest extends FlatSpec {
-  val parser = front.DefaultTermParser
+  val parser = TermParser.default
 
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 

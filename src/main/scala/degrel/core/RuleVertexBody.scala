@@ -10,10 +10,6 @@ case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex, _id: ID)
 
   override def reprRecursive(history: Trajectory) = super[Rule].reprRecursive(history)
 
-  override def freeze = {
-    RuleVertexBody(lhs.freeze, rhs.freeze, this.id)
-  }
-
   def rhs = _rhs
 
   def lhs = _lhs

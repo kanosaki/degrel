@@ -8,13 +8,13 @@ import degrel.utils.VertexExtensions._
 import degrel.utils.TestUtils._
 import degrel.core
 import degrel.front
-import degrel.front.ParserUtils
+import degrel.front.{TermParser, ParserUtils}
 
 /**
  * Around matching and (Mono)binding
  */
 class MatchingTest extends FlatSpec {
-  val parser = front.DefaultTermParser
+  val parser = TermParser.default
 
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 

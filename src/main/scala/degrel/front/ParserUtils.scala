@@ -3,7 +3,7 @@ package degrel.front
 import degrel.core
 
 object ParserUtils {
-  private val termParser = DefaultTermParser
+  private val termParser = TermParser.default
   private val dotlikeParser = dotlike.DigraphParser
 
   def parseDot(s: String): core.Vertex = {

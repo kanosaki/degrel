@@ -127,3 +127,7 @@ class LhsContext(val parent: LexicalContext) extends LexicalContext {
     lhsCaptureMap.mapValues(_.toGraph(this))
   }
 }
+
+class CellContext(val parent: LexicalContext, cellAst: AstCell) extends LexicalContext {
+
+}

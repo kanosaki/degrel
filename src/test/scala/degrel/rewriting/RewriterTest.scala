@@ -1,15 +1,15 @@
 package degrel.rewriting
 
 import degrel.Query._
-import degrel.front.ParserUtils
+import degrel.core
+import degrel.front.{ParserUtils, TermParser}
 import degrel.utils.TestUtils._
-import degrel.{core, front}
 import org.scalatest.FlatSpec
 import org.scalatest.concurrent.Timeouts._
 import org.scalatest.time.SpanSugar._
 
 class RewriterTest extends FlatSpec {
-  val parser = front.DefaultTermParser
+  val parser = TermParser.default
 
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 

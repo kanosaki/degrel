@@ -23,10 +23,6 @@ class VertexQuery(val src: Iterable[core.Vertex], val expr: String, val parent: 
     new EdgeQuery(matched.flatMap(_.edges()), expr, this)
   }
 
-  def freeze: VertexQuery = {
-    new VertexQuery(src.map(_.freeze), expr, this)
-  }
-
   override def toString = {
     val parentStr = parent match {
       case null => ""

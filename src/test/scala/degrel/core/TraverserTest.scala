@@ -1,10 +1,10 @@
 package degrel.core
 
+import degrel.front.{ParserUtils, TermParser}
 import org.scalatest.FlatSpec
-import degrel.front.{DefaultTermParser, ParserUtils}
 
 class TraverserTest extends FlatSpec {
-  val parser = DefaultTermParser
+  val parser = TermParser.default
 
   def parse(s: String): Vertex = ParserUtils.parseVertex(s)
 

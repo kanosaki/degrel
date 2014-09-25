@@ -7,10 +7,6 @@ object Keywords {
 
 }
 
-object BinOp {
-  val rule = "->"
-}
-
 object SpecialLabel {
 
   object Edge {
@@ -22,7 +18,7 @@ object SpecialLabel {
   object Vertex {
     val reference = "@"
     val wildcard = "*"
-    val rule = BinOp.rule
+    val rule = "->"
   }
 
 }
