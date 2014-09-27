@@ -194,7 +194,7 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
   }
 
   def captureExpr: Option[String] = name match {
-    case AstName(Some(AstCapture(cap)), _) => Some(cap)
+    case AstName(Some(AstVertexBinding(cap)), _) => Some(cap)
     case _ => None
   }
 
@@ -213,7 +213,7 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
 
   def mkMetadataAttribtues: Iterable[(String, String)] = {
     this.name match {
-      case AstName(Some(AstCapture(e)), _) => Seq("__captured_as__" -> e)
+      case AstName(Some(AstVertexBinding(e)), _) => Seq("__captured_as__" -> e)
       case _ => Seq()
     }
   }
@@ -235,11 +235,11 @@ case class AstLabel(expr: String) extends AstLiteral {
 
 }
 
-case class AstCapture(expr: String) extends AstLiteral {
+case class AstVertexBinding(expr: String) extends AstLiteral {
 
 }
 
-case class AstName(capture: Option[AstCapture], label: Option[AstLabel]) {
+case class AstName(capture: Option[AstVertexBinding], label: Option[AstLabel]) {
 
 }
 

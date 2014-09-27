@@ -7,7 +7,7 @@ class TermParser(val context: ParserContext = ParserContext.default) extends Reg
   /**
    * 頂点のラベルとして使えるものの正規表現
    */
-  val PAT_LABEL = """([_a-z0-9][_.a-z0-9A-Z]*)""".r
+  val PAT_LABEL = """([_a-z0-9A-Z][_.a-z0-9A-Z]*)""".r
   /**
    * 属性の値として使える文字．任意の文字が使えるが，構文解析上属性の区切り記号と終わりの記号である
    * ','と'}'は使用できません
@@ -42,10 +42,9 @@ class TermParser(val context: ParserContext = ParserContext.default) extends Reg
   def seek[T](p: Parser[T]): Parser[T] = rep(eos) ~> p
 
   /**
-   * 変数(Variable) varではなくcaptureという表現を使います
-   * FIXME: 束縛とかいう名前の方が良いかも?
+   * 頂点束縛(Vertex Binding)
    */
-  def capture: Parser[AstCapture] = """[A-Z][a-zA-Z0-9]*""".r ^^ AstCapture
+  def binding: Parser[AstVertexBinding] = "$" ~> """[a-zA-Z0-9]+""".r ^^ AstVertexBinding
 
   /**
    * ラベルのパーサー
@@ -56,7 +55,7 @@ class TermParser(val context: ParserContext = ParserContext.default) extends Reg
    * 頂点に付くラベルと変数の組み合わせ
    */
   def name: Parser[AstName] =
-    (capture ~ opt("[" ~> label <~ "]")) ^^ {
+    (binding ~ opt("[" ~> label <~ "]")) ^^ {
       case cap ~ lbl => AstName(Some(cap), lbl)
     } |
       label ^^ {
@@ -113,6 +112,7 @@ class TermParser(val context: ParserContext = ParserContext.default) extends Reg
 
   /**
    * Import文
+   * TODO: TermParserをCellごとに生成して，Moduleレベルでfinが来たらエラーみたいな処理を入れる？
    */
   def cell_import: Parser[AstImport] =
     opt("from" ~> label) ~
@@ -133,7 +133,7 @@ class TermParser(val context: ParserContext = ParserContext.default) extends Reg
   /**
    * 二項演算子
    */
-  def binop: Parser[AstBinOp] = "[!@#$%^&*+=|:<>/?.-]+".r ^^ {
+  def binop: Parser[AstBinOp] = "[!@#%^&*+=|:<>/?.-]+".r ^^ {
     case exp => AstBinOp(exp)
   }
 

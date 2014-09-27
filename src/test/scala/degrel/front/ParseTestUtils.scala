@@ -17,7 +17,7 @@ object ParseTestUtils {
   }
 
   def mkName(label: String = null, capture: String = null) = {
-    AstName(wrapIfNotNull(capture, AstCapture), wrapIfNotNull(label, AstLabel))
+    AstName(wrapIfNotNull(capture, AstVertexBinding), wrapIfNotNull(label, AstLabel))
   }
 
   def wrapIfNotNull[X, Y](v: X, wrapper: X => Y): Option[Y] = {
