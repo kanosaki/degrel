@@ -1,18 +1,18 @@
 package degrel.engine
 
-import org.scalatest.FlatSpec
-import degrel.rewriting.LocalReserve
-import degrel.front
-import degrel.front.ParserUtils
-import degrel.core
-import degrel.utils.TestUtils.assertElementSet
-import scala.concurrent.duration._
 import akka.pattern.ask
 import akka.util.Timeout
+import degrel.core
+import degrel.front.{ParserUtils, TermParser}
+import degrel.rewriting.LocalReserve
+import degrel.utils.TestUtils.assertElementSet
+import org.scalatest.FlatSpec
+
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class ParallelRewriteTest extends FlatSpec {
-  val parser = front.DefaultTermParser
+  val parser = TermParser.default
 
   def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
 

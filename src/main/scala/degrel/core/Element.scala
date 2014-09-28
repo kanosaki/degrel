@@ -11,8 +11,6 @@ trait Element {
 
   override def toString = this.reprRecursive(new Trajectory())
 
-  def freeze: Element
-
   def repr: String
 
   def reprRecursive(history: Trajectory): String

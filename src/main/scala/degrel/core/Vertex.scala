@@ -62,14 +62,6 @@ trait Vertex extends Element with Comparable[Vertex] {
     }
   }
 
-  /**
-   * この頂点を基点にすべての接続を再帰的にトラバースし，VertexHeaderを除去して不変なグラフを新規に構築します．
-   * @return 新規に構築された不変なグラフ
-   */
-  def freeze: Vertex = {
-    operators.freeze(this)
-  }
-
   def deepCopy: Vertex = {
     operators.duplicate(this)
   }

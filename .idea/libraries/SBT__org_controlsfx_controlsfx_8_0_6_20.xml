@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="SBT: org.controlsfx:controlsfx:8.0.6_20">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.ivy2/cache/org.controlsfx/controlsfx/jars/controlsfx-8.0.6_20.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

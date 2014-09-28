@@ -3,7 +3,6 @@ package degrel.core
 import scala.concurrent.stm
 
 class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit transaction: Transaction) {
-
   protected val _oldV: stm.Ref[VertexBody] = stm.Ref(_oldVertex)
   protected val _newV: stm.Ref[VertexBody] = stm.Ref(_newVertex)
 
@@ -42,6 +41,14 @@ class VertexLocator(_newVertex: VertexBody, _oldVertex: VertexBody)(implicit tra
     _newV.single.get
   }
 
+  def repr = {
+    val S = TransacrionStatus
+    this.status match {
+      case S.Active => "a"
+      case S.Aborted => "A"
+      case S.Commited => "c"
+    }
+  }
 }
 
 object VertexLocator {

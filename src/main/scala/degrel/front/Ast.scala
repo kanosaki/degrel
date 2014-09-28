@@ -1,21 +1,21 @@
 package degrel.front
 
 import degrel.core
-import degrel.core.Rule
-import degrel.utils.FlyWrite._
+import degrel.core.{Label, Rule, Vertex}
 
 /**
  * 抽象構文木のコンテナクラス
  */
-class Ast(val root: AstNode) {
+class Ast(val root: AstCell) {
   def toGraph(context: LexicalContext = LexicalContext.empty) = {
-    root match {
-      case rt: AstRoot => rt.toGraph(context)
-      case gr: AstGraph => gr.roots.head.toGraph(context)
-      case _ => throw new RuntimeException("This ast is not represents a graph")
-    }
+    root.toGraph(context)
   }
 }
+
+
+// ------------------------------
+// Traits
+// ------------------------------
 
 /**
  * すべての抽象構文木要素の親となる型
@@ -25,24 +25,9 @@ trait AstNode {
 }
 
 /**
- * プログラム上の制約違反
- * @param msg
+ * グラフを生成する構文
  */
-class CodeException(msg: String) extends FrontException(msg) {
-
-}
-
-/**
- * グラフを表すAST
- */
-case class AstGraph(roots: Seq[AstRoot]) extends AstNode {
-
-}
-
-/**
- * 根のAST
- */
-trait AstRoot extends AstNode {
+trait AstGraph extends AstNode {
   /**
    * この抽象構文木からグラフを構成します
    * @param context 現在このグラフが存在するContext
@@ -51,12 +36,75 @@ trait AstRoot extends AstNode {
   def toGraph(context: LexicalContext): core.Vertex
 }
 
+// ------------------------------
+// Exceptions
+// ------------------------------
+/**
+ * プログラム上の制約違反
+ * @param msg
+ */
+class CodeException(msg: String) extends FrontException(msg) {
+
+}
+
+// ------------------------------
+// Implementations
+// ------------------------------
+
+/**
+ * Cellを表すAST
+ */
+case class AstCell(items: Seq[AstCellItem]) extends AstGraph {
+  override def toGraph(context: LexicalContext): core.Vertex = {
+    val cellContext = new CellContext(context, this)
+    core.Cell.create() { haed =>
+      roots.map(_.toGraph(cellContext))
+    }
+  }
+
+  def roots: Seq[AstGraph] = {
+    items.flatMap {
+      case g: AstGraph => Some(g)
+      case _ => None
+    }
+  }
+}
+
+trait AstCellItem extends AstNode {
+}
+
+case class AstImport(from: Option[AstLabel],
+                     imports: Seq[AstLabel],
+                     as: Option[AstLabel] = None) extends AstCellItem {
+  if (imports.size > 1 && as.isDefined) {
+    // 複数インポートとインポートしたcellのリネームは同時に行えません
+    throw new SyntaxError(
+      "Multi import and module rename cannot use at the same time. " +
+        "Use 'import A as B; import X as Y'")
+  }
+}
+
+case class AstFin(expr: AstExpr) extends AstCellItem {
+
+}
+
+case class AstBinOp(expr: String) extends AstGraph {
+  override def toGraph(context: LexicalContext): Vertex = {
+    ???
+  }
+}
+
+case class AstExpr(first: AstGraph, following: Seq[(AstBinOp, AstGraph)]) extends AstGraph with AstCellItem {
+  override def toGraph(context: LexicalContext): Vertex = ???
+}
+
+
 /**
  * ルールのAST
  * @param lhs 左辺を表すグラフの根
  * @param rhs 右辺を表すグラフの根
  */
-case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
+case class AstRule(lhs: AstGraph, rhs: AstGraph) extends AstGraph {
   /**
    * ルールを表すASTを構成します．ルールのグラフの構成手順は
    * 1. LhsContextを生成する
@@ -83,7 +131,7 @@ case class AstRule(lhs: AstRoot, rhs: AstRoot) extends AstRoot {
 /**
  * 頂点を表すAST
  */
-case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges: Seq[AstEdge]) extends AstRoot {
+case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges: Seq[AstEdge]) extends AstGraph {
 
   /**
    * 頂点を表すVertexを作成します．参照頂点の場合はContextから探索し見つかったものを参照します
@@ -102,9 +150,10 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
   def mkReferenceVertex(cap: String, context: LexicalContext): core.Vertex = {
     // TODO: _ref 接続を持つ場合はエラー
     val label = SpecialLabel.Vertex.reference
-    val refEdge = core.Edge(null, SpecialLabel.Edge.ref, context.resolveExact[core.Vertex](cap))
-    val edges = Stream(refEdge) ++ this.edges.map(_.toEdge(context))
-    core.Vertex(label, edges, this.mkAttributesMap)
+    core.Vertex.create(label, this.mkAttributesMap) { v =>
+      val refEdge = core.Edge(v, SpecialLabel.Edge.ref, context.resolveExact[core.Vertex](cap))
+      Stream(refEdge) ++ this.edges.map(_.toEdge(v, context))
+    }
   }
 
   def mkLhsGraph(lhsContext: LhsContext): core.Vertex = {
@@ -120,8 +169,9 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
 
   def mkGraph(context: LexicalContext): core.Vertex = {
     val label = this.labelExpr
-    val eds = edges.map(_.toEdge(context))
-    core.Vertex(label, eds.toStream, this.mkAttributesMap)
+    core.Vertex.create(label) { v =>
+      edges.map(_.toEdge(v, context))
+    }
   }
 
   def labelExpr: String = name match {
@@ -144,7 +194,7 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
   }
 
   def captureExpr: Option[String] = name match {
-    case AstName(Some(AstCapture(cap)), _) => Some(cap)
+    case AstName(Some(AstVertexBinding(cap)), _) => Some(cap)
     case _ => None
   }
 
@@ -163,7 +213,7 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
 
   def mkMetadataAttribtues: Iterable[(String, String)] = {
     this.name match {
-      case AstName(Some(AstCapture(e)), _) => Seq("__captured_as__" -> e)
+      case AstName(Some(AstVertexBinding(e)), _) => Seq("__captured_as__" -> e)
       case _ => Seq()
     }
   }
@@ -172,8 +222,8 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
 case class AstEdge(label: AstLabel, dst: AstVertex) extends AstNode {
   def capture(context: LexicalContext): Unit = dst.capture(context)
 
-  def toEdge(context: LexicalContext): core.Edge = {
-    label.expr |:| dst.toGraph(context)
+  def toEdge(src: Vertex, context: LexicalContext): core.Edge = {
+    core.Edge(src, Label(label.expr), dst.toGraph(context))
   }
 }
 
@@ -185,11 +235,11 @@ case class AstLabel(expr: String) extends AstLiteral {
 
 }
 
-case class AstCapture(expr: String) extends AstLiteral {
+case class AstVertexBinding(expr: String) extends AstLiteral {
 
 }
 
-case class AstName(capture: Option[AstCapture], label: Option[AstLabel]) {
+case class AstName(capture: Option[AstVertexBinding], label: Option[AstLabel]) {
 
 }
 

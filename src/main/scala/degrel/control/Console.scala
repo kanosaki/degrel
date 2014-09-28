@@ -65,11 +65,11 @@ class Console(val reserve: LocalReserve) {
     } else {
       parse(line) match {
         case rule: Rule => {
-          println(s"RULE: ${rule.freeze}")
+          println(s"RULE: $rule")
           reserve.addRule(rule)
         }
         case v => {
-          println(s"Vertex: ${v.freeze}")
+          println(s"Vertex: $v")
           reserve.addVertex(v)
         }
       }

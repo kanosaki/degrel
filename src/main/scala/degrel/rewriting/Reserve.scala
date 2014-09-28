@@ -38,10 +38,6 @@ trait Reserve extends Logger {
 
   }
 
-  def freeze: Reserve = {
-    new FrozenReserve(this.rewriters.toSeq, this.roots.map(_.freeze).toSeq)
-  }
-
   def report() = {
     s"Vertices:\n    ${this.roots.map(_.toString).mkString("\n    ")}"
   }

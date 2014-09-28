@@ -12,24 +12,13 @@ object VertexBody {
   }
 }
 
-class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
-
+class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
   private val _id = _previd.autoValidate
-  private var _edges: Iterable[Edge] = null
-
-  def writeEdges(es: Iterable[Edge]) = {
-    if (_edges != null) throw new Exception("Duplicated initialization")
-    for (e <- es) {
-      e.src = this
-    }
-    _edges = es
-  }
+  private val _edges: Iterable[Edge] = _allEdges
 
   def attr(key: String): Option[String] = {
     attributes.get(key)
   }
-
-  this.writeEdges(_allEdges)
 
   def groupedEdges: Iterable[Iterable[Edge]] = {
     allEdges.groupBy(_.label).values
@@ -106,11 +95,11 @@ class VertexBody(val _label: Label, val attributes: Map[String, String], _allEdg
           .map(_.duplicate()) ++
           this.edges()
             .map(_.build(context))
-        Vertex(matchedV.label.expr, builtEdges, matchedV.attributes)
+        Vertex(matchedV.label.expr, builtEdges.toSeq, matchedV.attributes)
       }
       case None => {
         val buildEdges = this.edges().map(_.build(context))
-        Vertex(this.label.expr, buildEdges, this.attributes)
+        Vertex(this.label.expr, buildEdges.toSeq, this.attributes)
       }
     }
   }
