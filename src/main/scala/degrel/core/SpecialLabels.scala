@@ -1,5 +1,8 @@
 package degrel.core
 
+/**
+ * 特殊ラベルを定義します．"V_"は頂点に用いられるラベルで，”E_”は接続に用いられる特別ラベルです
+ */
 object SpecialLabels {
   /**
    * ワイルドカード(パターンマッチにおいて，何にでもマッチするパターン)
@@ -16,6 +19,11 @@ object SpecialLabels {
    * 参照頂点
    */
   val V_REFERENCE = "__ref__"
+
+  /**
+   * 書き換え規則頂点
+   */
+  val V_RULE = "__rule__"
 
   /**
    * 参照頂点の参照先への接続
@@ -36,6 +44,7 @@ object SpecialLabels {
    * Cellにおいて，
    */
   val E_CELL_RULE = "__rule__"
+  val E_CELL_ELEMENT = "__elem__"
   val E_CONTINUE = "__continue__"
   val E_VALUE = "__val__"
 }

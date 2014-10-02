@@ -2,7 +2,7 @@ package degrel.front
 
 import scala.collection.mutable
 
-class ParserContext(val parent: Option[ParserContext]) {
+class ParserContext(val parent: ParserContext = ParserContext.default) {
   protected val operators = new mutable.HashMap[String, BinOp]()
 
   def addOperator(expr: String, precedence: Int = 0, associativity: OpAssoc = OpAssoc.Left): Unit = {
@@ -15,7 +15,7 @@ class ParserContext(val parent: Option[ParserContext]) {
    * @return 見つかった演算子
    */
   def findOp(expr: String): Option[BinOp] = {
-    val fromParent = parent.flatMap(_.findOp(expr))
+    val fromParent = parent.findOp(expr)
     val fromThis = operators.get(expr)
     (fromThis, fromParent) match {
       case (Some(_), Some(_)) => throw new CodeException("Duplicated operator definition")
@@ -24,8 +24,10 @@ class ParserContext(val parent: Option[ParserContext]) {
   }
 }
 
-class DefaultParserContext extends ParserContext(None) {
-  addOperator(SpecialLabel.Vertex.rule, -10, OpAssoc.Right)
+class DefaultParserContext extends ParserContext(null) {
+  operators ++= BinOp.builtins.map(op => (op.expr, op))
+
+  override def findOp(expr: String) = operators.get(expr)
 }
 
 object ParserContext {

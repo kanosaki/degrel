@@ -55,6 +55,22 @@ class CodeException(msg: String) extends FrontException(msg) {
  * Cellを表すAST
  */
 case class AstCell(items: Seq[AstCellItem]) extends AstGraph {
+  /**
+   * Import句
+   */
+  val imports = items.flatMap {
+    case i: AstImport => Some(i)
+    case _ => None
+  }
+
+  /**
+   * fin句
+   */
+  val fins = items.flatMap {
+    case i: AstFin => Some(i)
+    case _ => None
+  }
+
   override def toGraph(context: LexicalContext): core.Vertex = {
     val cellContext = new CellContext(context, this)
     core.Cell.create() { haed =>
@@ -84,18 +100,21 @@ case class AstImport(from: Option[AstLabel],
   }
 }
 
-case class AstFin(expr: AstExpr) extends AstCellItem {
+case class AstFin(expr: AstExpr)(implicit ctx: ParserContext) extends AstCellItem {
 
 }
 
-case class AstBinOp(expr: String) extends AstGraph {
-  override def toGraph(context: LexicalContext): Vertex = {
-    ???
+case class AstBinOp(expr: String)
+                   (implicit ctx: ParserContext) extends Comparable[AstBinOp] {
+  val op = ctx.findOp(expr) match {
+    case Some(o) => o
+    case None =>
+      throw new CodeException(s"Undefined operator $expr")
   }
-}
 
-case class AstExpr(first: AstGraph, following: Seq[(AstBinOp, AstGraph)]) extends AstGraph with AstCellItem {
-  override def toGraph(context: LexicalContext): Vertex = ???
+  override def compareTo(o: AstBinOp): Int = {
+    op.compareTo(o.op)
+  }
 }
 
 
@@ -156,6 +175,21 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
     }
   }
 
+  def mkAttributesMap: Map[String, String] = {
+    val srcattrs = this.attributes match {
+      case Some(attrs) => attrs.map(ast => (ast.key, ast.value))
+      case None => Map()
+    }
+    (srcattrs ++ this.mkMetadataAttribtues).toMap
+  }
+
+  def mkMetadataAttribtues: Iterable[(String, String)] = {
+    this.name match {
+      case AstName(Some(AstVertexBinding(e)), _) => Seq("__captured_as__" -> e)
+      case _ => Seq()
+    }
+  }
+
   def mkLhsGraph(lhsContext: LhsContext): core.Vertex = {
     lhsContext.fromCaptureCache(this) match {
       case Some(v) => v
@@ -179,6 +213,11 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
     case AstName(_, None) => SpecialLabel.Vertex.wildcard
   }
 
+  def captureExpr: Option[String] = name match {
+    case AstName(Some(AstVertexBinding(cap)), _) => Some(cap)
+    case _ => None
+  }
+
   /**
    * 頂点が変数を持つ場合はその変数を返します，その際に構成されたGraphは
    * 後で参照の整合性を保つためにContextへキャッシュされます
@@ -193,29 +232,9 @@ case class AstVertex(name: AstName, attributes: Option[Seq[AstAttribute]], edges
     }
   }
 
-  def captureExpr: Option[String] = name match {
-    case AstName(Some(AstVertexBinding(cap)), _) => Some(cap)
-    case _ => None
-  }
-
   private def captureEdges(context: LexicalContext): Unit = {
     for (edge <- this.edges)
       edge.capture(context)
-  }
-
-  def mkAttributesMap: Map[String, String] = {
-    val srcattrs = this.attributes match {
-      case Some(attrs) => attrs.map(ast => (ast.key, ast.value))
-      case None => Map()
-    }
-    (srcattrs ++ this.mkMetadataAttribtues).toMap
-  }
-
-  def mkMetadataAttribtues: Iterable[(String, String)] = {
-    this.name match {
-      case AstName(Some(AstVertexBinding(e)), _) => Seq("__captured_as__" -> e)
-      case _ => Seq()
-    }
   }
 }
 

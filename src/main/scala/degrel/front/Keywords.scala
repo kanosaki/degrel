@@ -1,5 +1,7 @@
 package degrel.front
 
+import degrel.core.{SpecialLabels => SL}
+
 object Tokens {
 }
 
@@ -10,15 +12,16 @@ object Keywords {
 object SpecialLabel {
 
   object Edge {
-    val lhs = "_lhs"
-    val rhs = "_rhs"
-    val ref = "_ref"
+    val lhs = SL.E_LHS
+    val rhs = SL.E_RHS
+    val ref = SL.E_REFERENCE_TARGET
   }
 
   object Vertex {
-    val reference = "@"
-    val wildcard = "*"
-    val rule = "->"
+    val reference = SL.V_REFERENCE
+    val wildcard = SL.V_WILDCARD
+    val rule = SL.V_RULE
+    val cell = SL.V_CELL
   }
 
 }

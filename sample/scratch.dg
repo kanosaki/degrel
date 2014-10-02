@@ -193,7 +193,11 @@ FA >>= FB -> _(*: A) -> {
 }
 
 // JVM Interop
+{
+    $obj = new SomeClass()
+    $val1 = Sytem.out.println($obj.toString())
 
+}
 
 */ 
 

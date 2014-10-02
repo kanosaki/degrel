@@ -28,6 +28,7 @@ class TermParserTest extends FlatSpec {
   it should "parse a expression" in {
     val ast = parser("a -> b + c -> (x % y)")
     val graph = ast.toGraph()
+    println(graph)
   }
 
   it should "parse a rule which generates an empty cell" in {
@@ -120,12 +121,12 @@ class TermParserTest extends FlatSpec {
         |   hogehoge -> {
         |     foo -> bar
         |   }
-        |   $john = doe(foo: bar)
-        |   $ten = 1 + 2 +
+        |   john = doe(foo: bar)
+        |   ten = 1 + 2 +
         |     3 + 4
-        |   InnerClass(arg1: $hoge, arg2: $fuga) -> {
-        |     $foo = piyo(foo: $hoge, bar: $fuga)
-        |     fin poyo(result: $foo)
+        |   InnerClass(arg1: hoge, arg2: fuga) -> {
+        |     foo = piyo(foo: hoge, bar: fuga)
+        |     fin poyo(result: foo)
         |   }
         | }
       """.stripMargin)

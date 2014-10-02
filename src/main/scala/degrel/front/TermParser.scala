@@ -3,7 +3,9 @@ package degrel.front
 import scala.language.higherKinds
 import scala.util.parsing.combinator.RegexParsers
 
-class TermParser(val context: ParserContext = ParserContext.default) extends RegexParsers {
+class TermParser(val parsercontext: ParserContext = ParserContext.default) extends RegexParsers {
+  implicit val context = parsercontext
+
   /**
    * 頂点のラベルとして使えるものの正規表現
    */
@@ -99,7 +101,13 @@ class TermParser(val context: ParserContext = ParserContext.default) extends Reg
     case n ~ attrs ~ None => AstVertex(n, attrs, Seq())
   }
 
-  def cell: Parser[AstCell] = "{" ~> cellBody <~ "}"
+  def cell: Parser[AstCell] = {
+    val nextCtx = new ParserContext(context)
+    // this.type#Parser[AstCell]をコンパイラが要求してくるのでキャスト
+    // Scalaパーサーの仕様
+    val nextParser = new TermParser(nextCtx).asInstanceOf[this.type]
+    "{" ~> nextParser.cellBody <~ "}"
+  }
 
   def cellBody: Parser[AstCell] = cellItemList ^^ {
     case exprs => AstCell(exprs)
@@ -108,7 +116,9 @@ class TermParser(val context: ParserContext = ParserContext.default) extends Reg
   /**
    * fin文
    */
-  def cell_fin: Parser[AstFin] = "fin" ~> expr ^^ AstFin
+  def cell_fin: Parser[AstFin] = "fin" ~> expr ^^ {
+    case x => AstFin(x)
+  }
 
   /**
    * Import文

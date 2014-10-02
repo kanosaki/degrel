@@ -130,4 +130,13 @@ class LhsContext(val parent: LexicalContext) extends LexicalContext {
 
 class CellContext(val parent: LexicalContext, cellAst: AstCell) extends LexicalContext {
 
+  override protected def resolveInThis(expr: String): List[Any] = {
+    val ruleBinding = super.resolveInThis(expr)
+    val cellBinding: List[Any] = ???
+
+    symbolMap.get(expr) match {
+      case Some(vs) => vs.toList
+      case None => List()
+    }
+  }
 }
