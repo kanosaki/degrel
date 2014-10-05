@@ -8,7 +8,7 @@ package degrel.front
  */
 case class BinOp(expr: String,
                  precedence: Int = 0,
-                 associativity: OpAssoc = OpAssoc.Left) extends Ordered[BinOp] {
+                 associativity: OpAssoc = OpAssoc.Left) extends Ordered[BinOp] with AstCellItem {
   /**
    * 演算子優先順序を定義します．優先順位が高いほど優先され，右結合と左結合の演算子がある場合は左結合が優先されます
    */
@@ -28,6 +28,7 @@ case class BinOp(expr: String,
 object BinOp {
   // デフォルトの演算子優先順位．ほぼJavaに準拠
   // 上ほど優先のもので，下ほど優先度が低い
+  val DOT = BinOp(".", 5)
   val EXP = BinOp("**", 3)
   val MUL = BinOp("*", 2)
   val DIV = BinOp("/", 2)

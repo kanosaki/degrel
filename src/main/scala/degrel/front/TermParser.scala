@@ -1,9 +1,9 @@
 package degrel.front
 
 import scala.language.higherKinds
-import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.combinator.{JavaTokenParsers, RegexParsers}
 
-class TermParser(val parsercontext: ParserContext = ParserContext.default) extends RegexParsers {
+class TermParser(val parsercontext: ParserContext = ParserContext.default) extends JavaTokenParsers {
   implicit val context = parsercontext
 
   /**
@@ -21,6 +21,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * @todo エスケープできるようにする
    */
   val PAT_ATTR_KEY = """[^:]+""".r
+
+
+  val PAT_BINOP = "[!@#%^&*+=|:<>/?.-]+".r
 
   val ws = """[ \t]*""".r
 
@@ -120,6 +123,31 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
     case x => AstFin(x)
   }
 
+  // NOTE: 副作用あり(this method has side effects)
+  /**
+   * 二項演算子定義．定義と同時にParserContextへ定義された演算子を追加します
+   * @return
+   */
+  def cell_defop: Parser[BinOp] =
+    "defop" ~> PAT_BINOP ~ opt(wholeNumber) ~ opt("right" | "left") ^^ {
+      case op ~ precedenceOpt ~ associativityOpt => {
+        val precedence = precedenceOpt match {
+          case Some(p) => p.toInt
+          case None => 0 // Default precedence
+        }
+
+        val associativity = associativityOpt match {
+          case Some("right") => OpAssoc.Right
+          case Some("left") => OpAssoc.Left
+          case Some(_) => throw new RuntimeException("Never here")
+          case None => OpAssoc.Left
+        }
+        val bop = BinOp(op, precedence, associativity)
+        context.addOperator(bop)
+        bop
+      }
+    }
+
   /**
    * Import文
    * TODO: TermParserをCellごとに生成して，Moduleレベルでfinが来たらエラーみたいな処理を入れる？
@@ -131,7 +159,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
       case frm ~ _ ~ imports ~ as => AstImport(frm, imports, as)
     }
 
-  def cellItem: Parser[AstCellItem] = seek(cell_import | cell_fin | expr)
+  def cellItem: Parser[AstCellItem] = seek(cell_import | cell_defop | cell_fin | expr)
 
   def cellItemList: Parser[Seq[AstCellItem]] = rep(cellItem)
 
@@ -143,7 +171,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 二項演算子
    */
-  def binop: Parser[AstBinOp] = "[!@#%^&*+=|:<>/?.-]+".r ^^ {
+  def binop: Parser[AstBinOp] = PAT_BINOP ^^ {
     case exp => AstBinOp(exp)
   }
 
@@ -159,7 +187,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * foo -> {bar; hgoe -> fuga} -> foo * bar
    * foo, (->, {bar; hoge -> fuga}), (->, foo), (*, bar)
    */
-  def expr: Parser[AstExpr] = "(" ~> expr <~ ")" | element ~ rep(binopRight) ^^ {
+  def expr: Parser[AstExpr] = element ~ rep(binopRight) ^^ {
     case exp ~ followingExprs =>
       AstExpr(exp, followingExprs)
   }

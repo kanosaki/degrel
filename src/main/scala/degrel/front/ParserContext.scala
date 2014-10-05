@@ -2,11 +2,19 @@ package degrel.front
 
 import scala.collection.mutable
 
+/**
+ * 構文解析器のコンテキストを表します．演算子の定義等を含みます
+ * @param parent 親のコンテキスト
+ */
 class ParserContext(val parent: ParserContext = ParserContext.default) {
   protected val operators = new mutable.HashMap[String, BinOp]()
 
   def addOperator(expr: String, precedence: Int = 0, associativity: OpAssoc = OpAssoc.Left): Unit = {
-    operators += expr -> new BinOp(expr, precedence, associativity)
+    this.addOperator(BinOp(expr, precedence, associativity))
+  }
+
+  def addOperator(op: BinOp) = {
+    operators += op.expr -> op
   }
 
   /**

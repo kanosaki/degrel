@@ -118,6 +118,7 @@ class TermParserTest extends FlatSpec {
     val ast = parser(
       """foo -> {
         |   from hoge.fuga import piyo as foo
+        |   defop >>= -11 right
         |   hogehoge -> {
         |     foo -> bar
         |   }
