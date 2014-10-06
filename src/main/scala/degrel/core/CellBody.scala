@@ -11,7 +11,7 @@ class CellBody(vertices: Iterable[Vertex])
   def createEdges(vertices: Iterable[Vertex]) = {
     vertices.map {
       case r: Rule => Edge(this, SpecialLabels.E_CELL_RULE, r)
-      case v => Edge(this, SpecialLabels.E_CELL_ELEMENT, v)
+      case v => Edge(this, SpecialLabels.E_CELL_ITEM, v)
     }
   }
 

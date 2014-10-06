@@ -1,6 +1,6 @@
 package degrel.front.dotlike
 
-import degrel.front.SyntaxError
+import degrel.front.{TermParser, SyntaxError}
 
 import scala.util.parsing.combinator.RegexParsers
 
@@ -27,7 +27,8 @@ object DigraphParser extends RegexParsers {
 
   def token[T](p: Parser[T]): Parser[T] = ws ~> p
 
-  def label: Parser[String] = token( """[_a-z0-9][_a-z0-9A-Z]*""".r)
+  def label: Parser[String] = token("'" ~> TermParser.default.PAT_BINOP <~ "'") |
+    token( """[_a-z0-9][_a-z0-9A-Z]*""".r)
 
   /**
    * 各頂点の識別子．基本的に`label`の形を取りますが，グラフ内に同じラベルを持つ別の頂点を作成したい場合は

@@ -1,34 +1,101 @@
 package degrel.front
 
+import degrel.core.Cell
 import org.scalatest.FlatSpec
+import degrel.utils.TestUtils._
 
 class TermParserTest extends FlatSpec {
   val parser = new TermParser()
+  val parseDot = ParserUtils.parseDot _
 
   it should "parse empty graph" in {
     val ast = parser("")
     val graph = ast.toGraph()
+    assert(graph ===~ Cell())
   }
 
   it should "parse single vertex" in {
     val ast = parser(" foo ")
     val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        | -> foo : __item__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
   it should "parse an empty cell" in {
     val ast = parser(" {\n} ")
     val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        | -> __cell__ : __item__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
   it should "parse a rule" in {
     val ast = parser("a \n\t-> b")
     val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->' : __rule__
+        |  '->' -> a : __lhs__
+        |  '->' -> b : __rhs__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
-  it should "parse a expression" in {
+  it should "parse a expression 1" in {
+    val ast = parser("a -> b + c")
+    val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->'$1 : __rule__
+        |  '->'$1 -> a : __lhs__
+        |  '->'$1 -> '+' : __rhs__
+        |  '+' -> b : __lhs__
+        |  '+' -> c : __rhs__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "parse a expression 2" in {
+    val ast = parser("a + b -> c")
+    val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->'$1 : __rule__
+        |  '->'$1 -> '+' : __lhs__
+        |  '->'$1 -> c : __rhs__
+        |  '+' -> a : __lhs__
+        |  '+' -> b : __rhs__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "parse a expression 3" in {
     val ast = parser("a -> b + c -> (x % y)")
     val graph = ast.toGraph()
-    println(graph)
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->'$1 : __rule__
+        |  '->'$1 -> a : __lhs__
+        |  '->'$1 -> '->'$2 : __rhs__
+        |  '->'$2 -> '+' : __lhs__
+        |  '+' -> b : __lhs__
+        |  '+' -> c : __rhs__
+        |  '->'$2 -> '%' : __rhs__
+        |  '%' -> x : __lhs__
+        |  '%' -> y : __rhs__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
   it should "parse a rule which generates an empty cell" in {

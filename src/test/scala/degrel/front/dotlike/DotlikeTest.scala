@@ -22,6 +22,13 @@ class DotlikeTest extends FlatSpec {
     assert(expected === actual)
   }
 
+  it should "parse quoted label" in {
+    val expr = "@'+=+'{}"
+    val expected = AstDigraph("+=+", AstDigraphBody(Seq()))
+    val actual = DigraphParser(expr)
+    assert(expected === actual)
+  }
+
   it should "parse digraph which explains a tree with semicolon separeted" in {
     val expr =
       """@root { -> a : e;

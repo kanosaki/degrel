@@ -22,8 +22,11 @@ object SpecialLabels {
 
   /**
    * 書き換え規則頂点
+   * NOTE: 二項演算子は演算子自体が頂点ラベルになるのが原則です．
+   * 特殊頂点は__label__というアンダースコアに囲まれた形式ですが，
+   * ここでは二項演算子に関するルールが優先されています
    */
-  val V_RULE = "__rule__"
+  val V_RULE = "->"
 
   /**
    * 参照頂点の参照先への接続
@@ -44,7 +47,7 @@ object SpecialLabels {
    * Cellにおいて，
    */
   val E_CELL_RULE = "__rule__"
-  val E_CELL_ELEMENT = "__elem__"
+  val E_CELL_ITEM = "__item__"
   val E_CONTINUE = "__continue__"
   val E_VALUE = "__val__"
 }

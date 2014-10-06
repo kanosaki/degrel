@@ -112,6 +112,11 @@ case class AstBinOp(expr: String)
       throw new CodeException(s"Undefined operator $expr")
   }
 
+  override def equals(other: Any) = other match {
+    case o: AstBinOp => o.op == this.op
+    case _ => false
+  }
+
   override def compareTo(o: AstBinOp): Int = {
     op.compareTo(o.op)
   }
