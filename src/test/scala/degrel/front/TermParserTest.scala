@@ -101,16 +101,40 @@ class TermParserTest extends FlatSpec {
   it should "parse a rule which generates an empty cell" in {
     val ast = parser("foo -> {}")
     val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->' : __rule__
+        |  '->' -> foo : __lhs__
+        |  '->' -> __cell__ : __rhs__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
   it should "parse a simple cell with a vertex" in {
     val ast = parser("{a}")
     val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> __cell__ : __item__
+        |  __cell__ -> a : __item__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
   it should "parse a simple cell with a rule" in {
     val ast = parser("{a -> b}")
     val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> __cell__ : __item__
+        |  __cell__ -> '->' : __rule__
+        |  '->' -> a : __lhs__
+        |  '->' -> b : __rhs__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
   it should "parse a two element cell" in {
@@ -121,6 +145,14 @@ class TermParserTest extends FlatSpec {
         | }
       """.stripMargin)
     val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> __cell__ : __item__
+        |  __cell__ -> a : __item__
+        |  __cell__ -> b : __item__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
   it should "parse a simple cell" in {
@@ -132,36 +164,44 @@ class TermParserTest extends FlatSpec {
         |}
       """.stripMargin)
     val graph = ast.toGraph()
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->'$1 : __rule__
+        |  '->'$1 -> foo : __lhs__
+        |  '->'$1 -> __cell__ : __rhs__
+        |  __cell__ -> a$1 : __item__
+        |  __cell__ -> '->'$2 : __rule__
+        |  '->'$2 -> a$2 : __lhs__
+        |  '->'$2 -> b : __rhs__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 
+  // TODO: Add test for imports (not only for parsing but for its behavior)
+
   it should "parse a import stetement" in {
-    val ast = parser("import foobar.baz.hoge")
-    val graph = ast.toGraph()
+    parser("import foobar.baz.hoge")
   }
 
   it should "parse a import stetement with 'as'" in {
-    val ast = parser("import foobar.baz.hoge as hogehoge")
-    val graph = ast.toGraph()
+    parser("import foobar.baz.hoge as hogehoge")
   }
 
   it should "parse a import with 'from'" in {
-    val ast = parser("from foobar.baz import hoge")
-    val graph = ast.toGraph()
+    parser("from foobar.baz import hoge")
   }
 
   it should "parse a import with 'from' and 'as'" in {
-    val ast = parser("from foobar.baz import hoge as hogehoge")
-    val graph = ast.toGraph()
+    parser("from foobar.baz import hoge as hogehoge")
   }
 
   it should "parse a multi imports" in {
-    val ast = parser("import foo.bar, hoge.fuga")
-    val graph = ast.toGraph()
+    parser("import foo.bar, hoge.fuga")
   }
 
   it should "parse a multi imports with 'from'" in {
-    val ast = parser("from piyo import foo, bar")
-    val graph = ast.toGraph()
+    parser("from piyo import foo, bar")
   }
 
   it should "throw CodeError when multi import with 'as'" in {
@@ -171,18 +211,17 @@ class TermParserTest extends FlatSpec {
   }
 
   it should "parse a cell with import statement" in {
-    val ast = parser(
+    parser(
       """foo -> {
         |   from hoge.fuga import piyo as foo
         |   foo(hoge: fuga)
         |   bar -> baz
         | }
       """.stripMargin)
-    val graph = ast.toGraph()
   }
 
   it should "parse complicated cell" in {
-    val ast = parser(
+    parser(
       """foo -> {
         |   from hoge.fuga import piyo as foo
         |   defop >>= -11 right
@@ -198,7 +237,6 @@ class TermParserTest extends FlatSpec {
         |   }
         | }
       """.stripMargin)
-    val graph = ast.toGraph()
   }
 }
 

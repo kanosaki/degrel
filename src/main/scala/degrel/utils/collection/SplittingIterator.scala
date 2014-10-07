@@ -1,5 +1,11 @@
 package degrel.utils.collection
 
+/**
+ * [1, 2, 2, 3, 4, 4, 4] -> [ [1], [2, 2], [3], [4, 4, 4] ]
+ * @param source 元のIterator
+ * @param comp 同値判定に用いる関数
+ * @tparam T イテレータの要素の型
+ */
 class SplittingIterator[T](source: Iterator[T])
                           (implicit comp: (T, T) => Boolean)
   extends Iterator[Iterable[T]] {
