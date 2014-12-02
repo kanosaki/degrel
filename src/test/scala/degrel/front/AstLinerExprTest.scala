@@ -1,13 +1,14 @@
 package degrel.front
 
+import degrel.graphbuilder
 import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
 
-class AstExprTest extends FlatSpec {
+class AstLinerExprTest extends FlatSpec {
   val parseDot = ParserUtils.parseDot _
 
   def vertex(label: String, edges: Seq[AstEdge] = Seq()) =
-    AstVertex(AstName(None, Some(AstLabel(label))), None, edges)
+    AstFunctor(AstName(Some(AstLabel(label)), None), None, edges)
 
   it should "Build expr ast" in {
     implicit val parserContext = ParserContext.default
@@ -17,8 +18,8 @@ class AstExprTest extends FlatSpec {
       AstBinOp("->") -> vertex("c")
     )
     // a + b -> c
-    val ast = AstExpr(firstTerm, following)
-    val graph = ast.toGraph(LexicalContext.empty)
+    val ast = AstLinerExpr(firstTerm, following).toTree
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ '->' {
          |   -> c : __rhs__

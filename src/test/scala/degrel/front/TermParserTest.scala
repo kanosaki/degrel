@@ -1,6 +1,7 @@
 package degrel.front
 
 import degrel.core.Cell
+import degrel.graphbuilder
 import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
 
@@ -10,13 +11,13 @@ class TermParserTest extends FlatSpec {
 
   it should "parse empty graph" in {
     val ast = parser("")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     assert(graph ===~ Cell())
   }
 
   it should "parse single vertex" in {
     val ast = parser(" foo ")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         | -> foo : __item__
@@ -27,7 +28,7 @@ class TermParserTest extends FlatSpec {
 
   it should "parse an empty cell" in {
     val ast = parser(" {\n} ")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         | -> __cell__ : __item__
@@ -38,7 +39,7 @@ class TermParserTest extends FlatSpec {
 
   it should "parse a rule" in {
     val ast = parser("a \n\t-> b")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> '->' : __rule__
@@ -49,9 +50,24 @@ class TermParserTest extends FlatSpec {
     assert(graph ===~ expected)
   }
 
+  it should "construct a rule with one capture" in {
+    val ast = parser("foo@X -> hoge(fuga: X)")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->' : __rule__
+        |  '->' -> foo : __lhs__
+        |  '->' -> hoge : __rhs__
+        |  hoge -> '__ref__' : fuga
+        |  '__ref__' -> 'foo' : __to__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
   it should "parse a expression 1" in {
     val ast = parser("a -> b + c")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> '->'$1 : __rule__
@@ -66,7 +82,7 @@ class TermParserTest extends FlatSpec {
 
   it should "parse a expression 2" in {
     val ast = parser("a + b -> c")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> '->'$1 : __rule__
@@ -81,7 +97,7 @@ class TermParserTest extends FlatSpec {
 
   it should "parse a expression 3" in {
     val ast = parser("a -> b + c -> (x % y)")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> '->'$1 : __rule__
@@ -100,7 +116,7 @@ class TermParserTest extends FlatSpec {
 
   it should "parse a rule which generates an empty cell" in {
     val ast = parser("foo -> {}")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> '->' : __rule__
@@ -113,7 +129,7 @@ class TermParserTest extends FlatSpec {
 
   it should "parse a simple cell with a vertex" in {
     val ast = parser("{a}")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> __cell__ : __item__
@@ -125,7 +141,7 @@ class TermParserTest extends FlatSpec {
 
   it should "parse a simple cell with a rule" in {
     val ast = parser("{a -> b}")
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> __cell__ : __item__
@@ -144,7 +160,7 @@ class TermParserTest extends FlatSpec {
         |   b
         | }
       """.stripMargin)
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> __cell__ : __item__
@@ -163,7 +179,7 @@ class TermParserTest extends FlatSpec {
         |   a -> b
         |}
       """.stripMargin)
-    val graph = ast.toGraph()
+    val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
         |  -> '->'$1 : __rule__

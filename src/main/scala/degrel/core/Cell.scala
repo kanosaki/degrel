@@ -1,6 +1,7 @@
 package degrel.core
 
 trait Cell extends Vertex {
+  def imports: Seq[Cell] = ???
 }
 
 object Cell {
@@ -16,6 +17,5 @@ object Cell {
     header.write(new CellBody(vertices))
     header
   }
-
 }
 

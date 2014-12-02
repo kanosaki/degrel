@@ -22,8 +22,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    */
   val PAT_ATTR_KEY = """[^:]+""".r
 
+  val PAT_BINOP = "[!#$%^&*+=|:<>/?.-]+".r
 
-  val PAT_BINOP = "[!@#%^&*+=|:<>/?.-]+".r
+  val PAT_BINDING = """[A-Z0-9][a-zA-Z0-9_]*""".r
 
   val ws = """[ \t]*""".r
 
@@ -49,7 +50,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 頂点束縛(Vertex Binding)
    */
-  def binding: Parser[AstVertexBinding] = "$" ~> """[a-zA-Z0-9]+""".r ^^ AstVertexBinding
+  def binding: Parser[AstVertexBinding] = PAT_BINDING ^^ AstVertexBinding
 
   /**
    * ラベルのパーサー
@@ -60,17 +61,17 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * 頂点に付くラベルと変数の組み合わせ
    */
   def name: Parser[AstName] =
-    (binding ~ opt("[" ~> label <~ "]")) ^^ {
-      case cap ~ lbl => AstName(Some(cap), lbl)
+    label ~ opt("@" ~> binding) ^^ {
+      case lbl ~ b => AstName(Some(lbl), b)
     } |
-      label ^^ {
-        case l => AstName(None, Some(l))
+      binding ^^ {
+        case b => AstName(None, Some(b))
       }
 
   /**
    * 接続のパーサー
    */
-  def edge: Parser[AstEdge] = label ~ ":" ~ vertex ^^ {
+  def edge: Parser[AstEdge] = label ~ ":" ~ functor ^^ {
     case n ~ _ ~ v => AstEdge(n, v)
   }
 
@@ -99,9 +100,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * 構文解析器における頂点とは，v(foo: bar)のような構文上正規の頂点のみです
    * Cell等もランタイムでは頂点ですが，ここでは頂点に含まれません
    */
-  def vertex: Parser[AstVertex] = name ~ opt(attributes) ~ opt(edges) ^^ {
-    case n ~ attrs ~ Some(es) => AstVertex(n, attrs, es)
-    case n ~ attrs ~ None => AstVertex(n, attrs, Seq())
+  def functor: Parser[AstFunctor] = name ~ opt(attributes) ~ opt(edges) ^^ {
+    case n ~ attrs ~ Some(es) => AstFunctor(n, attrs, es)
+    case n ~ attrs ~ None => AstFunctor(n, attrs, Seq())
   }
 
   def cell: Parser[AstCell] = {
@@ -166,7 +167,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 二項演算子のオペランドになる項
    */
-  def element: Parser[AstGraph] = "(" ~> expr <~ ")" | cell | vertex
+  def element: Parser[AstVertex] = "(" ~> expr <~ ")" ^^ {_.toTree} | cell | functor
 
   /**
    * 二項演算子
@@ -178,7 +179,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * {@code expr}において，次の演算子と項の部分
    */
-  def binopRight: Parser[(AstBinOp, AstGraph)] = binop ~ element ^^ {
+  def binopRight: Parser[(AstBinOp, AstVertex)] = binop ~ element ^^ {
     case op ~ ex => (op, ex)
   }
 
@@ -187,14 +188,27 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * foo -> {bar; hgoe -> fuga} -> foo * bar
    * foo, (->, {bar; hoge -> fuga}), (->, foo), (*, bar)
    */
-  def expr: Parser[AstExpr] = element ~ rep(binopRight) ^^ {
+  def expr: Parser[AstLinerExpr] = element ~ rep(binopRight) ^^ {
     case exp ~ followingExprs =>
-      AstExpr(exp, followingExprs)
+      AstLinerExpr(exp, followingExprs)
   }
 
-  def apply(expr: String): Ast = {
-    parseAll(cellBody, expr) match {
-      case Success(gr, _) => new Ast(gr)
+  def apply(str: String): Ast = {
+    new Ast(parseCell(str))
+  }
+
+  def parseExpr(str: String): AstVertex = {
+    parseAll(expr, str) match {
+      case Success(e, _) => e.toTree
+      case fail: NoSuccess => {
+        throw new SyntaxError(s"${fail.toString} \nat line ${fail.next.pos.line} col ${fail.next.pos.column}")
+      }
+    }
+  }
+
+  def parseCell(str: String): AstCell = {
+    parseAll(cellBody, str) match {
+      case Success(gr, _) => gr
       case fail: NoSuccess => {
         throw new SyntaxError(s"${fail.toString} \nat line ${fail.next.pos.line} col ${fail.next.pos.column}")
       }
@@ -204,4 +218,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
 
 object TermParser {
   val default = new TermParser()
+
+  def parseExpr(s: String) = default.parseExpr(s)
+
+  def praseCell(s: String) = default.parseCell(s)
+
 }

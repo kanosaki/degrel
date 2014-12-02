@@ -14,7 +14,7 @@ object ParserUtils {
     this.parseVertex(s).asInstanceOf[core.Rule]
   }
 
-  def parseVertex(s: String): core.Vertex = {
-    termParser(s).toGraph()
+  def parseVertex(s: String): core.Cell = {
+    degrel.graphbuilder.build[core.Cell](termParser(s).root)
   }
 }
