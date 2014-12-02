@@ -1,6 +1,5 @@
 # Intellij Environment specific files
-.idea/workspace.xml
-.idea/tasks.xml
+.idea
 *.iws
 
 .history
