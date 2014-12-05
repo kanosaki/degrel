@@ -1,204 +1,33 @@
 
+twitterCrawler -> { |Self|
+    Scheduler = intervalScheduler(seconds: 30)
+    Scheduler.addListener(Self)
 
+    Target = screen_name('kanosaki')
+    Target = num_id(123456789)
 
-List -> {
-    import Iterable
-
-    $root: nil
-    $length: 0 
-
-    new() -> {
-        $cons = nil
-        $length = 0
+    on_next -> {
+        self.dump_tweets(target: Target)
     }
 
-    size() -> {
-        yield $length
-    }
-}
+    dump_tweets(target: screen_name@ScrName, _@Until) ->  
+        dump_tweets(target: lookup_id(ScrName, Until)
+     
 
-main(args: A) -> {
-    $list = List.new
-}
+    dump_tweets(target: num_id@NumID, until: _@Until) -> {
 
-
-
-foobar(hoge: F) -> {
-}
-
-// NOTE
-* !:
-
-// Keywords
-self // self cell
-defop, defbin
-
-// define binop
-defop 'return' -1
-defbin '>>=' -2
-
-
-// Macros
-// return <expr> -> __return__(__val__!: <expr>)
-return <expr> 
----> <expr> -> __return__(__val__: <expr>)
-yield <expr> ---> <expr> -> __return__(__val__: <expr>, __continue__: self)
-
-// Macros(test)
-return $x
---> $x -> __return__(__val__: $x)
---> x(__val__: X) -> X -> __return__(__val__: X)
---> x(__val__: X) -> __return__(__val__: X)
-
-/* 
-// Assign
-$foo := a
----> foo(__val__: a)
-
-// Assign of rule
-// Is $f a rule, or $f's return value?
-$f := foo(hoge: X) -> hogehoge(bar: X)
-
-
-// Value of a cell
-$ret := {
-    $x := foo(hoge: fuga)
-    $v := foo(hoge: X) -> hogehoge(bar: X)
-    return $v
-}
-
-// Call
-hoge(arg: $foo)
----> foo(__val__: X) -> hoge(arg: X)
-// With multiple parameters
-hoge(arg1: $foo, arg2: $bar)
----> foo(__val__: X1) -> $bar(__val__: X2) -> hoge(arg1: X1, arg2: X2)
-     == foo(__val__: X1) -> {$bar(__val__: X2) -> hoge(arg1: X1, arg2: X2)}
-foo() -> {
-    $x = 1
-    return $x
-}
---->
-    foo() -> {
-        x(__val__: 1)
-        x(__val__:X) -> __return__(__val__: X)
-    }
-    x(__val__: V) -> __return__(__val__: V)
-    x(__val__: V) -> __return__(__val__: V, __continute__: self)
-
-// Return value hook
-$ret := {
-    funcall(hoge: $value) // yields some value
-}
---->
-ret(__val__: X)
-
-// If (case)
-$target_value -> {
-    fin | true -> foobar
-        | false -> hogehoge
-}
-
-$ifresult = $target_value -> {
-    true -> foobar
-    false -> hogehoge
-}
-
-
-// As
-foo as bar
-foo(*: X) -> bar(*: X)
-
-// Attribute read (Message Send)
-$foo.bar --->
-foo(__val__: __cell__(__var__: A)) -> A
-
-$foo.bar(hoge: fuga) --->
-foo(__val__: __cell__(*: X)) 
-    -> foo(__val__: __cell__(__item__: bar(hoge: fuga), *: X))
-
-
-Klass -> {
-    implicit_method(arg: V) -> {
-        // ...
-    }
-
-    explicit_method(arg: V) -> {
-    }
-
-    hoge(self) -> {
-        super.implicit_method as someval // implicit use
-        $someval := funcall(...) // implicit_method will be applied
-
-        // NOTE: another_funcallの評価がexplicit_call内で行われる?
-        // TODO: ルールの評価は，placeholderの書き換えが終了してから?
-        $anotherval := super.explicit_call(arg: another_funcall(...))
-        super.explicit_call.__lhs__ -> 
-        
-        return ($anotherval, $someval)
     }
 }
 
-// Cap Switch
-// よりより強い制約と弱い制約の分岐をどうするか
-// MEMO: 上から下にパターンマッチ．一番上は探索用
-foo -> hoge
-| foo(hoge: F, fuga: B) -> fuga
-| foo(hoge: F) -> piyo
+intervalScheduler(minutes: _@N) -> intervalScheduler(seconds: N * 60)
+intervalScheduler(seconds: _@Seconds) -> { |Self|
+    start -> proc {
+        thread.sleep(seconds * 1000)
+        Self.Listeners.on_next()
+        Self.start
+    }
 
----> 
-// 難しい．パターンマッチエンジンに組み込んだほうがいいかも
-
-
-// Cell Extractor
-// Cellから値を取り出す仕組み
-* Default Extractor
-// Proposal 1 "return"
-foo -> {
-    ...
-    return someContV@V -> __continue__(__val__: V, __next__: self)
-    return someRetV@V -> V
+    addListener(_@L) -> {
+        Self.Listeners = L
+    }
 }
-
-// Cell Building
-hoge(arg: X) -> {
-   $foo = 1
-   $bar = X
-   rule(hoge: F) -> hoge(bar: F)
-   fin hoge@H -> H
-}
-hoge(arg: X) -> __cell__(
-  __var__: foo(__val__: 1),
-  __var__: bar(__val__: X),
-  __rule__: __rule__(__lhs__: rule(hoge: *@F), __rhs__: foo(bar: F)),
-
-  __send__: "msgid_1234567890(__val__: V) -> { $$SENDER_CELL$$.1234567890(__val__:V) }"
-  __fin__: __rule__(__lhs__: hoge@H, __rhs__: H)
-)
-
-// Curring Rule
-foo(a: X) -> bar(b: Y) -> baz(a: X, b: Y)
-__rule__(
-  __lhs__: foo(a: *[X]), 
-  __rhs__: 
-    __rule__(
-      __lhs__: bar(b: *[Y]), 
-      __rhs__: baz(a: X, b: Y)))
-
-// Bind operator
-funcA >>= funcB
-FA >>= FB -> _(*: A) -> {
-    $1 = FA(*: A)
-    return FB(*: $1)
-}
-
-// JVM Interop
-{
-    $obj = new SomeClass()
-    $val1 = Sytem.out.println($obj.toString())
-
-}
-
-*/ 
-
-
