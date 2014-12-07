@@ -1,5 +1,7 @@
 package degrel.front
 
+import degrel.core.Label
+
 /**
  * 二項演算子を定義します．演算子の構文上の性質のみの定義で，意味は定義されません．
  * @param expr 演算子の文字列
@@ -8,7 +10,8 @@ package degrel.front
  */
 case class BinOp(expr: String,
                  precedence: Int = 0,
-                 associativity: OpAssoc = OpAssoc.Left) extends Ordered[BinOp] with AstCellItem {
+                 associativity: OpAssoc = OpAssoc.Left,
+                 labelMapping: Label = null) extends Ordered[BinOp] with AstCellItem {
   /**
    * 演算子優先順序を定義します．優先順位が高いほど優先され，右結合と左結合の演算子がある場合は左結合が優先されます
    */
@@ -21,6 +24,14 @@ case class BinOp(expr: String,
       } else {
         0
       }
+    }
+  }
+
+  def toLabel: Label = {
+    if(labelMapping == null){
+      Label(this.expr)
+    } else {
+      labelMapping
     }
   }
 }
