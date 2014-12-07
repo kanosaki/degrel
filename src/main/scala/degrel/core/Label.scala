@@ -17,7 +17,7 @@ trait Label extends Ordered[Label] {
   }
 
   def matches(pattern: Label) = {
-    pattern.expr == "*" ||
+    pattern.expr == WildcardLabel.expr ||
       this.expr == pattern.expr
   }
 
@@ -29,7 +29,7 @@ trait Label extends Ordered[Label] {
 object Label {
   val specials: Map[String, Label] =
     Map(
-      "*" -> WildcardLabel,
+      "_" -> WildcardLabel,
       "@" -> ReferenceLabel)
   val wildcard = WildcardLabel
   val reference = ReferenceLabel
@@ -46,11 +46,11 @@ case class BasicLabel(expr: String) extends Label {
 }
 
 case object WildcardLabel extends Label {
-  def expr: String = "*"
+  val expr: String = "_"
 }
 
 case object ReferenceLabel extends Label {
-  def expr: String = "@"
+  val expr: String = "@"
 }
 
 

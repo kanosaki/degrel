@@ -36,7 +36,7 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "all vertex matches with wildcard vertex" in {
-    val pattern = vHead("*")
+    val pattern = vHead("_")
     val verticies = Seq(
       vHead("foo"),
       vHead("bar"),
