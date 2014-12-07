@@ -68,6 +68,11 @@ trait Builder[+T <: Vertex] {
     }
     this.header
   }
+
+  def factory: BuilderFactory = parent match {
+    case null => throw new RuntimeException(s"BuildefFactory for ${this} undefined!")
+    case _ => parent.factory
+  }
 }
 
 object Builder {
@@ -76,6 +81,8 @@ object Builder {
 }
 
 class BuilderRoot extends Primitive {
+  protected val defaultFactory = new BuiltinBuilderFactory()
+
   override def outerCell: CellBuilder = null // null?
 
   override def variables: LexicalVariables = LexicalVariables.empty
@@ -89,4 +96,6 @@ class BuilderRoot extends Primitive {
   override def concrete(): Unit = ???
 
   override def children: Iterable[Primitive] = ???
+
+  override def factory: BuilderFactory = defaultFactory
 }

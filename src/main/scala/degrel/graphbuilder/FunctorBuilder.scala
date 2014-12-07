@@ -5,7 +5,12 @@ import degrel.front._
 
 import scala.collection.mutable
 
-class VertexBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder[Vertex] {
+/**
+ * AstFunctorからFunctorを構築するGraphBuilder
+ * @param parent
+ * @param ast
+ */
+class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder[Vertex] {
   val header = new VertexHeader(null)
 
   ast.name match {
@@ -15,7 +20,7 @@ class VertexBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder[
   val (edges, children) = {
     val childBuilders = new mutable.MutableList[Primitive]
     (ast.edges.map(astEdge => {
-      val vBuilder = new VertexBuilder(this, astEdge.dst)
+      val vBuilder = factory.get[Vertex](this, astEdge.dst)
       childBuilders += vBuilder
       Edge(this.header, astEdge.label.expr, vBuilder.header)
     }), childBuilders.toSeq)
