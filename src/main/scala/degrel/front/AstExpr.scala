@@ -16,7 +16,7 @@ trait AstExpr[+T <: Vertex] extends AstGraph[T] {
 case class AstFunctor(name: AstName, attributes: Option[Seq[AstAttribute]], edges: Seq[AstEdge]) extends AstExpr[Vertex] {
   def labelExpr: String = name match {
     case AstName(Some(AstLabel(l)), _) => l
-    case AstName(None, _) => SpecialLabel.Vertex.wildcard
+    case AstName(None, _) => SpecialLabel.Vertex.wildcard.name
   }
 
   def captureExpr: Option[String] = name match {

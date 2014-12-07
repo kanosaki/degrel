@@ -46,7 +46,7 @@ object FlyWrite {
 
   class VertexExtensions(v: core.Vertex) {
     def |->|(rhs: core.Vertex) = {
-      core.Vertex.create(front.SpecialLabel.Vertex.rule) { src =>
+      core.Vertex.create(core.SpecialLabels.V_RULE) { src =>
         Seq(core.Edge(src, core.Label(front.SpecialLabel.Edge.lhs), v),
           core.Edge(src, core.Label(front.SpecialLabel.Edge.rhs), rhs))
       }

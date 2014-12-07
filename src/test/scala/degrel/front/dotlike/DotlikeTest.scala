@@ -1,7 +1,7 @@
 package degrel.front.dotlike
 
 import degrel.Query._
-import degrel.core.{BasicLabel, Traverser, Vertex}
+import degrel.core.{Label, BasicLabel, Traverser, Vertex}
 import org.scalatest.FlatSpec
 
 class DotlikeTest extends FlatSpec {
@@ -80,7 +80,7 @@ class DotlikeTest extends FlatSpec {
     val expr = "@root{}"
     val ast = DigraphParser(expr)
     val graph = ast.toGraph()
-    assert(graph.label === BasicLabel("root"))
+    assert(graph.label === Label("root"))
     assert(graph.edges().size === 0)
     assert(graph.attributes === Map())
   }

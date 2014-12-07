@@ -97,13 +97,13 @@ object Vertex {
    * @param edgeInit
    * @return
    */
-  def create(label: String,
+  def create(label: Label,
              attributes: Map[String, String] = Map(),
              id: ID = ID.NA)
             (edgeInit: Vertex => Iterable[Edge]): Vertex = {
     val vh = new VertexHeader(null)
     val edges = edgeInit(vh)
-    val body = VertexBody(Label(label), attributes, edges.toSeq, id)
+    val body = VertexBody(label, attributes, edges.toSeq, id)
     vh.write(body)
     vh
   }
