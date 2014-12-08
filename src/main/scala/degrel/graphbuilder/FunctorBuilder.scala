@@ -36,7 +36,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
   def mkReferenceVertex(targetName: String): VertexBody = {
     val label = SpecialLabel.Vertex.reference
     val targetBuilder = variables.resolveExact(targetName)
-    val refEdge = Edge(this.header, SpecialLabel.Edge.ref, targetBuilder.header)
+    val refEdge = Edge(this.header, SpecialLabels.E_REFERENCE_TARGET, targetBuilder.header)
     new VertexBody(
       Label(label),
       this.mkAttributesMap,
