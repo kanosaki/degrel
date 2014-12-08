@@ -3,11 +3,24 @@ package degrel.graphbuilder
 import degrel.core.{Edge, Label, Vertex}
 import degrel.front.AstBinExpr
 
+/**
+ * 二項演算子含む式を表現するグラフを構築します
+ */
 class ExprBuilder(val parent: Primitive, val ast: AstBinExpr) extends Builder[Vertex] {
 
+  /**
+   * 左辺の{@code Builder[T]}
+   */
   val lhsFactory = factory.get[Vertex](this, ast.left)
+
+  /**
+   * 右辺の{@code Builder[T]}
+   */
   val rhsFactory = factory.get[Vertex](this, ast.right)
 
+  /**
+   * @inheritdoc
+   */
   override val children = Seq(lhsFactory, rhsFactory)
 
   /**

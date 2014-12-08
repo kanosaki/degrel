@@ -13,10 +13,12 @@ import scala.collection.mutable
 class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder[Vertex] {
   val header = new VertexHeader(null)
 
+  // もし変数宣言の場合は変数に自分の名前を登録
   ast.name match {
     case AstName(_, Some(cap)) => variables.bindSymbol(cap.expr, this)
   }
 
+  // 各Edgeを作成．Edgeの先のVertexのBuilder[Vertex]をchildrenとする
   val (edges, children) = {
     val childBuilders = new mutable.MutableList[Primitive]
     (ast.edges.map(astEdge => {
@@ -26,13 +28,24 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     }), childBuilders.toSeq)
   }
 
+  /**
+   * @inheritdoc
+   */
   override def variables: LexicalVariables = parent.variables
 
+  /**
+   * @inheritdoc
+   */
   override val outerCell: CellBuilder = parent match {
     case cb: CellBuilder => cb
     case _ => parent.outerCell
   }
 
+  /**
+   * 参照頂点を作成し返します．参照先が見つからない場合は，{@code NameError}が送出されます
+   * @param targetName
+   * @return
+   */
   def mkReferenceVertex(targetName: String): VertexBody = {
     val label = SpecialLabel.Vertex.reference
     val targetBuilder = variables.resolveExact(targetName)
@@ -44,10 +57,18 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
       ID.NA)
   }
 
+  /**
+   * 通常の頂点を返します
+   * @param labelExpr
+   * @return
+   */
   def plainVertex(labelExpr: String): VertexBody = {
     new VertexBody(Label(labelExpr), this.mkAttributesMap, this.edges, ID.NA)
   }
 
+  /**
+   * @inheritdoc
+   */
   def concrete() = {
     val vb = ast.name match {
       case AstName(None, Some(cap)) => mkReferenceVertex(cap.expr)
@@ -57,15 +78,22 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     this.header.write(vb)
   }
 
+  /**
+   * この頂点におけるメタ属性の辞書を作成し返します
+   * @return
+   */
   def mkAttributesMap: Map[String, String] = {
     val srcattrs = ast.attributes match {
       case Some(attrs) => attrs.map(a => (a.key, a.value))
       case None => Map()
     }
-    (srcattrs ++ this.mkMetadataAttribtues).toMap
+    (srcattrs ++ this.mkSystemAttributes).toMap
   }
 
-  def mkMetadataAttribtues: Iterable[(String, String)] = {
+  /**
+   * 構文解析器によって自動的に付与されるメタ属性を返します
+   */
+  def mkSystemAttributes: Iterable[(String, String)] = {
     ast.name match {
       case AstName(_, Some(AstVertexBinding(e))) => Seq("__captured_as__" -> e)
       case _ => Seq()

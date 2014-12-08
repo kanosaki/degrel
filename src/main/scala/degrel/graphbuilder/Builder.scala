@@ -24,6 +24,10 @@ trait Builder[+T <: Vertex] {
    */
   def parent: Primitive
 
+  /**
+   * 自分の子の{@code Builder[T]}
+   * @return
+   */
   def children: Iterable[Primitive]
 
   /**
@@ -34,6 +38,8 @@ trait Builder[+T <: Vertex] {
   /**
    * このメソッドが呼ばれると，ボディ部を作成します．
    * 作成されたボディ部はヘッダを経由して使用するため，直接取得は出来ません
+   * @note childrenに登録された子Builder[T]への再帰的concreteは
+   *       concreteAllによって自動的に処理されるため実装する必要はありません
    */
   def concrete(): Unit
 
@@ -49,6 +55,10 @@ trait Builder[+T <: Vertex] {
 
   protected var _isConcreted = false
 
+  /**
+   * まだconcreteされていない場合はconcreteを行い，
+   * されに{@code children}に対して再帰的にconcreteAllを実行します
+   */
   def concreteAll(): Unit = {
     if(!this.isConcreted) {
       this.concrete()
@@ -63,12 +73,14 @@ trait Builder[+T <: Vertex] {
    */
   def get(): T = {
     if (!this.isConcreted) {
-      this.concrete()
-      this.isConcreted = true
+      this.concreteAll()
     }
     this.header
   }
 
+  /**
+   * この{@code Builder[T]}における{@code BuildefFactory}を返します
+   */
   def factory: BuilderFactory = parent match {
     case null => throw new RuntimeException(s"BuildefFactory for ${this} undefined!")
     case _ => parent.factory
@@ -80,10 +92,13 @@ object Builder {
 
 }
 
+/**
+ * Builter[T]の起点となるクラス，通常は{@code Builder.empty}を経由して使用してください
+ */
 class BuilderRoot extends Primitive {
   protected val defaultFactory = new BuiltinBuilderFactory()
 
-  override def outerCell: CellBuilder = null // null?
+  override def outerCell: CellBuilder = null // TODO: null?
 
   override def variables: LexicalVariables = LexicalVariables.empty
 
@@ -93,9 +108,9 @@ class BuilderRoot extends Primitive {
 
   override def isConcreted: Boolean = false
 
-  override def concrete(): Unit = ???
+  override def concrete(): Unit = {}
 
-  override def children: Iterable[Primitive] = ???
+  override def children: Iterable[Primitive] = Seq()
 
   override def factory: BuilderFactory = defaultFactory
 }
