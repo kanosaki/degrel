@@ -19,7 +19,7 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   /**
    * このグラフ要素における環境
    */
-  override def variables: LexicalVariables = ???
+  override def variables: LexicalVariables = parent.variables
 
   /**
    * このグラフ要素を直接内包するCell
