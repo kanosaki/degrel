@@ -9,3 +9,4 @@ target/
 lib_managed/
 project/
 !project/assembly.sbt
+!project/plugins.sbt
