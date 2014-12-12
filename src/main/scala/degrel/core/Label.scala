@@ -24,6 +24,8 @@ trait Label extends Ordered[Label] {
   override def compare(that: Label): Int = {
     this.expr.compare(that.expr)
   }
+
+  def symbol: Symbol = Symbol(this.expr)
 }
 
 object Label {
@@ -53,6 +55,8 @@ object Label {
 
 case class BasicLabel(sym: Symbol) extends Label {
   override def expr: String = sym.name
+
+  override def symbol = sym
 }
 
 

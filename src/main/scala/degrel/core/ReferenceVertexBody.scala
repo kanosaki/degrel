@@ -57,7 +57,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
   }
 
   def referenceTarget: Vertex = {
-    val refEdges = this.edges("_ref")
+    val refEdges = this.edges(SpecialLabels.E_REFERENCE_TARGET)
     refEdges.head.dst
   }
 }
