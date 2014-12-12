@@ -9,11 +9,11 @@ import degrel.front.{Ast, AstVertex, AstGraph}
 package object graphbuilder {
   def build[T <: Vertex](ast: AstGraph[T])
                         (implicit factory: BuilderFactory = BuilderFactory.default): T = {
-    val builder = factory.get(null, ast)
+    val builder = factory.get(factory.createRoot, ast)
     builder.get()
   }
 
-  def build(ast: Ast): Cell = build(ast.root)
+  def build(ast: Ast): Vertex = build(ast.root)
 
   def validate(ast: AstVertex) = ???
 

@@ -8,6 +8,8 @@ import degrel.front._
  */
 trait BuilderFactory {
   def get[T <: Vertex](parent: Primitive, ast: AstGraph[T]): Builder[T]
+
+  def createRoot: Primitive
 }
 
 object BuilderFactory {
@@ -24,5 +26,7 @@ class BuiltinBuilderFactory extends BuilderFactory {
     case functor: AstFunctor => new FunctorBuilder(parent, functor)
     case _ => throw new BuilderException(s"Cannot found builder for $ast")
   }
+
+  override def createRoot: Primitive = new BuilderRoot()
 }
 
