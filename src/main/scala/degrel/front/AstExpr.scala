@@ -6,7 +6,7 @@ import degrel.core.Vertex
  * グラフを生成し，かつDEGRELのプログラム側から式として扱える物を表します
  * AstGraphとの違いは，AstGraphなどはimportsなどプログラム制御用のグラフを生成します
  */
-trait AstExpr[+T <: Vertex] extends AstGraph[T] {
+trait AstExpr[+T <: Vertex] extends AstGraph[T] with AstCellItem {
 
 }
 

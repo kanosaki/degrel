@@ -5,12 +5,12 @@ object Parser {
     ???
   }
 
-  def parseCell(s: String): AstCell = {
+  def cell(s: String): AstCell = {
     ???
   }
 
-  def parseVertex(s: String): AstVertex = {
-    ???
+  def vertex(s: String): AstVertex = {
+    TermParser.parseExpr(s)
   }
 }
 

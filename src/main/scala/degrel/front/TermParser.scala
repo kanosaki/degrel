@@ -9,7 +9,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 頂点のラベルとして使えるものの正規表現
    */
-  val PAT_LABEL = """([_a-z0-9A-Z][_.a-z0-9A-Z]*)""".r
+  val PAT_LABEL = """([_a-z0-9][_.a-z0-9A-Z]*)""".r
   /**
    * 属性の値として使える文字．任意の文字が使えるが，構文解析上属性の区切り記号と終わりの記号である
    * ','と'}'は使用できません
@@ -167,7 +167,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 二項演算子のオペランドになる項
    */
-  def element: Parser[AstVertex] = "(" ~> expr <~ ")" ^^ {_.toTree} | cell | functor
+  def element: Parser[AstVertex] = "(" ~> expr <~ ")" | cell | functor
 
   /**
    * 二項演算子
@@ -188,9 +188,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * foo -> {bar; hgoe -> fuga} -> foo * bar
    * foo, (->, {bar; hoge -> fuga}), (->, foo), (*, bar)
    */
-  def expr: Parser[AstLinerExpr] = element ~ rep(binopRight) ^^ {
+  def expr: Parser[AstVertex] = element ~ rep(binopRight) ^^ {
     case exp ~ followingExprs =>
-      AstLinerExpr(exp, followingExprs)
+      AstLinerExpr(exp, followingExprs).toTree
   }
 
   def apply(str: String): Ast = {
@@ -199,7 +199,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
 
   def parseExpr(str: String): AstVertex = {
     parseAll(expr, str) match {
-      case Success(e, _) => e.toTree
+      case Success(e, _) => e
       case fail: NoSuccess => {
         throw new SyntaxError(s"${fail.toString} \nat line ${fail.next.pos.line} col ${fail.next.pos.column}")
       }

@@ -29,7 +29,7 @@ case class AstBinOp(expr: String)
   val op = ctx.findOp(expr) match {
     case Some(o) => o
     case None =>
-      throw new CodeException(s"Undefined operator $expr")
+      throw new CodeException(s"Undefined operator '$expr'")
   }
 
   override def equals(other: Any) = other match {

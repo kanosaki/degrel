@@ -44,7 +44,7 @@ case class AstImport(from: Option[AstLabel],
   }
 }
 
-case class AstFin(expr: AstLinerExpr)(implicit ctx: ParserContext) extends AstCellItem {
+case class AstFin(expr: AstVertex)(implicit ctx: ParserContext) extends AstCellItem {
 
 }
 

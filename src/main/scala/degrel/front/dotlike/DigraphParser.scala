@@ -2,7 +2,7 @@ package degrel.front.dotlike
 
 import degrel.front.{TermParser, SyntaxError}
 
-import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.combinator.{JavaTokenParsers, RegexParsers}
 
 /**
  * DOT言語ライクな記法で一つの根付きグラフを記述します．
@@ -13,7 +13,7 @@ import scala.util.parsing.combinator.RegexParsers
  *          }
  *
  */
-object DigraphParser extends RegexParsers {
+object DigraphParser extends JavaTokenParsers {
   override val skipWhitespace = false
   override val whiteSpace = """[ \t]+""".r
   val ws = """[ \t]*""".r
@@ -27,7 +27,8 @@ object DigraphParser extends RegexParsers {
 
   def token[T](p: Parser[T]): Parser[T] = ws ~> p
 
-  def label: Parser[String] = token("'" ~> TermParser.default.PAT_BINOP <~ "'") |
+  // form JavaTokenParsers.stringLiteral
+  def label: Parser[String] = token("'" ~> """([^'\p{Cntrl}\\]|\\[\\'"bfnrt]|\\u[a-fA-F0-9]{4})*""".r <~ "'") |
     token( """[_a-z0-9][_a-z0-9A-Z]*""".r)
 
   /**
