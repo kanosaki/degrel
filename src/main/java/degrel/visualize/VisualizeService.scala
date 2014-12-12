@@ -20,11 +20,22 @@ object VisualizeService {
    * {@code elem}を表示します
    * @param elem 表示する要素
    */
-  def show(elem: Element) = {
+  def show(elem: Element): Unit = {
     prepareCurrentPresenter()
     FXUtil.runLater(
     {
       multiGraphView.pushElement(elem)
+    })
+  }
+
+  def showAndWait(elem: Element): Unit = {
+    if (multiGraphView != null) return
+    multiGraphView = new MultiGraphView()
+    val stage = FXUtil.loadStage(multiGraphView)
+    FXUtil.runAndWait(
+    {
+      multiGraphView.pushElement(elem)
+      stage.showAndWait()
     })
   }
 }
