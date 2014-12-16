@@ -16,6 +16,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
   // もし変数宣言の場合は変数に自分の名前を登録
   ast.name match {
     case AstName(Some(_), Some(cap)) => variables.bindSymbol(cap.expr, this)
+    case _ =>
   }
 
   // 各Edgeを作成．Edgeの先のVertexのBuilder[Vertex]をchildrenとする
