@@ -26,7 +26,7 @@ class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: 
 
   def reprRecursive(trajectory: Trajectory): String = {
     trajectory.walk(this) {
-      case Right(nextHistory) => {
+      case Unvisited(nextHistory) => {
         if (allEdges.isEmpty) {
           s"${this.repr}"
         } else {
@@ -34,7 +34,7 @@ class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: 
           s"${this.repr}($edgesExpr)"
         }
       }
-      case Left(_) => {
+      case Visited(_) => {
         this.repr
       }
     }

@@ -2,7 +2,7 @@ package degrel.core
 
 import degrel.rewriting.BuildingContext
 
-class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: Iterable[Edge], _id: ID)
+class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: Iterable[Edge], _id: ID)
   extends VertexBody(
     label,
     attrs,
@@ -38,7 +38,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
 
   override def reprRecursive(history: Trajectory): String = {
     history.walk(this) {
-      case Right(nextHistory) => {
+      case Unvisited(nextHistory) => {
         if (all_edges.isEmpty) {
           s"@<${this.referenceTarget.reprRecursive(nextHistory)}>"
         } else {
@@ -46,7 +46,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[String, String], all_edges: I
           s"@<${this.referenceTarget.reprRecursive(nextHistory)}($edgesExpr)>"
         }
       }
-      case Left(_) => {
+      case Visited(_) => {
         this.repr
       }
     }
