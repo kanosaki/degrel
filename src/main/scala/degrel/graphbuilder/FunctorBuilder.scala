@@ -82,12 +82,12 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    * この頂点におけるメタ属性の辞書を作成し返します
    * @return
    */
-  def mkAttributesMap: Map[String, String] = {
+  def mkAttributesMap: Map[Label, String] = {
     val srcattrs = ast.attributes match {
       case Some(attrs) => attrs.map(a => (a.key, a.value))
       case None => Map()
     }
-    (srcattrs ++ this.mkSystemAttributes).toMap
+    Label.convertAttrMap(srcattrs ++ this.mkSystemAttributes)
   }
 
   /**

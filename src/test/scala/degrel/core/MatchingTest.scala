@@ -6,8 +6,7 @@ import org.scalatest.FlatSpec
 import degrel.utils.FlyWrite._
 import degrel.utils.VertexExtensions._
 import degrel.utils.TestUtils._
-import degrel.core
-import degrel.front
+import degrel.{graphbuilder, core, front}
 import degrel.front.{Parser, TermParser, ParserUtils}
 
 /**
@@ -16,7 +15,7 @@ import degrel.front.{Parser, TermParser, ParserUtils}
 class MatchingTest extends FlatSpec {
   val parser = Parser.vertex _
 
-  def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
+  def parse(s: String): core.Vertex = graphbuilder.build(Parser.vertex(s))
 
   it should "match single vertex" in {
     val a = vHead("foo").matches(vHead("foo"))

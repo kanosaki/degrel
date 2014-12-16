@@ -4,9 +4,7 @@ import degrel.front.{ParserUtils, TermParser}
 import org.scalatest.FlatSpec
 
 class TraverserTest extends FlatSpec {
-  val parser = TermParser.default
-
-  def parse(s: String): Vertex = ParserUtils.parseVertex(s)
+  val parse = degrel.parseVertex _
 
   it should "traverse none if depth is 0" in {
     val graph = parse("foo(bar: baz, hoge: fuga(a: b))")

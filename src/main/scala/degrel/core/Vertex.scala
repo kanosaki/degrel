@@ -4,11 +4,11 @@ package degrel.core
 import degrel.rewriting.{BuildingContext, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
-  def edges(label: Label = Label.wildcard): Iterable[Edge]
+  def edges(label: Label = Label.V.wildcard): Iterable[Edge]
 
-  def attributes: Map[String, String]
+  def attributes: Map[Label, String]
 
-  def attr(key: String): Option[String]
+  def attr(key: Label): Option[String]
 
   def id: ID
 
@@ -27,7 +27,7 @@ trait Vertex extends Element with Comparable[Vertex] {
   def label: Label
 
 
-  def hasEdge(label: Label = Label.wildcard): Boolean = {
+  def hasEdge(label: Label = Label.V.wildcard): Boolean = {
     this.edges(label).size > 0
   }
 
@@ -37,7 +37,7 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def build(context: BuildingContext): Vertex
 
-  def isReference: Boolean = this.label == Label.reference
+  def isReference: Boolean = this.label == Label.V.reference
 
   def thru(label: Label): Vertex = {
     val candidates = this.edges(label)
@@ -83,7 +83,7 @@ trait Vertex extends Element with Comparable[Vertex] {
 object Vertex {
   def apply(label: String,
             edges: Iterable[Edge],
-            attributes: Map[String, String] = Map(),
+            attributes: Map[Label, String] = Map(),
             id: ID = ID.NA): Vertex = {
     val body = VertexBody(Label(label), attributes, edges.toSeq, id)
     new VertexHeader(body)
@@ -98,7 +98,7 @@ object Vertex {
    * @return
    */
   def create(label: Label,
-             attributes: Map[String, String] = Map(),
+             attributes: Map[Label, String] = Map(),
              id: ID = ID.NA)
             (edgeInit: Vertex => Iterable[Edge]): Vertex = {
     val vh = new VertexHeader(null)

@@ -28,10 +28,10 @@ class VertexHeader(f: VertexBody) extends Vertex {
 
   def reprRecursive(trajectory: Trajectory) = {
     trajectory.walk(this) {
-      case Right(nextHistory) => {
+      case Unvisited(nextHistory) => {
         s"<${body.reprRecursive(nextHistory)}>"
       }
-      case Left(_) => {
+      case Visited(_) => {
         s"<${body.repr}(..)>"
       }
     }
@@ -46,7 +46,7 @@ class VertexHeader(f: VertexBody) extends Vertex {
     case _ => false
   }
 
-  def attr(key: String): Option[String] = body.attr(key)
+  def attr(key: Label): Option[String] = body.attr(key)
 
   def build(context: BuildingContext): Vertex = body.build(context)
 
@@ -68,7 +68,7 @@ class VertexHeader(f: VertexBody) extends Vertex {
     _locator.single.compareAndSetIdentity(prev, created)
   }
 
-  def attributes: Map[String, String] = body.attributes
+  def attributes: Map[Label, String] = body.attributes
 
   def id: ID = body.id
 }

@@ -6,21 +6,24 @@ import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
 
 class TermParserTest extends FlatSpec {
-  val parser = new TermParser()
+  val parser = Parser.vertex _
   val parseDot = ParserUtils.parseDot _
-
-  it should "parse empty graph" in {
-    val ast = parser("")
-    val graph = graphbuilder.build(ast)
-    assert(graph ===~ Cell())
-  }
 
   it should "parse single vertex" in {
     val ast = parser(" foo ")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
-      """@ __cell__ {
-        | -> foo : __item__
+      """@foo{}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "parse single functor" in {
+    val ast = parser("foo(bar: baz)")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@foo{
+        | -> baz: bar
         |}
       """.stripMargin)
     assert(graph ===~ expected)
@@ -31,7 +34,6 @@ class TermParserTest extends FlatSpec {
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
-        | -> __cell__ : __item__
         |}
       """.stripMargin)
     assert(graph ===~ expected)
@@ -41,10 +43,9 @@ class TermParserTest extends FlatSpec {
     val ast = parser("a \n\t-> b")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
-      """@ __cell__ {
-        |  -> '->' : __rule__
-        |  '->' -> a : __lhs__
-        |  '->' -> b : __rhs__
+      """@'->'{
+        |  -> a : __lhs__
+        |  -> b : __rhs__
         |}
       """.stripMargin)
     assert(graph ===~ expected)
@@ -54,10 +55,9 @@ class TermParserTest extends FlatSpec {
     val ast = parser("foo@X -> hoge(fuga: X)")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
-      """@ __cell__ {
-        |  -> '->' : __rule__
-        |  '->' -> foo : __lhs__
-        |  '->' -> hoge : __rhs__
+      """@'->'{
+        |  -> foo : __lhs__
+        |  -> hoge : __rhs__
         |  hoge -> '__ref__' : fuga
         |  '__ref__' -> 'foo' : __to__
         |}

@@ -9,7 +9,7 @@ import org.scalatest.FlatSpec
 class TonberryTest extends FlatSpec {
 
   def parse(expr: String): core.Vertex = {
-    val ast = Parser.parseVertex(expr)
+    val ast = Parser.vertex(expr)
     graphbuilder.build(ast)
   }
 

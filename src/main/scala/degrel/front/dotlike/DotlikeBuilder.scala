@@ -1,6 +1,6 @@
 package degrel.front.dotlike
 
-import degrel.core.{Edge, Vertex}
+import degrel.core.{Label, Edge, Vertex}
 import degrel.graphbuilder.LexicalVariables
 import degrel.utils.collection.mutable.BiHashMap
 
@@ -11,7 +11,7 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalVariables) {
 
   val rootIdentifier = tagI("")
   val vertices = new mutable.HashMap[String @@ I, Vertex]
-  val attributes = new mutable.HashMap[String @@ I, Map[String, String]]
+  val attributes = new mutable.HashMap[String @@ I, Map[Label, String]]
   val edgeLabelMap = new mutable.HashMap[(String @@ I, String @@ I), String @@ L]
   val identifierLabelMap = new BiHashMap[String @@ I, String @@ L]()
   val edgeDestinationMap = new mutable.HashMap[String @@ I, mutable.Set[String @@ I]] with mutable.MultiMap[String @@ I, String @@ I]
@@ -24,7 +24,7 @@ class DotlikeBuilder(ast: AstDigraph)(context: LexicalVariables) {
   /**
    * 頂点labelに属するAttributesを返します
    */
-  def attributesFor(label: String @@ I): Map[String, String] = {
+  def attributesFor(label: String @@ I): Map[Label, String] = {
     attributes.getOrElse(label, Map())
   }
 

@@ -28,8 +28,8 @@ class ExprBuilder(val parent: Primitive, val ast: AstBinExpr) extends Builder[Ve
    */
   override val header: Vertex = Vertex.create(ast.op.expr)(h => {
     Seq(
-      Edge(h, Label.lhs, lhsFactory.header),
-      Edge(h, Label.rhs, rhsFactory.header)
+      Edge(h, Label.E.lhs, lhsFactory.header),
+      Edge(h, Label.E.rhs, rhsFactory.header)
     )
   })
 
