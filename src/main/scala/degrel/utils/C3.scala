@@ -1,10 +1,18 @@
 package degrel.utils
 
+import scala.collection.mutable
+
+object C3 {
+  def linearize[T <: HasParents[T]](node: T): List[T] = new C3().linearize(node)
+
+  def merge[T <: HasParents[T]](nodes: List[List[T]]) = new C3().merge(nodes)
+}
+
 /**
  * C3 Linearization algorithm implementation
  * http://en.wikipedia.org/wiki/C3_linearization
  */
-object C3 {
+class C3[T <: HasParents[T]] {
 
   /**
    * C3線形化アルゴリズムを用いて，継承グラフを線形化します．
@@ -12,14 +20,14 @@ object C3 {
    * @param node 起点となる子孫要素
    * @return 線形化した継承グラフ
    */
-  def linearize[T <: MultiParent](node: T): List[T] = {
+  def linearize(node: T): List[T] = {
     if (hasCycle(node, Set())) {
       throw new IllegalArgumentException("Cyclic graph is not allowed.")
     }
-    (node :: merge(node.parents.map(linearize) ++ List(node.parents))).asInstanceOf[List[T]]
+    node :: merge(node.parents.map(linearize) ++ List(node.parents))
   }
 
-  def merge(nodes: List[List[MultiParent]]): List[MultiParent] = {
+  def merge(nodes: List[List[T]]): List[T] = {
     if (nodes.isEmpty || nodes.head.isEmpty) return Nil
     merge1(List(), nodes)
   }
@@ -27,21 +35,22 @@ object C3 {
   /**
    * 与えられたMultiParentノードを根とするグラフは巡回構造があるかどうかを検査します
    */
-  def hasCycle(node: MultiParent, history: Set[MultiParent]): Boolean = {
+  def hasCycle(node: T, history: Set[T]): Boolean = {
     if (history.contains(node)) {
       true
     } else {
-      if (node.parents.isEmpty) {
+      val parents = node.parents
+      if (parents.isEmpty) {
         false
       } else {
         val nextHistory = history + node
-        ! node.parents.forall(!hasCycle(_, nextHistory))
+        ! parents.forall(!hasCycle(_, nextHistory))
       }
     }
   }
 
-  private def merge1(checked: List[List[MultiParent]],
-                     unchecked: List[List[MultiParent]]): List[MultiParent] = {
+  private def merge1(checked: List[List[T]],
+                     unchecked: List[List[T]]): List[T] = {
     if (unchecked.isEmpty) {
       if (checked.nonEmpty) {
         return merge1(List(), checked.reverse)
@@ -67,7 +76,27 @@ object C3 {
   }
 }
 
-trait MultiParent {
+class MemoizedC3[T <: HasParents[T]] extends C3[T] {
 
-  def parents: List[MultiParent]
+  var linearizeCache = new mutable.HashMap[T, List[T]]()
+  var hasCycleCache = new mutable.HashMap[T, Boolean]()
+
+  /**
+   * @inheritdoc
+   */
+  override def linearize(node: T): List[T] = {
+    linearizeCache.getOrElseUpdate(node, super.linearize(node))
+  }
+
+  /**
+   * 与えられたMultiParentノードを根とするグラフは巡回構造があるかどうかを検査します
+   */
+  override def hasCycle(node: T, history: Set[T]): Boolean = {
+    hasCycleCache.getOrElseUpdate(node, super.hasCycle(node, history))
+  }
 }
+
+trait HasParents[T] {
+  def parents: List[T]
+}
+
