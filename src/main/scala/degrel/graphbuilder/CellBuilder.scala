@@ -2,6 +2,7 @@ package degrel.graphbuilder
 
 import degrel.core._
 import degrel.front.AstCell
+import degrel.utils.TreeMap
 
 class CellBuilder(val parent: Primitive,
                   val ast: AstCell) extends Builder[Cell] {
@@ -13,7 +14,7 @@ class CellBuilder(val parent: Primitive,
 
   val roots = children.filter(!_.header.isInstanceOf[Rule])
 
-  override def variables: LexicalVariables = parent.variables
+  override val variables: LexicalVariables = new CellVariables(parent.variables)
 
   override def outerCell: CellBuilder = parent.outerCell
 
@@ -23,4 +24,7 @@ class CellBuilder(val parent: Primitive,
     val body = new CellBody(rootEdges ++ ruleEdges)
     header.write(body)
   }
+}
+
+class CellVariables(val parent: LexicalVariables) extends LexicalVariables {
 }

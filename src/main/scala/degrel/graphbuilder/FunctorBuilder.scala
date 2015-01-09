@@ -2,6 +2,7 @@ package degrel.graphbuilder
 
 import degrel.core._
 import degrel.front._
+import degrel.utils.NameError
 
 import scala.collection.mutable
 
@@ -12,10 +13,15 @@ import scala.collection.mutable
  */
 class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder[Vertex] {
   val header = new VertexHeader(null)
+  /**
+   * @inheritdoc
+   */
+  override val variables: LexicalVariables = parent.variables
 
   // もし変数宣言の場合は変数に自分の名前を登録
   ast.name match {
-    case AstName(Some(_), Some(cap)) => variables.bindSymbol(cap.expr, this)
+    case AstName(Some(_), Some(cap)) =>
+      variables.bindSymbol(cap.expr, this)
     case _ =>
   }
 
@@ -29,10 +35,6 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     }), childBuilders.toSeq)
   }
 
-  /**
-   * @inheritdoc
-   */
-  override def variables: LexicalVariables = parent.variables
 
   /**
    * @inheritdoc
@@ -49,13 +51,19 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    */
   def mkReferenceVertex(targetName: String): VertexBody = {
     val label = SpecialLabel.Vertex.reference
-    val targetBuilder = variables.resolveExact(targetName)
-    val refEdge = Edge(this.header, SpecialLabels.E_REFERENCE_TARGET, targetBuilder.header)
-    new VertexBody(
-      Label(label),
-      this.mkAttributesMap,
-      Stream(refEdge) ++ this.edges,
-      ID.NA)
+    try {
+      val targetBuilder = variables.resolveExact(targetName)
+      val refEdge = Edge(this.header, SpecialLabels.E_REFERENCE_TARGET, targetBuilder.header)
+      new VertexBody(
+        Label(label),
+        this.mkAttributesMap,
+        Stream(refEdge) ++ this.edges,
+        ID.NA)
+    } catch {
+      case nex: NameError => {
+        throw new CodeException(s"Undefined variable $targetName -- ${variables.toString}")
+      }
+    }
   }
 
   /**

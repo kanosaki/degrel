@@ -4,7 +4,6 @@ import degrel.core.SwitchingFreezable
 import degrel.front.FrontException
 
 import scala.collection.mutable
-import scala.reflect.ClassTag
 
 /**
  * 名前解決エラー．指定された変数名等が見つからない場合にthrowされる．
@@ -53,25 +52,10 @@ trait TreeMap[TKey, TValue] extends SwitchingFreezable {
    * @return 探索ノードごとにリストを作ったリスト
    */
   def resolveGrouped(key: TKey): List[List[TValue]] = {
-    resolveInThis(key) :: parent.resolveGrouped(key)
-  }
-
-  /**
-   * どこかのノードで単一の結果が得られる場合はその要素を，そうで無ければ例外送出もしくはデフォルト値を返します
-   * @param key 探索するキー
-   * @param default デフォルト値
-   * @return 探索して得られた結果，見つからない場合はデフォルト値
-   */
-  def resolveSingle(key: TKey): TValue = {
-    resolveInThis(key) match {
-      case Nil => parent.resolveSingle(key)
-      case value :: Nil => {
-        parent.resolve(key) match {
-          case Nil => value
-          case _ => throw new NameError(key, "Duplicated mapping fould")
-        }
-      }
-      case _ => throw new NameError(key, "Duplicated mapping found")
+    if (parent != null) {
+      resolveInThis(key) :: parent.resolveGrouped(key)
+    } else {
+      List(resolveInThis(key))
     }
   }
 
@@ -112,11 +96,25 @@ trait TreeMap[TKey, TValue] extends SwitchingFreezable {
     super.freeze
     this
   }
+
+  def repr(level: Int): String = {
+    val thisLevel = s"$level: ${this.symbolMap.toString()}"
+    if(this.parent != null) {
+      thisLevel + "\n" + this.parent.repr(level + 1)
+    } else {
+      thisLevel
+    }
+  }
+
+  override def toString: String = {
+    s"TreeMap-----\n${this.repr(0)}\n------------"
+  }
 }
 
 object TreeMap {
   def empty[K, V]() = {
-    new TreeMapRoot[K, V]()
+    val root = new TreeMapRoot[K, V]()
+    new TreeMapNode[K, V](root)
   }
 
   def child[K, V](parent: TreeMap[K, V]) = {
@@ -135,11 +133,4 @@ class TreeMapRoot[TK, TV] extends TreeMap[TK, TV] {
    * @inheritdoc
    */
   override def resolveGrouped(key: TK): List[List[TV]] = Nil
-
-  /**
-   * @inheritdoc
-   */
-  override def resolveSingle(key: TK): TV = {
-    throw new NameError(key, "No mapping found")
-  }
 }

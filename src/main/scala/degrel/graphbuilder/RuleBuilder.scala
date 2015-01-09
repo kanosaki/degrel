@@ -1,10 +1,15 @@
 package degrel.graphbuilder
 
-import degrel.core.{Label, Edge, Vertex, Rule}
-import degrel.front.{BinOp, AstBinExpr}
+import degrel.core.{Rule, Vertex}
+import degrel.front.{AstBinExpr, BinOp}
 
 class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] {
   assert(ast.op == BinOp.RULE)
+
+  /**
+   * このグラフ要素における環境
+   */
+  override val variables: LexicalVariables = new RuleVariables(parent.variables)
 
   val lhsFactory = factory.get[Vertex](this, ast.left)
   val rhsFactory = factory.get[Vertex](this, ast.right)
@@ -16,10 +21,6 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
    */
   override val header: Rule = Rule(lhsFactory.header, rhsFactory.header)
 
-  /**
-   * このグラフ要素における環境
-   */
-  override def variables: LexicalVariables = parent.variables
 
   /**
    * このグラフ要素を直接内包するCell
@@ -31,4 +32,8 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
    * 作成されたボディ部はヘッダを経由して使用するため，直接取得は出来ません
    */
   override def concrete(): Unit = {}
+
+  class RuleVariables(val parent: LexicalVariables) extends LexicalVariables {
+  }
 }
+

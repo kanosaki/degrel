@@ -100,7 +100,7 @@ class BuilderRoot extends Primitive {
 
   override def outerCell: CellBuilder = null // TODO: null?
 
-  override def variables: LexicalVariables = LexicalVariables.empty
+  override val variables: LexicalVariables = LexicalVariables.empty
 
   override def parent = null
 
