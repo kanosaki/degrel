@@ -1,7 +1,7 @@
 package degrel.front.dotlike
 
 import degrel.Query._
-import degrel.core.{BasicLabel, Traverser, Vertex}
+import degrel.core.{Label, BasicLabel, Traverser, Vertex}
 import org.scalatest.FlatSpec
 
 class DotlikeTest extends FlatSpec {
@@ -18,6 +18,13 @@ class DotlikeTest extends FlatSpec {
   it should "parse root only digraph" in {
     val expr = "@an_root{}"
     val expected = AstDigraph("an_root", AstDigraphBody(Seq()))
+    val actual = DigraphParser(expr)
+    assert(expected === actual)
+  }
+
+  it should "parse quoted label" in {
+    val expr = "@'+=+'{}"
+    val expected = AstDigraph("+=+", AstDigraphBody(Seq()))
     val actual = DigraphParser(expr)
     assert(expected === actual)
   }
@@ -73,7 +80,7 @@ class DotlikeTest extends FlatSpec {
     val expr = "@root{}"
     val ast = DigraphParser(expr)
     val graph = ast.toGraph()
-    assert(graph.label === BasicLabel("root"))
+    assert(graph.label === Label("root"))
     assert(graph.edges().size === 0)
     assert(graph.attributes === Map())
   }

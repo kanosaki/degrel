@@ -1,5 +1,17 @@
 package degrel.core
 
-class CellBody(vertices: Iterable[Vertex]) extends VertexBody(Label("__cell__"), Map(), Seq(), ID.NA) {
+class CellBody(edges: Iterable[Edge])
+  extends VertexBody(
+    Label(SpecialLabels.V_CELL),
+    Map(), // attrs
+    edges,
+    ID.NA) {
+
+  override def toString: String = {
+    s"{${this.allEdges.map(_.dst).mkString("; ")}}"
+  }
+}
+
+object CellBody {
 
 }

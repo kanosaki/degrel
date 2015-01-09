@@ -13,5 +13,9 @@ object memoize {
   def apply[T, R](f: T => R) = {
     new Memoize(f)
   }
+
+  def weak[T, R](f: T => R) = {
+    new WeakMemoize(f)
+  }
 }
 

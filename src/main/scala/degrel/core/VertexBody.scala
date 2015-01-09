@@ -4,19 +4,19 @@ package degrel.core
 import degrel.rewriting.BuildingContext
 
 object VertexBody {
-  def apply(label: Label, attributes: Map[String, String], allEdges: Iterable[Edge], id: ID) = {
+  def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID) = {
     label match {
-      case Label.reference => new ReferenceVertexBody(label, attributes, allEdges, id)
+      case Label.V.reference => new ReferenceVertexBody(label, attributes, allEdges, id)
       case _ => new VertexBody(label, attributes, allEdges, id)
     }
   }
 }
 
-class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
+class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
   private val _id = _previd.autoValidate
   private val _edges: Iterable[Edge] = _allEdges
 
-  def attr(key: String): Option[String] = {
+  def attr(key: Label): Option[String] = {
     attributes.get(key)
   }
 
@@ -26,7 +26,7 @@ class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: 
 
   def reprRecursive(trajectory: Trajectory): String = {
     trajectory.walk(this) {
-      case Right(nextHistory) => {
+      case Unvisited(nextHistory) => {
         if (allEdges.isEmpty) {
           s"${this.repr}"
         } else {
@@ -34,7 +34,7 @@ class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: 
           s"${this.repr}($edgesExpr)"
         }
       }
-      case Left(_) => {
+      case Visited(_) => {
         this.repr
       }
     }
@@ -47,7 +47,7 @@ class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: 
 
   def edges(label: Label): Iterable[Edge] = {
     label match {
-      case Label.wildcard => allEdges
+      case Label.V.wildcard => allEdges
       case _ => allEdges.filter(_.label == label)
     }
   }
@@ -70,8 +70,8 @@ class VertexBody(_label: Label, val attributes: Map[String, String], _allEdges: 
 
   def reprAttrs: String = {
     val targetKvs = attributes
-      .filter { case (k, v) => !k.startsWith("_")}
-    if (!targetKvs.isEmpty) {
+      .filter { case (k, v) => !k.isMeta}
+    if (targetKvs.nonEmpty) {
       val kvsExpr = targetKvs.map { case (k, v) => s"$k:$v"}.mkString(", ")
       s"{$kvsExpr}"
     } else {

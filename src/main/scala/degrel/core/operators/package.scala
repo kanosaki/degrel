@@ -41,4 +41,14 @@ package object operators {
     }
     case _ => throw new Exception("")
   }
+
+
+  /**
+   * グラフのインタプリタ上での表現を正規化します．
+   * 例えば，Vertexのみで構成されているグラフから，Cellを表現している部分は
+   * Cellクラスで，Ruleを表現している部分はRuleクラスで表し正規化します．
+   */
+  def normalize(v: Vertex): Vertex = {
+    ???
+  }
 }

@@ -1,6 +1,5 @@
 # Intellij Environment specific files
-.idea/workspace.xml
-.idea/tasks.xml
+.idea
 *.iws
 
 .history
@@ -10,3 +9,4 @@ target/
 lib_managed/
 project/
 !project/assembly.sbt
+!project/plugins.sbt

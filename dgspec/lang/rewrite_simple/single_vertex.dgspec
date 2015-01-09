@@ -1,0 +1,9 @@
+description: Rewrites single vertex.
+
+[input]
+a
+a -> b
+
+[assert roots]
+b
+

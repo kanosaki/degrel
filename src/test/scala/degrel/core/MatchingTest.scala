@@ -6,17 +6,16 @@ import org.scalatest.FlatSpec
 import degrel.utils.FlyWrite._
 import degrel.utils.VertexExtensions._
 import degrel.utils.TestUtils._
-import degrel.core
-import degrel.front
-import degrel.front.{TermParser, ParserUtils}
+import degrel.{graphbuilder, core, front}
+import degrel.front.{Parser, TermParser, ParserUtils}
 
 /**
  * Around matching and (Mono)binding
  */
 class MatchingTest extends FlatSpec {
-  val parser = TermParser.default
+  val parser = Parser.vertex _
 
-  def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
+  def parse(s: String): core.Vertex = graphbuilder.build(Parser.vertex(s))
 
   it should "match single vertex" in {
     val a = vHead("foo").matches(vHead("foo"))
@@ -36,7 +35,7 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "all vertex matches with wildcard vertex" in {
-    val pattern = vHead("*")
+    val pattern = vHead("_")
     val verticies = Seq(
       vHead("foo"),
       vHead("bar"),
@@ -48,7 +47,7 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "matches by partial pattern" in {
-    val pattern = parse("foo(bar: *)")
+    val pattern = parse("foo(bar: _)")
     val verticies = Seq(
       "foo(bar: baz)",
       "foo(hoge: fuga, bar: baz)").map(parse)
@@ -59,7 +58,7 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "reject composite pattern with difference edge name" in {
-    val pattern = parse("foo(piyo: *)")
+    val pattern = parse("foo(piyo: _)")
     val verticies = Seq(
       "foo(bar: baz)",
       "foo(hoge: fuga, bar: baz)").map(parse)
@@ -70,7 +69,7 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "reject composite pattern with difference child vertex" in {
-    val pattern = parse("foo(piyo: baz(hoge: fuga), bar: *)")
+    val pattern = parse("foo(piyo: baz(hoge: fuga), bar: _)")
     val verticies = Seq(
       "foo(bar: baz, piyo: bazbaz(hoge: fuga))",
       "foo(hoge: fuga, bar: baz)").map(parse)
@@ -81,19 +80,19 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "bridge a vertex" in {
-    val pattern = parse("foo(bar: baz, hoge: *)")
+    val pattern = parse("foo(bar: baz, hoge: _)")
     val vertex = parse("foo(bar: baz, hoge: fuga)")
     val mch = vertex.matches(pattern)
     assert(mch.success)
     val pack = mch.pack
     val binding = pack.pickFirst.asQueryable
-    val (patV, dataV) = binding.query(_.label == "*").head
-    assert(patV.label === "*")
+    val (patV, dataV) = binding.query(_.label == "_").head
+    assert(patV.label === "_")
     assert(dataV.label === "fuga")
   }
 
   it should "lookup vertex by attribute" in {
-    val pattern = parse("foo{id: 0}(bar: baz, hoge: *{id: 1})")
+    val pattern = parse("foo{id: 0}(bar: baz, hoge: _{id: 1})")
     val vertex = parse("foo(bar: baz, hoge: fuga)")
     val mch = vertex.matches(pattern)
     assert(mch.success)
@@ -104,7 +103,7 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "bridge vertices" in {
-    val pattern = parse("foo(bar: baz{id: 1}, joe: hoge(fuga: *{id: 2}, piyo: *{id: 3}))")
+    val pattern = parse("foo(bar: baz{id: 1}, joe: hoge(fuga: _{id: 2}, piyo: _{id: 3}))")
     val vertex = parse("foo(bar: baz, joe: hoge(fuga: a, piyo: b))")
     val mch = vertex.matches(pattern)
     assert(mch.success)
@@ -119,7 +118,7 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "bridge vertices with more complex graph with many wildcard vertex" in {
-    val pattern = parse("foo(bar: *{id: 1}, joe: hoge(fuga: *{id: 2}, piyo: *{id: 3}))")
+    val pattern = parse("foo(bar: _{id: 1}, joe: hoge(fuga: _{id: 2}, piyo: _{id: 3}))")
     val vertex = parse("foo(bar: baz, joe: hoge(fuga: a, piyo: b))")
     val mch = vertex.matches(pattern)
     assert(mch.success)
@@ -134,7 +133,7 @@ class MatchingTest extends FlatSpec {
   }
 
   it should "bridge vertex and following graph" in {
-    val pattern = parse("foo(bar: *{id: 1}, joe: hoge(fuga: *{id: 2}, piyo: *{id: 3}))")
+    val pattern = parse("foo(bar: _{id: 1}, joe: hoge(fuga: _{id: 2}, piyo: _{id: 3}))")
     val vertex = parse("foo(bar: a(a: b), joe: hoge(fuga: a(b: c), piyo: a))")
     val mch = vertex.matches(pattern)
     assert(mch.success)

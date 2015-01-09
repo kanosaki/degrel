@@ -1,5 +1,5 @@
-DEGREL - Distributed REGREL
-===========================
+DEGREL - A Programming Language for Distributed System by Graph Rewriting
+=========================================================================
 
 ※まだ実装中
 

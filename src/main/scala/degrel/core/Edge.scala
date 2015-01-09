@@ -70,7 +70,7 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
     _src = v
   }
 
-  def isReference: Boolean = this.label.expr == "_ref"
+  def isReference: Boolean = this.label.symbol == SpecialLabels.E_REFERENCE_TARGET
 
   def duplicate(): Edge = {
     Edge(null, this.label, this.dst)

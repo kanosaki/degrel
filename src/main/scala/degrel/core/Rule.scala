@@ -7,10 +7,10 @@ trait Rule extends Vertex {
 
   override def reprRecursive(history: Trajectory) = {
     history.walk(this) {
-      case Right(nextHistory) => {
+      case Unvisited(nextHistory) => {
         s"${lhs.reprRecursive(nextHistory)} -> ${rhs.reprRecursive(nextHistory)}"
       }
-      case Left(_) => throw new RuntimeException("Cannot repr a Rule recursively")
+      case Visited(_) => throw new RuntimeException("Cannot repr a Rule recursively")
     }
   }
 }
