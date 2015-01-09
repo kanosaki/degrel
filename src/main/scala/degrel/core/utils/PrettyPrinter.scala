@@ -102,7 +102,7 @@ class PrettyPrinter(val root: Vertex) {
           edgesExprSingle(sb)
         }
         case Visited(trj) => {
-          sb ++= s"<${this.labelExpr}>[${v.id}]>"
+          sb ++= s"<${this.labelExpr}[${v.id}]>"
         }
       }
     }

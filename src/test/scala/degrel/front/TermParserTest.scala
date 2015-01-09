@@ -69,10 +69,9 @@ class TermParserTest extends FlatSpec {
     val ast = parser("a -> b + c")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
-      """@ __cell__ {
-        |  -> '->'$1 : __rule__
-        |  '->'$1 -> a : __lhs__
-        |  '->'$1 -> '+' : __rhs__
+      """@ '->' {
+        |  -> a : __lhs__
+        |  -> '+' : __rhs__
         |  '+' -> b : __lhs__
         |  '+' -> c : __rhs__
         |}
@@ -84,10 +83,9 @@ class TermParserTest extends FlatSpec {
     val ast = parser("a + b -> c")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
-      """@ __cell__ {
-        |  -> '->'$1 : __rule__
-        |  '->'$1 -> '+' : __lhs__
-        |  '->'$1 -> c : __rhs__
+      """@ '->' {
+        |  -> '+' : __lhs__
+        |  -> c : __rhs__
         |  '+' -> a : __lhs__
         |  '+' -> b : __rhs__
         |}
@@ -99,10 +97,9 @@ class TermParserTest extends FlatSpec {
     val ast = parser("a -> b + c -> (x % y)")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
-      """@ __cell__ {
-        |  -> '->'$1 : __rule__
-        |  '->'$1 -> a : __lhs__
-        |  '->'$1 -> '->'$2 : __rhs__
+      """@ '->' {
+        |  -> a : __lhs__
+        |  -> '->'$2 : __rhs__
         |  '->'$2 -> '+' : __lhs__
         |  '+' -> b : __lhs__
         |  '+' -> c : __rhs__
@@ -118,10 +115,9 @@ class TermParserTest extends FlatSpec {
     val ast = parser("foo -> {}")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
-      """@ __cell__ {
-        |  -> '->' : __rule__
-        |  '->' -> foo : __lhs__
-        |  '->' -> __cell__ : __rhs__
+      """@ '->' {
+        |  -> foo : __lhs__
+        |  -> __cell__ : __rhs__
         |}
       """.stripMargin)
     assert(graph ===~ expected)
@@ -132,8 +128,7 @@ class TermParserTest extends FlatSpec {
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
-        |  -> __cell__ : __item__
-        |  __cell__ -> a : __item__
+        |  -> a : __item__
         |}
       """.stripMargin)
     assert(graph ===~ expected)
@@ -144,8 +139,7 @@ class TermParserTest extends FlatSpec {
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
-        |  -> __cell__ : __item__
-        |  __cell__ -> '->' : __rule__
+        |  -> '->' : __rule__
         |  '->' -> a : __lhs__
         |  '->' -> b : __rhs__
         |}
@@ -163,9 +157,8 @@ class TermParserTest extends FlatSpec {
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ __cell__ {
-        |  -> __cell__ : __item__
-        |  __cell__ -> a : __item__
-        |  __cell__ -> b : __item__
+        |  -> a : __item__
+        |  -> b : __item__
         |}
       """.stripMargin)
     assert(graph ===~ expected)
@@ -181,10 +174,9 @@ class TermParserTest extends FlatSpec {
       """.stripMargin)
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
-      """@ __cell__ {
-        |  -> '->'$1 : __rule__
-        |  '->'$1 -> foo : __lhs__
-        |  '->'$1 -> __cell__ : __rhs__
+      """@ '->' {
+        |  -> foo : __lhs__
+        |  -> __cell__ : __rhs__
         |  __cell__ -> a$1 : __item__
         |  __cell__ -> '->'$2 : __rule__
         |  '->'$2 -> a$2 : __lhs__
@@ -197,32 +189,32 @@ class TermParserTest extends FlatSpec {
   // TODO: Add test for imports (not only for parsing but for its behavior)
 
   it should "parse a import stetement" in {
-    parser("import foobar.baz.hoge")
+    parser("{import foobar.baz.hoge}")
   }
 
   it should "parse a import stetement with 'as'" in {
-    parser("import foobar.baz.hoge as hogehoge")
+    parser("{import foobar.baz.hoge as hogehoge}")
   }
 
   it should "parse a import with 'from'" in {
-    parser("from foobar.baz import hoge")
+    parser("{from foobar.baz import hoge}")
   }
 
   it should "parse a import with 'from' and 'as'" in {
-    parser("from foobar.baz import hoge as hogehoge")
+    parser("{from foobar.baz import hoge as hogehoge}")
   }
 
   it should "parse a multi imports" in {
-    parser("import foo.bar, hoge.fuga")
+    parser("{import foo.bar, hoge.fuga}")
   }
 
   it should "parse a multi imports with 'from'" in {
-    parser("from piyo import foo, bar")
+    parser("{from piyo import foo, bar}")
   }
 
   it should "throw CodeError when multi import with 'as'" in {
     intercept[SyntaxError] {
-      parser("import foo, bar as hoge")
+      parser("{import foo, bar as hoge}")
     }
   }
 

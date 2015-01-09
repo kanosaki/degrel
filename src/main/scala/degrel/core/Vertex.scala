@@ -49,9 +49,8 @@ trait Vertex extends Element with Comparable[Vertex] {
   }
 
   def asRule: Rule = {
-    assert(this.label.expr == "->")
-    val rhs = this.thru("_rhs")
-    val lhs = this.thru("_lhs")
+    val rhs = this.thru(SpecialLabels.E_RHS)
+    val lhs = this.thru(SpecialLabels.E_LHS)
     Rule(lhs, rhs)
   }
 

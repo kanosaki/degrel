@@ -15,17 +15,12 @@ class TreeMapTest extends FlatSpec {
     assert(map.resolveExact("foo") === "bar")
     assert(map.resolveExact("foobar", Some("default")) === "default")
 
-    assert(map.resolveSingle("foo") === "bar")
-
     assert(map.resolveGrouped("foo") === List(List("bar")))
 
     intercept[NameError] {
       map.resolveExact("hoge")
     }
 
-    intercept[NameError] {
-      map.resolveSingle("hoge")
-    }
   }
 
   it should "store and resolve mapping in tree" in {
@@ -47,11 +42,6 @@ class TreeMapTest extends FlatSpec {
     assert(c1.resolve("foo") === List("baz", "bar"))
 
     assert(c1.resolveGrouped("foo") === List(List("baz"), List("bar")))
-    assert(c1.resolveGrouped("hoge") === List(List(), List("fuga", "piyo")))
-
-    assert(c1.resolveSingle("c") === "a")
-    intercept[NameError] {
-      c1.resolveSingle("foo")
-    }
+    assert(c1.resolveGrouped("hoge") === List(List(), List("piyo", "fuga")))
   }
 }
