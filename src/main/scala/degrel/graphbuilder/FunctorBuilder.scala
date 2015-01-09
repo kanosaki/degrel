@@ -54,7 +54,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     try {
       val targetBuilder = variables.resolveExact(targetName)
       val refEdge = Edge(this.header, SpecialLabels.E_REFERENCE_TARGET, targetBuilder.header)
-      new VertexBody(
+      new ReferenceVertexBody(
         Label(label),
         this.mkAttributesMap,
         Stream(refEdge) ++ this.edges,
