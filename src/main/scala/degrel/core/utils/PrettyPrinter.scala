@@ -161,7 +161,6 @@ class PrettyPrinter(val root: Vertex) {
       val v = root
       traj.walk(v) {
         case Unvisited(trj) => {
-          sb += '@'
           val next = v.thru(Label.E.ref)
           getPrinter(next).single(sb)
         }
