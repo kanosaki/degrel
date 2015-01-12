@@ -1,4 +1,4 @@
-package degrel.config
+package degrel.control.config
 
 class Config(val elems: Seq[ConfigBase]) {
 

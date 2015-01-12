@@ -1,4 +1,4 @@
-package degrel.config
+package degrel.control.config
 
 import scala.reflect.io.File
 

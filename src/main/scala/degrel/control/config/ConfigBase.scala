@@ -1,4 +1,4 @@
-package degrel.config
+package degrel.control.config
 
 trait ConfigBase extends Serializable {
   def parent: ConfigBase

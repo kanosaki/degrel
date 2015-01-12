@@ -1,4 +1,4 @@
-package degrel.config
+package degrel.control.config
 
 class RootConfig extends ConfigBase {
   def parent: ConfigBase = null
