@@ -6,8 +6,7 @@ import degrel.utils.collection.ShuffledIterator
 
 
 /**
- * 書き換えの手続きを管理します
- * @todo トランザクションに対応
+ * 書き換えを実行します
  */
 class Rewriter(val rule: Rule) extends Logger {
   self =>
@@ -17,19 +16,19 @@ class Rewriter(val rule: Rule) extends Logger {
    * @param target このルールで書き換えるグラフの頂点
    * @return 書き換えが実行された場合はTrue, 実行されなければFalse
    */
-  def rewrite(root: Vertex, target: Vertex): ActionLog = {
+  def rewriteTransaction(root: Vertex, target: Vertex): ActionLog = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
-      implicit val transacton = new Transaction()
+      implicit val transaction = new Transaction()
       val targetHeader = target.asInstanceOf[VertexHeader]
       val (prevLocator, newLocator) = targetHeader.beginTransaction()
       val binding = this.pick(mch.pack)
-      val builtGraph = this.build(binding)
+      val builtGraph = this.buildFromBinding(binding)
       val builtSucceeded = binding.confirm() && newLocator.tryCommit(builtGraph)
       if (!builtSucceeded) {
         return new BuildingFailure(root, target, newLocator.oldVertex, newLocator.newVertex)
       }
-      val commitSucceeded = targetHeader.commitTransaction(prevLocator, newLocator) && transacton.complete()
+      val commitSucceeded = targetHeader.commitTransaction(prevLocator, newLocator) && transaction.complete()
       if (!commitSucceeded) {
         return new CommitingFailure(root, target, newLocator.oldVertex, newLocator.newVertex)
       }
@@ -40,11 +39,45 @@ class Rewriter(val rule: Rule) extends Logger {
   }
 
   /**
+   * この書き換え機で`target`を書き換えます．
+   * @param target 書き換える対象のグラフ
+   * @return 書き換えが実行された場合は`true`，何も行われなかった場合は`false`
+   */
+  def rewrite(target: Vertex): Boolean = {
+    this.build(target) match {
+      case Some(builtGraph) => {
+        val vh = target.asInstanceOf[VertexHeader]
+        vh.write(builtGraph)
+        true
+      }
+      case None => false
+    }
+  }
+
+  /**
+   * この書き換え機で`target`を根とするグラフに対しパターンマッチと構築を行います
+   * このメソッドでは`target`に対し影響を与えません
+   * @param target 対象となるグラフ
+   * @return パターンマッチに成功し，グラフ構築に成功した場合はその構築されたグラフが
+   *         どちらかに失敗した場合は`None`が返されます
+   */
+  def build(target: Vertex): Option[Vertex] = {
+    val mch = target.matches(rule.lhs)
+    if (mch.success) {
+      val binding = this.pick(mch.pack)
+      val builtGraph = this.buildFromBinding(binding)
+      Some(builtGraph)
+    } else {
+      None
+    }
+  }
+
+  /**
    * マッチした可能性のうち一つを選択します
    * @param pack すべてのパターンマッチのパターン
    * @return そのうち1つのパターンマッチ
    */
-  def pick(pack: BindingPack): Binding = {
+  protected def pick(pack: BindingPack): Binding = {
     pack.pickFirst
   }
 
@@ -54,7 +87,7 @@ class Rewriter(val rule: Rule) extends Logger {
    * @param binding パターンマッチしたBinding
    * @return 新規に構築されたグラフ
    */
-  def build(binding: Binding): Vertex = {
+  protected def buildFromBinding(binding: Binding): Vertex = {
     val context = new BuildingContext(binding)
     rule.rhs.build(context)
   }
@@ -68,7 +101,7 @@ class Rewriter(val rule: Rule) extends Logger {
   def step(reserve: Reserve): Boolean = {
     for (rt <- ShuffledIterator(reserve.roots.iterator)) {
       for (vertex <- Traverser(rt)) {
-        val result = this.rewrite(rt, vertex)
+        val result = this.rewriteTransaction(rt, vertex)
         if (result.performed) {
           logger.debug(result.repr)
         }

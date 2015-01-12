@@ -66,9 +66,9 @@ trait TreeMap[TKey, TValue] extends SwitchingFreezable {
    */
   def resolveExact(key: TKey, default: Option[TValue] = None): TValue = {
     this.resolve(key) match {
-      case Nil => throwOrDefault(default, new NameError(key, "No mapping found"))
+      case Nil => defaultOrThrow(default, new NameError(key, "No mapping found"))
       case value :: Nil => value
-      case _ => throwOrDefault(default, new NameError(key, "Duplicated mapping found"))
+      case _ => defaultOrThrow(default, new NameError(key, "Duplicated mapping found"))
     }
   }
 
@@ -77,7 +77,7 @@ trait TreeMap[TKey, TValue] extends SwitchingFreezable {
    * @param default デフォルトの値
    * @param error デフォルトの値がNoneの時に送出される例外．名前渡しです
    */
-  protected def throwOrDefault(default: Option[TValue], error: => Exception): TValue = {
+  protected def defaultOrThrow(default: Option[TValue], error: => Exception): TValue = {
     default match {
       case Some(defval) => defval
       case None => throw error

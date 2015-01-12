@@ -1,6 +1,6 @@
 package degrel.graphbuilder
 
-import degrel.core.{Edge, Label, Vertex}
+import degrel.core._
 import degrel.front.AstBinExpr
 
 /**
@@ -26,12 +26,7 @@ class ExprBuilder(val parent: Primitive, val ast: AstBinExpr) extends Builder[Ve
   /**
    * このグラフ要素への参照用のヘッダ
    */
-  override val header: Vertex = Vertex.create(ast.op.expr)(h => {
-    Seq(
-      Edge(h, Label.E.lhs, lhsFactory.header),
-      Edge(h, Label.E.rhs, rhsFactory.header)
-    )
-  })
+  override val header: Vertex = new VertexHeader(null)
 
   /**
    * このグラフ要素における環境
@@ -42,7 +37,18 @@ class ExprBuilder(val parent: Primitive, val ast: AstBinExpr) extends Builder[Ve
    * このメソッドが呼ばれると，ボディ部を作成します．
    * 作成されたボディ部はヘッダを経由して使用するため，直接取得は出来ません
    */
-  override def concrete(): Unit = {}
+  override def doBuildPhase(phase: BuildPhase): Unit = phase match {
+    case FinalizePhase => {
+      val h = this.header.asInstanceOf[VertexHeader]
+      h.write(Vertex.create(ast.op.expr)(h => {
+        Seq(
+          Edge(h, Label.E.lhs, lhsFactory.header),
+          Edge(h, Label.E.rhs, rhsFactory.header)
+        )
+      }))
+    }
+    case _ =>
+  }
 
   /**
    * このグラフ要素を直接内包するCell

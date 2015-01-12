@@ -14,6 +14,10 @@ object LexicalVariables {
   }
 }
 
+class ScopeVariables(val parent: LexicalVariables) extends LexicalVariables {
+
+}
+
 class RootLexicalVariables extends TreeMap[String, Builder[Vertex]] with LexicalVariables {
   override protected val parent: TreeMap[String, Builder[Vertex]] = null
 }

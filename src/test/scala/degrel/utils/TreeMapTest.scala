@@ -20,7 +20,6 @@ class TreeMapTest extends FlatSpec {
     intercept[NameError] {
       map.resolveExact("hoge")
     }
-
   }
 
   it should "store and resolve mapping in tree" in {
@@ -43,5 +42,12 @@ class TreeMapTest extends FlatSpec {
 
     assert(c1.resolveGrouped("foo") === List(List("baz"), List("bar")))
     assert(c1.resolveGrouped("hoge") === List(List(), List("piyo", "fuga")))
+  }
+
+  it should "Lookup data in various methods" in {
+    val map = TreeMap.empty[String, String]()
+    map.bindSymbol("foo", "bar")
+    map.bindSymbol("hoge", "fuga")
+    map.bindSymbol("hoge", "piyo")
   }
 }

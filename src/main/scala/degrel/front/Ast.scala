@@ -1,8 +1,6 @@
 package degrel.front
 
-import degrel.core
 import degrel.core._
-import degrel.graphbuilder.{Builder, CellBinding, LexicalVariables$}
 
 /**
  * 抽象構文木のコンテナクラス

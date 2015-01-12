@@ -1,6 +1,6 @@
 package degrel.graphbuilder
 
-import degrel.core.{Vertex, VertexHeader}
+import degrel.core.{VertexBody, Vertex, VertexHeader}
 
 /**
  * グラフは巡回するデータ構造のため，ヘッダ部とボディ部に分かれています．
@@ -41,30 +41,16 @@ trait Builder[+T <: Vertex] {
    * @note childrenに登録された子Builder[T]への再帰的concreteは
    *       concreteAllによって自動的に処理されるため実装する必要はありません
    */
-  def concrete(): Unit
+  def doBuildPhase(phase: BuildPhase): Unit
 
-  /**
-   * ボディ部が作成済みかどうかを返します
-   */
-  def isConcreted: Boolean = _isConcreted
+  protected var phase: BuildPhase = NothingDone
 
-  def isConcreted_=(value: Boolean): Boolean = {
-    _isConcreted = value
-    _isConcreted
-  }
-
-  protected var _isConcreted = false
-
-  /**
-   * まだconcreteされていない場合はconcreteを行い，
-   * されに{@code children}に対して再帰的にconcreteAllを実行します
-   */
-  def concreteAll(): Unit = {
-    if(!this.isConcreted) {
-      this.concrete()
-      this.isConcreted = true
-      this.children.foreach(_.concreteAll())
-    }
+  def doBuildPhaseRecursive(phase: BuildPhase): Unit = {
+    this.phase = phase
+    this.doBuildPhase(phase)
+    this.children.foreach(ch => {
+      ch.doBuildPhaseRecursive(phase)
+    })
   }
 
   /**
@@ -72,9 +58,9 @@ trait Builder[+T <: Vertex] {
    * まだconcreteが行われていない場合は，自動的にconcreteが実行されます
    */
   def get(): T = {
-    if (!this.isConcreted) {
-      this.concreteAll()
-    }
+    Builder.buildSequence.foreach(phase => {
+      this.doBuildPhaseRecursive(phase)
+    })
     this.header
   }
 
@@ -90,6 +76,7 @@ trait Builder[+T <: Vertex] {
 object Builder {
   def empty: Primitive = new BuilderRoot()
 
+  def buildSequence = Seq(MainPhase, FinalizePhase)
 }
 
 /**
@@ -106,11 +93,9 @@ class BuilderRoot extends Primitive {
 
   override def header: Vertex = new VertexHeader(null)
 
-  override def isConcreted: Boolean = false
-
-  override def concrete(): Unit = {}
-
   override def children: Iterable[Primitive] = Seq()
 
   override def factory: BuilderFactory = defaultFactory
+
+  override def doBuildPhase(phase: BuildPhase): Unit = {}
 }

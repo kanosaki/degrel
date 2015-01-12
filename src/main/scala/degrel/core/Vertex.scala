@@ -28,7 +28,7 @@ trait Vertex extends Element with Comparable[Vertex] {
 
 
   def hasEdge(label: Label = Label.V.wildcard): Boolean = {
-    this.edges(label).size > 0
+    this.edges(label).nonEmpty
   }
 
   def matches(pattern: Vertex, context: MatchingContext = MatchingContext.empty): VertexMatching = {
