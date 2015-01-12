@@ -2,9 +2,6 @@ package degrel.graphbuilder
 
 import degrel.core._
 import degrel.front._
-import degrel.utils.NameError
-
-import scala.collection.mutable
 
 /**
  * AstFunctorからFunctorを構築するGraphBuilder
@@ -12,7 +9,26 @@ import scala.collection.mutable
  * @param ast
  */
 class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder[Vertex] {
-  val header = new VertexHeader(null)
+  self =>
+
+  // Internal functor builder
+  trait FBuilder {
+    def header: Vertex
+
+    def concrete(): Unit
+
+    def edges: Seq[Edge] = {
+      ast.edges.map(astEdge => {
+        val builder = edgeChildMap(astEdge)
+        Edge(this.header, astEdge.label.expr, builder.header)
+      })
+    }
+  }
+
+  private var builder: FBuilder = null
+
+  def header: Vertex = builder.header
+
   /**
    * @inheritdoc
    */
@@ -25,16 +41,11 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     case _ =>
   }
 
-  // 各Edgeを作成．Edgeの先のVertexのBuilder[Vertex]をchildrenとする
-  val (edges, children) = {
-    val childBuilders = new mutable.MutableList[Primitive]
-    (ast.edges.map(astEdge => {
-      val vBuilder = factory.get[Vertex](this, astEdge.dst)
-      childBuilders += vBuilder
-      Edge(this.header, astEdge.label.expr, vBuilder.header)
-    }), childBuilders.toSeq)
-  }
+  val edgeChildMap = ast.edges.
+    map(astEdge => astEdge -> factory.get[Vertex](this, astEdge.dst)).
+    toMap
 
+  val children = edgeChildMap.values.toSeq
 
   /**
    * @inheritdoc
@@ -49,42 +60,41 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    * @param targetName
    * @return
    */
-  def mkReferenceVertex(targetName: String): VertexBody = {
-    val label = SpecialLabel.Vertex.reference
-    try {
-      val targetBuilder = variables.resolveExact(targetName)
-      val refEdge = Edge(this.header, SpecialLabels.E_REFERENCE_TARGET, targetBuilder.header)
-      new ReferenceVertexBody(
-        Label(label),
-        this.mkAttributesMap,
-        Stream(refEdge) ++ this.edges,
-        ID.NA)
-    } catch {
-      case nex: NameError => {
-        throw new CodeException(s"Undefined variable $targetName -- ${variables.toString}")
+  def concreteReferenceVertex(targetName: String): Unit = {
+    val vs = variables.resolveGrouped(targetName)
+    vs match {
+      case List(target) :: _ =>
+        builder = new MirrorFunctor(target)
+      case Nil :: xs => {
+        xs.flatten.headOption match {
+          case Some(target) =>
+            builder = new ReferenceVertex(target)
+          case None =>
+            throw new CodeException(s"Undefined variable $targetName -- ${variables.toString}")
+        }
       }
     }
   }
 
   /**
-   * 通常の頂点を返します
-   * @param labelExpr
-   * @return
-   */
-  def plainVertex(labelExpr: String): VertexBody = {
-    new VertexBody(Label(labelExpr), this.mkAttributesMap, this.edges, ID.NA)
-  }
-
-  /**
    * @inheritdoc
    */
-  def concrete() = {
-    val vb = ast.name match {
-      case AstName(None, Some(cap)) => mkReferenceVertex(cap.expr)
-      case AstName(Some(lbl), _) => plainVertex(lbl.expr) // A[foo](...) A(...)
-      case _ => throw new CodeException("")
+  def doBuildPhase(phase: BuildPhase) = phase match {
+    case MainPhase => {
+      ast.name match {
+        case AstName(None, Some(cap)) => {
+          concreteReferenceVertex(cap.expr)
+        }
+        case AstName(Some(lbl), _) => {
+          builder = new PlainVertex(lbl.expr)
+        }
+        case _ => throw new CodeException("")
+      }
     }
-    this.header.write(vb)
+    case FinalizePhase => {
+      builder.concrete()
+    }
+    case _ =>
   }
 
   /**
@@ -108,4 +118,45 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
       case _ => Seq()
     }
   }
+
+  class PlainVertex(labelExpr: String) extends FBuilder {
+    val header = new VertexHeader(null)
+
+    override def concrete(): Unit = {
+      this.header.write(
+        new VertexBody(
+          Label(labelExpr),
+          self.mkAttributesMap,
+          this.edges,
+          ID.NA)
+      )
+    }
+  }
+
+  class ReferenceVertex(target: Primitive) extends FBuilder {
+    val label = SpecialLabels.V_REFERENCE
+    val header = new VertexHeader(null)
+
+    def concrete() = {
+      val refEdge = Edge(
+        this.header,
+        SpecialLabels.E_REFERENCE_TARGET,
+        target.header
+      )
+      val vb = new ReferenceVertexBody(
+        Label(label),
+        self.mkAttributesMap,
+        Stream(refEdge) ++ this.edges,
+        ID.NA
+      )
+      this.header.write(vb)
+    }
+  }
+
+  class MirrorFunctor(target: Primitive) extends FBuilder {
+    override def header: Vertex = target.header
+
+    override def concrete(): Unit = {}
+  }
+
 }

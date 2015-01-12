@@ -1,6 +1,6 @@
 package degrel.graphbuilder
 
-import degrel.core.{Rule, Vertex}
+import degrel.core._
 import degrel.front.{AstBinExpr, BinOp}
 
 class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] {
@@ -9,18 +9,19 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   /**
    * このグラフ要素における環境
    */
-  override val variables: LexicalVariables = new RuleVariables(parent.variables)
+  override val variables: LexicalVariables = parent.variables
 
-  val lhsFactory = factory.get[Vertex](this, ast.left)
-  val rhsFactory = factory.get[Vertex](this, ast.right)
+  val lhsScope = new Scope(this)
+  val rhsScope = new Scope(lhsScope)
+  val lhsFactory = factory.get[Vertex](lhsScope, ast.left)
+  val rhsFactory = factory.get[Vertex](rhsScope, ast.right)
 
   override val children = Seq(lhsFactory, rhsFactory)
 
   /**
    * このグラフ要素への参照用のヘッダ
    */
-  override val header: Rule = Rule(lhsFactory.header, rhsFactory.header)
-
+  override val header: Rule = new RuleVertexHeader(null, null, ID.NA)
 
   /**
    * このグラフ要素を直接内包するCell
@@ -31,9 +32,12 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
    * このメソッドが呼ばれると，ボディ部を作成します．
    * 作成されたボディ部はヘッダを経由して使用するため，直接取得は出来ません
    */
-  override def concrete(): Unit = {}
-
-  class RuleVariables(val parent: LexicalVariables) extends LexicalVariables {
+  override def doBuildPhase(phase: BuildPhase): Unit = phase match {
+    case FinalizePhase => {
+      val h = this.header.asInstanceOf[RuleVertexHeader]
+      h.write(new RuleVertexBody(lhsFactory.header, rhsFactory.header, ID.NA))
+    }
+    case _ =>
   }
 }
 

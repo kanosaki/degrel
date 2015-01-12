@@ -51,6 +51,19 @@ class TermParserTest extends FlatSpec {
     assert(graph ===~ expected)
   }
 
+  it should "construct a functor with one capture" in {
+    val ast = parser("foo@X(bar: baz, hoge: fuga(piyo: X))")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ foo{
+        | -> baz : bar
+        | -> fuga : hoge
+        | fuga -> : piyo
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
   it should "construct a rule with one capture" in {
     val ast = parser("foo@X -> hoge(fuga: X)")
     val graph = graphbuilder.build(ast)
