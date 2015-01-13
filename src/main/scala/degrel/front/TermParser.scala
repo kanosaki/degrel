@@ -1,7 +1,7 @@
 package degrel.front
 
 import scala.language.higherKinds
-import scala.util.parsing.combinator.{JavaTokenParsers, RegexParsers}
+import scala.util.parsing.combinator.JavaTokenParsers
 
 class TermParser(val parsercontext: ParserContext = ParserContext.default) extends JavaTokenParsers {
   implicit val context = parsercontext
@@ -71,16 +71,27 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 接続のパーサー
    */
-  def edge: Parser[AstEdge] = label ~ ":" ~ functor ^^ {
-    case n ~ _ ~ v => AstEdge(n, v)
+  def edge: Parser[AstAbbrEdge] = opt(label <~ ":") ~ functor ^^ {
+    case n ~ v => AstAbbrEdge(n, v)
   }
 
   /**
    * 頂点の持つ接続の集合パーサー
    */
-  def edges: Parser[Seq[AstEdge]] = "(" ~> repsep(edge, ",") <~ ")" ^^ {
-    _.toSeq
-  }
+  def edges: Parser[Seq[AstEdge]] = "(" ~> repsep(edge, ",") <~ ")" ^^ (abbrEdges => {
+    // 非省略接続の後の省略接続は許可されないので，それを確認します
+    abbrEdges.foldLeft('hasAbbr) {
+      case ('hasAbbr, AstAbbrEdge(Some(_), _)) => 'noAbbr
+      case ('hasAbbr, AstAbbrEdge(None, _)) => 'hasAbbr
+      case ('noAbbr, AstAbbrEdge(Some(_), _)) => 'noAbbr
+      case ('noAbbr, AstAbbrEdge(None, _)) =>
+        throw new SyntaxError("Cannot use edge label abbreviation after non-abbreviated edge.")
+    }
+    abbrEdges.zipWithIndex.map {
+      case (item, index) => item.toFullForm(index)
+    }
+  })
+
 
   /**
    * 属性のパーサー

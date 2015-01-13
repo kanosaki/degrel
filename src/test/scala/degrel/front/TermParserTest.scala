@@ -259,5 +259,19 @@ class TermParserTest extends FlatSpec {
         | }
       """.stripMargin)
   }
+
+  it should "Restore abbreviated edges." in {
+    val ast = parser("foo(bar, baz, hoge, x: piyo)")
+    val expectedAst = parser("foo(0: bar, 1: baz, 2: hoge, x: piyo)")
+    val graph = graphbuilder.build(ast)
+    val expected = graphbuilder.build(expectedAst)
+    assert(graph ===~ expected)
+  }
+
+  it should "throw SyntaxError if abbreviated edge appears after non-abbreviated edges." in {
+    intercept[SyntaxError] {
+      parser("foo(bar, baz, hoge, x: piyo, baz)")
+    }
+  }
 }
 
