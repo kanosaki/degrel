@@ -5,8 +5,6 @@ import degrel.front._
 
 /**
  * AstFunctorからFunctorを構築するGraphBuilder
- * @param parent
- * @param ast
  */
 class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder[Vertex] {
   self =>
@@ -119,6 +117,10 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     }
   }
 
+  /**
+   * 通常の頂点を作成します
+   * @param labelExpr 頂点のラベル
+   */
   class PlainVertex(labelExpr: String) extends FBuilder {
     val header = new VertexHeader(null)
 
@@ -133,6 +135,10 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     }
   }
 
+  /**
+   * DEGRELにおける参照頂点を作成します
+   * @param target 参照先の`Builder`
+   */
   class ReferenceVertex(target: Primitive) extends FBuilder {
     val label = SpecialLabels.V_REFERENCE
     val header = new VertexHeader(null)
@@ -153,10 +159,19 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     }
   }
 
+  /**
+   * ミラー頂点を構成します
+   *
+   * ミラー頂点は，同一スコープ内の変数参照で
+   * pat@X -> foo(bar: @Y, baz: Y, hoge: X)
+   * というような規則があった場合，`X`は別のレベル(書き換え規則の右辺左辺)であるので
+   * 通常の参照頂点となりますが，`Y`は同一レベルであるのでミラー頂点です．
+   * 参照頂点は"参照頂点"という特別な頂点をグラフ上に表現しますが，ミラー頂点は
+   * 変数宣言で生成された頂点と同じ参照を返します．
+   */
   class MirrorFunctor(target: Primitive) extends FBuilder {
     override def header: Vertex = target.header
 
     override def concrete(): Unit = {}
   }
-
 }
