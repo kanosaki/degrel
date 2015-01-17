@@ -3,7 +3,7 @@ import AssemblyKeys._
 
 name := "degrel"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.5"
 
 //resolvers += "Twitter Repository" at "http://maven.twitter.com"
 
@@ -13,11 +13,11 @@ resolvers += Resolver.sonatypeRepo("public")
 
 val scalazVersion = "7.1.0"
 
-val akkaVersion = "2.3.6"
+val akkaVersion = "2.3.8"
 
 libraryDependencies ++= Seq(
-    "org.scalatest" % "scalatest_2.11" % "2.2.1" % "test",
-    "org.scalamock" %% "scalamock-scalatest-support" % "3.1.2" % "test",
+    "org.scalatest" % "scalatest_2.11" % "2.2.3" % "test",
+    "org.scalamock" %% "scalamock-scalatest-support" % "3.2.1" % "test",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
     "ch.qos.logback" % "logback-classic" % "1.1.2",
     "org.rogach" %% "scallop" % "0.9.5",
@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
     "com.typesafe.akka" % "akka-slf4j_2.11" % akkaVersion,
     "com.typesafe.akka" % "akka-remote_2.11" % akkaVersion,
     "com.typesafe.akka" % "akka-agent_2.11" % akkaVersion,
-    "org.controlsfx" % "controlsfx" % "8.20.7")
+    "org.controlsfx" % "controlsfx" % "8.20.8")
 
 scalacOptions ++= Seq("-feature", "-deprecation")
 
