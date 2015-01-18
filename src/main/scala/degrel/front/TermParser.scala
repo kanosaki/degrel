@@ -232,6 +232,6 @@ object TermParser {
 
   def parseExpr(s: String) = default.parseExpr(s)
 
-  def praseCell(s: String) = default.parseCell(s)
+  def parseCell(s: String) = default.parseCell(s)
 
 }

@@ -26,7 +26,6 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def label: Label
 
-
   def hasEdge(label: Label = Label.V.wildcard): Boolean = {
     this.edges(label).nonEmpty
   }
@@ -39,7 +38,7 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def isReference: Boolean = this.label == Label.V.reference
 
-  def thru(label: Label): Vertex = {
+  def thruSingle(label: Label): Vertex = {
     val candidates = this.edges(label)
     candidates.size match {
       case 1 => candidates.head.dst
@@ -48,9 +47,17 @@ trait Vertex extends Element with Comparable[Vertex] {
     }
   }
 
+  def thru(label: Label): Iterable[Vertex] = {
+    this.edges(label).map(_.dst)
+  }
+
+  def thru(pred: Edge => Boolean): Iterable[Vertex] = {
+    this.edges().filter(pred).map(_.dst)
+  }
+
   def asRule: Rule = {
-    val rhs = this.thru(SpecialLabels.E_RHS)
-    val lhs = this.thru(SpecialLabels.E_LHS)
+    val rhs = this.thruSingle(SpecialLabels.E_RHS)
+    val lhs = this.thruSingle(SpecialLabels.E_LHS)
     Rule(lhs, rhs)
   }
 

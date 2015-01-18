@@ -143,8 +143,8 @@ class PrettyPrinter(val root: Vertex) {
       val v = root
       traj.walk(v) {
         case Unvisited(_) => {
-          val lhsRoot = v.thru(Label.E.lhs)
-          val rhsRoot = v.thru(Label.E.rhs)
+          val lhsRoot = v.thruSingle(Label.E.lhs)
+          val rhsRoot = v.thruSingle(Label.E.rhs)
           getPrinter(lhsRoot).single(sb)
           sb ++= " -> "
           getPrinter(rhsRoot).single(sb)
@@ -155,13 +155,13 @@ class PrettyPrinter(val root: Vertex) {
 
   protected class RefPrinter(val root: Vertex) extends Printer {
     assert(root.label == Label.V.reference)
-    val refTargetPrinter = getPrinter(root.thru(Label.E.ref))
+    val refTargetPrinter = getPrinter(root.thruSingle(Label.E.ref))
 
     override def single(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
       val v = root
       traj.walk(v) {
         case Unvisited(trj) => {
-          val next = v.thru(Label.E.ref)
+          val next = v.thruSingle(Label.E.ref)
           getPrinter(next).single(sb)
         }
         case Visited(_) => {
