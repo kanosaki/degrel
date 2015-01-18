@@ -7,7 +7,7 @@ import akka.util.Timeout
 import degrel.core.{Rule, Vertex}
 import degrel.engine.RewriteScheduler
 import degrel.front.{FrontException, ParserUtils}
-import degrel.rewriting.LocalReserve
+import degrel.engine.rewriting.LocalReserve
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}

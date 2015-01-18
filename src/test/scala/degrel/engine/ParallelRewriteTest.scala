@@ -4,7 +4,7 @@ import akka.pattern.ask
 import akka.util.Timeout
 import degrel.core
 import degrel.front.{ParserUtils, TermParser}
-import degrel.rewriting.LocalReserve
+import degrel.engine.rewriting.LocalReserve
 import degrel.utils.TestUtils.assertElementSet
 import org.scalatest.FlatSpec
 

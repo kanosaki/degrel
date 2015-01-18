@@ -1,4 +1,4 @@
-package degrel.rewriting
+package degrel.engine.rewriting
 
 import degrel.core.{Edge, Vertex}
 

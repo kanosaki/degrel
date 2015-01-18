@@ -1,7 +1,7 @@
 package degrel.engine
 
 import akka.actor.{Actor, Props}
-import degrel.rewriting.{Reserve, Rewriter}
+import degrel.engine.rewriting.{Reserve, Rewriter}
 
 object RewriterWorker {
   def apply(rewriter: Rewriter) = {

@@ -1,4 +1,4 @@
-package degrel.rewriting
+package degrel.engine.rewriting
 
 import degrel.front.ParserUtils
 import degrel.utils.TestUtils._

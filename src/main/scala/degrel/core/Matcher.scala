@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.rewriting.{MonoVertexMatching, PolyVertexMatching, VertexBridge, _}
+import degrel.engine.rewriting.{MonoVertexMatching, PolyVertexMatching, VertexBridge, _}
 import degrel.utils.IterableExtensions._
 
 import scalaz.Scalaz._

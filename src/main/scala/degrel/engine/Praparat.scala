@@ -1,7 +1,7 @@
 package degrel.engine
 
 import degrel.core.{Traverser, Cell, Label, Vertex}
-import degrel.rewriting.Rewriter
+import degrel.engine.rewriting.Rewriter
 
 /**
  * Cellの実行をします

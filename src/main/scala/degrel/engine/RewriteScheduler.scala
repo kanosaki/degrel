@@ -5,7 +5,7 @@ import java.util.concurrent.{ConcurrentLinkedDeque, LinkedBlockingQueue, TimeUni
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern.ask
 import akka.util.Timeout
-import degrel.rewriting.Reserve
+import degrel.engine.rewriting.Reserve
 import degrel.utils.collection.mutable.ConcurrentHashSet
 import degrel.utils.concurrent.ResourceGuard
 

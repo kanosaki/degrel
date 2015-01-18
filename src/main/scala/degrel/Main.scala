@@ -1,7 +1,7 @@
 package degrel
 
 import degrel.control.Interpreter
-import degrel.rewriting.LocalReserve
+import degrel.engine.rewriting.LocalReserve
 
 import scala.io.Source
 

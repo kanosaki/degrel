@@ -5,7 +5,7 @@ import akka.util.Timeout
 import degrel.core.{Rule, Vertex}
 import degrel.engine.RewriteScheduler
 import degrel.front.ParserUtils
-import degrel.rewriting.LocalReserve
+import degrel.engine.rewriting.LocalReserve
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

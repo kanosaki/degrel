@@ -1,7 +1,7 @@
 package degrel.core
 
 
-import degrel.rewriting.BuildingContext
+import degrel.engine.rewriting.BuildingContext
 
 object VertexBody {
   def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID) = {

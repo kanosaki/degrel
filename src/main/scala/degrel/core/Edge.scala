@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.rewriting.{EdgeBridge, _}
+import degrel.engine.rewriting.{EdgeBridge, _}
 
 object Edge {
   def apply(src: Vertex, label: Label, dst: Vertex): Edge = {

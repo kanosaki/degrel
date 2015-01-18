@@ -1,4 +1,4 @@
-package degrel.rewriting
+package degrel.engine.rewriting
 
 trait MatchingContext {
 

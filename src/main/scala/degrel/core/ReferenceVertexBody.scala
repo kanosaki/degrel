@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.rewriting.BuildingContext
+import degrel.engine.rewriting.BuildingContext
 
 class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: Iterable[Edge], _id: ID)
   extends VertexBody(

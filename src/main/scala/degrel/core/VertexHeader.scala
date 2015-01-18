@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.rewriting.BuildingContext
+import degrel.engine.rewriting.BuildingContext
 
 import scala.concurrent.stm
 
