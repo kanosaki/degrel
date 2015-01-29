@@ -11,11 +11,11 @@ scalaVersion := "2.11.5"
 
 resolvers += Resolver.sonatypeRepo("public")
 
-val scalazVersion = "7.1.0"
-
-val akkaVersion = "2.3.8"
-
-libraryDependencies ++= Seq(
+libraryDependencies ++= { 
+  val scalazVersion = "7.1.0"
+  val akkaVersion = "2.3.8"
+  val sprayVersion = "1.3.2"
+  Seq(
     "org.scalatest" % "scalatest_2.11" % "2.2.3" % "test",
     "org.scalamock" %% "scalamock-scalatest-support" % "3.2.1" % "test",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
@@ -35,7 +35,14 @@ libraryDependencies ++= Seq(
     "com.typesafe.akka" % "akka-slf4j_2.11" % akkaVersion,
     "com.typesafe.akka" % "akka-remote_2.11" % akkaVersion,
     "com.typesafe.akka" % "akka-agent_2.11" % akkaVersion,
+    "io.spray"  %%  "spray-can"     % sprayVersion,
+    "io.spray"  %%  "spray-routing" % sprayVersion,
+    "io.spray"  %%  "spray-testkit" % sprayVersion  % "test",
+    "org.json4s" %% "json4s-native" % "3.2.11",
+    "org.scaldi" %% "scaldi" % "0.4",
+    "org.scaldi" %% "scaldi-akka" % "0.4",
     "org.controlsfx" % "controlsfx" % "8.20.8")
+}
 
 scalacOptions ++= Seq("-feature", "-deprecation")
 
@@ -52,6 +59,7 @@ mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
   {
     case PathList(ps @ _*) if ps.last == "libjansi.jnilib" => MergeStrategy.first
     case PathList(ps @ _*) if ps.last == "jansi.dll" => MergeStrategy.first
+    case PathList(ps @ _*) if ps.last == "libjansi.so" => MergeStrategy.first
     case PathList("org", "fusesource", xs @ _*) => MergeStrategy.first
     case x => old(x)
   }
