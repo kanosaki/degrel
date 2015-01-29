@@ -1,6 +1,6 @@
 package degrel.misc
 
-import degrel.core.{ID, Traverser, Vertex}
+import degrel.core.{Graph, ID, Traverser, Vertex}
 
 import scala.collection.mutable
 
@@ -29,4 +29,8 @@ class GraphAggregator(val root: Vertex, rootDepth: Option[Int] = None) {
   }
 
   def vertices: Iterable[(ID, Vertex)] = mapping
+
+  def toGraph: Graph = {
+    ???
+  }
 }

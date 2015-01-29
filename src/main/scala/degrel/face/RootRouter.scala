@@ -3,6 +3,7 @@ package degrel.face
 import degrel.face.controllers.{DataAccessController, StatusController}
 import scaldi.{Injectable, Injector}
 import spray.routing.{HttpService, Route}
+import scala.language.postfixOps
 
 trait RootRouter extends HttpService with Injectable {
   implicit val inj: Injector
