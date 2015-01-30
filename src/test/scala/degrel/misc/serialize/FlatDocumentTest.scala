@@ -52,5 +52,31 @@ class FlatDocumentTest extends FlatSpec {
     assert(trim(expected) === trim(actual))
   }
 
-
+  "A rule" should "return in XML" in {
+    val graph = parse("a(b: c@C) -> x(y: z, p: C)").toGraph
+    val expected =
+      <graph>
+        <vertex id="0" label="->">
+          <edge label="__lhs__" ref="1"></edge>
+          <edge label="__rhs__" ref="2"></edge>
+        </vertex>
+        <vertex id="1" label="a">
+          <edge label="b" ref="3"></edge>
+        </vertex>
+        <vertex id="2" label="x">
+          <edge label="y" ref="4"></edge>
+          <edge label="p" ref="5"></edge>
+        </vertex>
+        <vertex id="3" label="c">
+        </vertex>
+        <vertex id="4" label="z">
+        </vertex>
+        <vertex id="5" label="__ref__">
+          <edge label="__to__" ref="3"></edge>
+        </vertex>
+      </graph>
+    val doc = toDoc(graph, FormatFlavor.Flat)
+    val actual = new XmlProvider().dump(doc)
+    assert(trim(expected) === trim(actual))
+  }
 }
