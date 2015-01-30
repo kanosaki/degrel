@@ -1,23 +1,49 @@
 package degrel.misc.serialize
 
-import degrel.core.Vertex
+import degrel.DegrelException
+import org.json4s.JsonDSL._
 import org.json4s._
+import org.json4s.JsonMethods
+import org.json4s.native.JsonMethods
 
 /**
  * FormatProvider for JSON-like (JSON, yaml, ...) objects
  */
-class JsonProvider extends FormatProvider[Vertex, String] {
-  override def dump(in: Vertex): String = {
+class JsonProvider extends FormatProvider[DDocument, JObject] {
+  override def dump(in: DDocument): JObject = {
+    "vertices" ->
+      in.vertices.map(toJObj)
+  }
+
+  def toJObj(in: DVertex): JObject = {
+    ("type" -> "vertex") ~
+      ("id" -> in.id.toString) ~
+      ("label" -> in.label) ~
+      ("edges" -> in.edges.map {
+        case DEdge(lbl, DRef(id)) =>
+          ("type" -> "edge") ~
+            ("label" -> lbl) ~
+            ("ref" -> id.toString)
+        case DEdge(lbl, dv: DVertex) =>
+          ("type" -> "edge") ~
+            ("label" -> lbl) ~
+            ("dst" -> toJObj(dv))
+      })
+  }
+
+  override def load(in: JObject): DDocument = {
     ???
   }
 
-  override def load(in: String): Vertex = {
-    ???
+  override def dumpString(in: DDocument): String = {
+    val json = this.dump(in)
+    JsonMethods.pretty(JsonMethods.render(json))
   }
 
-  protected def dumpVertex(v: Vertex): JObject = {
-    import JsonDSL._
-    import native.JsonMethods._
-    ???
+  override def loadString(in: String): DDocument = {
+    JsonMethods.parse(in) match {
+      case obj: JObject => this.load(obj)
+      case _ => throw new DegrelException("Invalid format")
+    }
   }
 }

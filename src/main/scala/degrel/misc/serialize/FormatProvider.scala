@@ -1,7 +1,11 @@
 package degrel.misc.serialize
 
-trait FormatProvider[InT, OutT] {
-  def dump(in: InT): OutT
+trait FormatProvider[InputT, InterimT] {
+  def dump(in: InputT): InterimT
 
-  def load(in: OutT): InT
+  def load(in: InterimT): InputT
+
+  def dumpString(in: InputT): String
+
+  def loadString(in: String): InputT
 }

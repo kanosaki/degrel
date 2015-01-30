@@ -1,6 +1,6 @@
 package degrel.misc.serialize
 
-import scala.xml.Elem
+import scala.xml.{XML, Elem}
 
 class XmlProvider extends FormatProvider[DDocument, Elem] {
   override def dump(in: DDocument): Elem = {
@@ -23,4 +23,14 @@ class XmlProvider extends FormatProvider[DDocument, Elem] {
   }
 
   override def load(in: Elem): DDocument = ???
+
+  override def dumpString(in: DDocument): String = {
+    val xml = this.dump(in)
+    xml.toString()
+  }
+
+  override def loadString(in: String): DDocument = {
+    val xml = XML.loadString(in)
+    this.load(xml)
+  }
 }
