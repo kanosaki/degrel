@@ -8,11 +8,11 @@ import degrel.core.{Rule, Vertex}
 import degrel.engine.RewriteScheduler
 import degrel.front.{FrontException, ParserUtils}
 import degrel.engine.rewriting.LocalReserve
+import jline.console.ConsoleReader
+import jline.console.history.FileHistory
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
-import scala.tools.jline.console.ConsoleReader
-import scala.tools.jline.console.history.FileHistory
 
 class Console(val reserve: LocalReserve) {
   val prompt = ">>> "
