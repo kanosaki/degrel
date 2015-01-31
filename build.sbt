@@ -21,7 +21,7 @@ libraryDependencies ++= {
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
     "ch.qos.logback" % "logback-classic" % "1.1.2",
     "org.rogach" %% "scallop" % "0.9.5",
-    "org.scala-lang" % "jline" % "2.11.0-M3",
+    "jline" % "jline" % "2.12",
     "commons-io" % "commons-io" % "2.4",
 //    "org.scalanlp" %% "breeze" % "0.8.1",
 //    "org.scalanlp" %% "breeze-natives" % "0.8.1",
@@ -41,7 +41,9 @@ libraryDependencies ++= {
     "org.json4s" %% "json4s-native" % "3.2.11",
     "org.scaldi" %% "scaldi" % "0.4",
     "org.scaldi" %% "scaldi-akka" % "0.4",
-    "org.controlsfx" % "controlsfx" % "8.20.8")
+    "org.controlsfx" % "controlsfx" % "8.20.8",
+    "com.github.monkeysintown" % "jgraphx" % "3.1.2.1"
+  )
 }
 
 scalacOptions ++= Seq("-feature", "-deprecation")
