@@ -13,8 +13,8 @@ class XmlProvider extends FormatProvider[DDocument, Elem] {
   protected def toXElem(v: DVertex): Elem = {
     <vertex id={v.id.toString} label={v.label}>
       {v.edges.map {
-      case DEdge(lbl, DRef(id)) => <edge label={lbl} ref={id.toString}/>
-      case DEdge(lbl, dv: DVertex) =>
+      case DEdge(_, lbl, DRef(id)) => <edge label={lbl} ref={id.toString}/>
+      case DEdge(_, lbl, dv: DVertex) =>
         <edge label={lbl}>
           {toXElem(dv)}
         </edge>

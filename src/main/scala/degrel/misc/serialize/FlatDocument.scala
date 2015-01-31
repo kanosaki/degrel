@@ -2,6 +2,12 @@ package degrel.misc.serialize
 
 import degrel.core.Graph
 
+/**
+ * すべての接続を`DRef`として表現する`DDocument`
+ * すべての接続を`DRef`で表現するので，結果的にすべての`DVertex`は
+ * 兄弟ノードとなり木構造となりません
+ * @param src
+ */
 class FlatDocument(src: Graph) extends DDocument {
 
   override val vertices: Seq[DVertex] = {
@@ -12,7 +18,7 @@ class FlatDocument(src: Graph) extends DDocument {
       case (v, index) => {
         val edges = v.
           edges().
-          map(e => DEdge(e.label.expr, DRef(idTable(e.dst)))).
+          map(e => DEdge(idTable(v), e.label.expr, DRef(idTable(e.dst)))).
           toSeq
         DVertex(index, v.label.expr, edges)
       }

@@ -3,7 +3,6 @@ package degrel.misc.serialize
 import degrel.DegrelException
 import org.json4s.JsonDSL._
 import org.json4s._
-import org.json4s.JsonMethods
 import org.json4s.native.JsonMethods
 
 /**
@@ -20,11 +19,11 @@ class JsonProvider extends FormatProvider[DDocument, JObject] {
       ("id" -> in.id.toString) ~
       ("label" -> in.label) ~
       ("edges" -> in.edges.map {
-        case DEdge(lbl, DRef(id)) =>
+        case DEdge(_, lbl, DRef(id)) =>
           ("type" -> "edge") ~
             ("label" -> lbl) ~
             ("ref" -> id.toString)
-        case DEdge(lbl, dv: DVertex) =>
+        case DEdge(_, lbl, dv: DVertex) =>
           ("type" -> "edge") ~
             ("label" -> lbl) ~
             ("dst" -> toJObj(dv))
