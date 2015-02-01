@@ -8,7 +8,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: It
     attrs,
     all_edges,
     _id) {
-  private val unreferenceEdges = all_edges.filter(!_.isReference).toSeq
+  private[this] val unreferenceEdges = all_edges.filter(!_.isReference).toSeq
 
   /**
    * 束縛に従って頂点を生成・参照します

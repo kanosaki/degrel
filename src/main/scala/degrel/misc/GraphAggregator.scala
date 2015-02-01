@@ -8,7 +8,7 @@ import scala.collection.mutable
  * グラフを辿ってテーブルを作成します
  */
 class GraphAggregator(val root: Vertex, rootDepth: Option[Int] = None) {
-  private val mapping = new mutable.HashMap[ID, Vertex]()
+  private[this] val mapping = new mutable.HashMap[ID, Vertex]()
 
   this.add(root, rootDepth)
 

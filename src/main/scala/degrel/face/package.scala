@@ -8,7 +8,7 @@ import degrel.core.Vertex
 package object face {
   val repository = new FaceRepository()
 
-  private val launcher = new ServerLauncher(repository)
+  private[this] val launcher = new ServerLauncher(repository)
 
   def server = launcher.server
 

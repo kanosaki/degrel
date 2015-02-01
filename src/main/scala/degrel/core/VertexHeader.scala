@@ -6,7 +6,7 @@ import scala.concurrent.stm
 
 
 class VertexHeader(f: VertexBody) extends Vertex {
-  private val _locator = stm.Ref(VertexLocator.createNew(f))
+  private[this] val _locator = stm.Ref(VertexLocator.createNew(f))
 
   def edges(label: Label): Iterable[Edge] = body.edges(label)
 

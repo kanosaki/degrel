@@ -3,7 +3,7 @@ package degrel.utils.concurrent
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 class ReadWriteGuard {
-  private val lock = new ReentrantReadWriteLock()
+  private[this] val lock = new ReentrantReadWriteLock()
 
   def read[V](f: => V): V = {
     lock.readLock().lock()

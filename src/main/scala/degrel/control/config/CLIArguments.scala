@@ -7,7 +7,7 @@ import org.rogach.scallop.ScallopConf
 class CLIArguments(args: Array[String]) extends ScallopConf(args) with ConfigBase {
   banner("DEGREL 0.0.1: Distributed Graph Rewriting system")
 
-  private val patEndpoint = """(\w*):(\d*?)$""".r
+  private[this] val patEndpoint = """(\w*):(\d*?)$""".r
 
   val consoleMode = opt[Boolean](name = "console")
 

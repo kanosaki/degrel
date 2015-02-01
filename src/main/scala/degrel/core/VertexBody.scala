@@ -13,8 +13,8 @@ object VertexBody {
 }
 
 class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
-  private val _id = _previd.autoValidate
-  private val _edges: Iterable[Edge] = _allEdges
+  private[this] val _id = _previd.autoValidate
+  private[this] val _edges: Iterable[Edge] = _allEdges
 
   def attr(key: Label): Option[String] = {
     attributes.get(key)

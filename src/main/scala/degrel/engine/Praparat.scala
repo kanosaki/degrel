@@ -7,7 +7,7 @@ import degrel.engine.rewriting.Rewriter
  * Cellの実行をします
  */
 class Praparat(val cell: Cell) extends Reactor {
-  private val rewriters: Seq[Rewriter] = cell.rules.map(r => new Rewriter(r))
+  private[this] val rewriters: Seq[Rewriter] = cell.rules.map(r => new Rewriter(r))
 
   /**
    * 1回書き換えます

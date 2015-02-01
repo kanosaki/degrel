@@ -16,7 +16,7 @@ class FXManager extends Application {
     FXManager.instance = this
   })
 
-  private val childControllersLock = new Object()
+  private[this] val childControllersLock = new Object()
   var primaryStage: Stage = null
   private var childControllers = List[WeakReference[ViewBase]]()
 
@@ -67,7 +67,7 @@ object FXManager {
   private val __launch_lock = new Object()
   private val __initialize_lock = new Object()
   private val initLatch = new CountDownLatch(1)
-  implicit private val ec = ExecutionContext.global
+  implicit private[this] val ec = ExecutionContext.global
   protected var _isLaunchd = false
   private var instance: FXManager = null
   private var __is_launching = false

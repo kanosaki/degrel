@@ -14,7 +14,7 @@ import scala.io.Source
 class Interpreter(source: Source) {
   val reserve = new LocalReserve()
   implicit val rewriteTimeout = Timeout(10.seconds)
-  private val termParser = ParserUtils
+  private[this] val termParser = ParserUtils
 
   def start() = {
     for (line <- source.getLines()) {

@@ -18,7 +18,7 @@ trait ID extends Comparable[ID] {
 }
 
 object ID {
-  private val idCounter = stm.Ref(-1)
+  private[this] val idCounter = stm.Ref(-1)
 
   private def nextID: ID = {
     stm.atomic {

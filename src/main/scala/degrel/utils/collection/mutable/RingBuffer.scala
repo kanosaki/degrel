@@ -3,7 +3,7 @@ package degrel.utils.collection.mutable
 // FROM: https://github.com/twitter/util/blob/master/util-core/src/main/scala/com/twitter/util/RingBuffer.scala
 
 class RingBuffer[A: Manifest](val maxSize: Int) extends Seq[A] {
-  private val array = new Array[A](maxSize)
+  private[this] val array = new Array[A](maxSize)
   private var read = 0
   private var write = 0
   private var count_ = 0

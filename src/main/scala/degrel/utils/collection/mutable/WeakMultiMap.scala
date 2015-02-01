@@ -10,11 +10,11 @@ import scala.collection.mutable.{HashMap => MutableHashMap, HashSet => MutableHa
 // TODO: May need performance improvement.
 class WeakMultiMap[K, V <: AnyRef] extends MutableMap[K, MutableSet[V]] with MutableMultiMap[K, V] {
   private final val CLEANUP_RATIO = 10
-  private val lock = new ReadWriteGuard()
-  private val cleanupCounter = new CyclicCounter(CLEANUP_RATIO)
-  private val _map = new MutableHashMap[K, MutableSet[WeakReference[V]]]()
-  private val _reverseMap = new MutableHashMap[WeakReference[V], K]()
-  private val _refQueue = new ReferenceQueue[V]()
+  private[this] val lock = new ReadWriteGuard()
+  private[this] val cleanupCounter = new CyclicCounter(CLEANUP_RATIO)
+  private[this] val _map = new MutableHashMap[K, MutableSet[WeakReference[V]]]()
+  private[this] val _reverseMap = new MutableHashMap[WeakReference[V], K]()
+  private[this] val _refQueue = new ReferenceQueue[V]()
 
   def addBindings(kvs: Iterable[(K, V)]) = {
     for ((k, v) <- kvs) {

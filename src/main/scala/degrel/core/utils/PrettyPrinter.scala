@@ -6,7 +6,7 @@ import scala.collection.mutable
 
 class PrettyPrinter(val root: Vertex) {
   val terminalPrinter = new TerminalPrinter()
-  private val printerCache = new mutable.HashMap[Vertex, Printer]()
+  private[this] val printerCache = new mutable.HashMap[Vertex, Printer]()
 
   def singleLine: String = {
     val sb = new StringBuilder()

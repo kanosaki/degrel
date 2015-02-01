@@ -39,7 +39,7 @@ class DefaultParserContext extends ParserContext(null) {
 }
 
 object ParserContext {
-  private val _default = new DefaultParserContext()
+  private[this] val _default = new DefaultParserContext()
 
   def default = _default
 }

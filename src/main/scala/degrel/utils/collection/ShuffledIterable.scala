@@ -16,9 +16,9 @@ import scala.util.Random
 class ShuffledIterator[A](inner: Iterator[A], val bufferSize: Int) extends Iterator[A] {
   type E = ItemWrapper
 
-  private val buffer = new MutablePriorityQueue[E]()
-  private val bufferLock = new ReadWriteGuard()
-  private val random = new Random()
+  private[this] val buffer = new MutablePriorityQueue[E]()
+  private[this] val bufferLock = new ReadWriteGuard()
+  private[this] val random = new Random()
 
   this.fillBuffer()
 

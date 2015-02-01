@@ -17,10 +17,10 @@ import scala.concurrent.{Await, ExecutionContext}
 class Console(val reserve: LocalReserve) {
   val prompt = ">>> "
   implicit val rewriteTimeout = Timeout(10.seconds)
-  private val termParser = ParserUtils
+  private[this] val termParser = ParserUtils
   // Init console reader
-  private val reader: ConsoleReader = new ConsoleReader()
-  private val history = new FileHistory(env.os.appdir.history)
+  private[this] val reader: ConsoleReader = new ConsoleReader()
+  private[this] val history = new FileHistory(env.os.appdir.history)
 
   reader.setHistory(this.history)
 

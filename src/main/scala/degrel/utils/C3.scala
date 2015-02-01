@@ -79,8 +79,8 @@ class C3[T <: HasParents[T]] {
 class MemoizedC3[T <: HasParents[T]](parentC3: Iterable[MemoizedC3[T]])
   extends C3[T] {
 
-  private val linearizeCache = new mutable.HashMap[T, List[T]]()
-  private val hasCycleCache = new mutable.HashMap[T, Boolean]()
+  private[this] val linearizeCache = new mutable.HashMap[T, List[T]]()
+  private[this] val hasCycleCache = new mutable.HashMap[T, Boolean]()
 
   def isLinerizeCached(target: T) = linearizeCache.contains(target)
 

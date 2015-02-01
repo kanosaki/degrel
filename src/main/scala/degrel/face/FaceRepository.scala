@@ -6,7 +6,7 @@ import scala.collection.mutable
 
 class FaceRepository extends mutable.Map[ID, Vertex] {
 
-  private val map = new mutable.HashMap[ID, Vertex]()
+  private[this] val map = new mutable.HashMap[ID, Vertex]()
 
   def expose(v: Vertex) = {
     map += v.id -> v

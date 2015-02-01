@@ -50,8 +50,8 @@ trait Reserve extends Logger {
 }
 
 class LocalReserve extends Reserve {
-  private val _roots = new mutable.ListBuffer[Vertex]()
-  private val _rewriters = new mutable.ListBuffer[Rewriter]()
+  private[this] val _roots = new mutable.ListBuffer[Vertex]()
+  private[this] val _rewriters = new mutable.ListBuffer[Rewriter]()
 
   def roots = _roots.toSeq
 

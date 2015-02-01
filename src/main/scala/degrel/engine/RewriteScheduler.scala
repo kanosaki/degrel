@@ -57,21 +57,21 @@ class RewriteScheduler(val reserve: Reserve,
    * また，どこかで書き換えが実行された場合はまた書き換えを行う必要がある可能性があるので，
    * `stopped`から停止したRewriterが復帰します
    */
-  private val queued = new LinkedBlockingQueue[ActorRef]()
+  private[this] val queued = new LinkedBlockingQueue[ActorRef]()
   /**
    * 現在書き換えを行っているRewriter．RewriterにStepメッセージを送ってから
    * 結果を受信するまでの間はここにプールされます
    */
-  private val working = new ConcurrentHashSet[ActorRef]()
+  private[this] val working = new ConcurrentHashSet[ActorRef]()
   /**
    * 書き換えが停止したRewriter．ほかのRewriterが変更を加えた場合
    * そこが書き換え可能になる可能性があるので，`queued`へ復帰します．
    */
-  private val stopped = new ConcurrentLinkedDeque[ActorRef]()
+  private[this] val stopped = new ConcurrentLinkedDeque[ActorRef]()
   /**
    * 各キューの状態を読み取り・変更するときに取得する`ResourceGuard`
    */
-  private val modifing = new ResourceGuard()
+  private[this] val modifing = new ResourceGuard()
 
   def receive: Actor.Receive = {
     case RewriteScheduler.Run => {
