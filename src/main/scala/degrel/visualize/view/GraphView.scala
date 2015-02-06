@@ -9,12 +9,12 @@ import javafx.scene.input.MouseEvent
 import javafx.scene.layout.{AnchorPane, BorderPane}
 import javafx.scene.paint.Color
 
-import degrel.core.{Element, Traverser, Vertex}
+import degrel.core.{Graph, Element, Traverser, Vertex}
 import degrel.utils.toRunnable
 import degrel.visualize.viewmodel.grapharranger.{DynamicsGraphArranger, GraphArranger}
 import degrel.visualize.{GraphicsContextWrapper, UpdateTimer, Vec, ViewBase}
 
-class GraphView extends ViewBase {
+class GraphView extends ViewBase with GraphPresenter {
   val updateTimer = new UpdateTimer(15) {
     override def update(now: Long): Unit = {
       drawGraph()
@@ -128,18 +128,15 @@ class GraphView extends ViewBase {
   // ------------------------------------------
   // Public methods
   // ------------------------------------------
-  def setElement(elem: Element) = {
-    stopDrawerUpdates()
-    drawer.clear()
+  override def setData(elem: Element) = {
     elem match {
       case rootV: Vertex => {
-        for (v <- Traverser(rootV)) {
-          drawer.pushVertex(v)
-        }
-        drawer.stickVertex(rootV)
+        this.setGraph(rootV.toGraph)
+      }
+      case g: Graph => {
+        this.setGraph(g)
       }
     }
-    startDrawerUpdates()
   }
 
   private def startDrawerUpdates() = {
@@ -151,5 +148,11 @@ class GraphView extends ViewBase {
     updateTimer.start()
   }
 
-
+  def setGraph(g: Graph): Unit = {
+    stopDrawerUpdates()
+    drawer.clear()
+    g.vertices.foreach(drawer.pushVertex)
+    drawer.stickVertex(g.vertices.head)
+    startDrawerUpdates()
+  }
 }

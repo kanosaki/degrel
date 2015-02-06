@@ -8,6 +8,21 @@ import scala.io.Source
 
 object Main {
   def main(args: Array[String]) = {
+    val graph = degrel.parseVertex(
+      """
+        |{
+        | a
+        | b
+        | c
+        | a -> b
+        | b -> c
+        | c -> d
+        |}
+      """.stripMargin)
+    visualize.showAndWait(graph)
+  }
+
+  def main_(args: Array[String]) = {
     if (args.length == 1) {
       this.startInterpreter(args(0))
     } else {

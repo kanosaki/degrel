@@ -13,7 +13,7 @@ import degrel.visualize.{FXUtil, ViewBase}
 class MultiGraphView extends ViewBase {
   @FXML
   var graphViewPane: AnchorPane = null
-  var graphView = new GraphView()
+  var graphView: GraphPresenter = new JGraphView()
 
   @FXML
   var graphsListView: ListView[ElementViewModel] = null
@@ -31,7 +31,7 @@ class MultiGraphView extends ViewBase {
                            oldValue: ElementViewModel,
                            newValue: ElementViewModel): Unit = {
         if (oldValue eq newValue) return
-        graphView.setElement(newValue.target)
+        graphView.setData(newValue.target)
       }
     })
     graphsListView.setItems(rootElements)
@@ -48,7 +48,7 @@ class MultiGraphView extends ViewBase {
     rootElements += vm
     // 表示要素が一つの場合は，自動的に表示を行います
     if (rootElements.size == 1) {
-      graphView.setElement(elem)
+      graphView.setData(elem)
       graphsListView.getSelectionModel.select(0)
     }
   }

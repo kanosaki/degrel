@@ -75,7 +75,8 @@ object FXUtil {
    */
   def loadAbsolute[T <: Parent](path: String, controller: AnyRef = null): T = {
     FXManager.launch()
-    val loader = new FXMLLoader(getClass.getResource(path))
+    val location = getClass.getResource(path)
+    val loader = new FXMLLoader(location)
     loader.setClassLoader(classLoader)
     if (controller != null) {
       loader.setController(controller)

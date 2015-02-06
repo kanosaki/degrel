@@ -15,6 +15,7 @@ libraryDependencies ++= {
   val scalazVersion = "7.1.0"
   val akkaVersion = "2.3.8"
   val sprayVersion = "1.3.2"
+  val graphStreamVersion = "1.2"
   Seq(
     "org.scalatest" % "scalatest_2.11" % "2.2.3" % "test",
     "org.scalamock" %% "scalamock-scalatest-support" % "3.2.1" % "test",
@@ -42,7 +43,10 @@ libraryDependencies ++= {
     "org.scaldi" %% "scaldi" % "0.4",
     "org.scaldi" %% "scaldi-akka" % "0.4",
     "org.controlsfx" % "controlsfx" % "8.20.8",
-    "com.github.monkeysintown" % "jgraphx" % "3.1.2.1"
+    "com.github.monkeysintown" % "jgraphx" % "3.1.2.1",
+    "org.graphstream" % "gs-core" % graphStreamVersion,
+    "org.graphstream" % "gs-ui" % graphStreamVersion,
+    "org.graphstream" % "gs-algo" % graphStreamVersion
   )
 }
 
@@ -57,12 +61,12 @@ assemblySettings
 
 // scala.tools.jline関連のライブラリがassembly時にコンフリクトを起こすので
 // 時前で競合解消
-mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
-  {
-    case PathList(ps @ _*) if ps.last == "libjansi.jnilib" => MergeStrategy.first
-    case PathList(ps @ _*) if ps.last == "jansi.dll" => MergeStrategy.first
-    case PathList(ps @ _*) if ps.last == "libjansi.so" => MergeStrategy.first
-    case PathList("org", "fusesource", xs @ _*) => MergeStrategy.first
-    case x => old(x)
-  }
-}
+//mergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) =>
+//  {
+//    case PathList(ps @ _*) if ps.last == "libjansi.jnilib" => MergeStrategy.first
+//    case PathList(ps @ _*) if ps.last == "jansi.dll" => MergeStrategy.first
+//    case PathList(ps @ _*) if ps.last == "libjansi.so" => MergeStrategy.first
+//    case PathList("org", "fusesource", xs @ _*) => MergeStrategy.first
+//    case x => old(x)
+//  }
+//}
