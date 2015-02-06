@@ -1,4 +1,4 @@
-package degrel.visualize
+package degrel.ui
 
 import javafx.animation.AnimationTimer
 

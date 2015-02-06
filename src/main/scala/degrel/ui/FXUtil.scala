@@ -1,4 +1,4 @@
-package degrel.visualize
+package degrel.ui
 
 import java.nio.file.Paths
 import java.util.concurrent.LinkedBlockingQueue
@@ -7,6 +7,7 @@ import javafx.scene.{Parent, Scene}
 import javafx.stage.Stage
 
 import degrel.misc.CachedClassLoader
+import degrel.ui.ViewBase
 import degrel.utils.toRunnable
 
 import scala.concurrent.duration.Duration

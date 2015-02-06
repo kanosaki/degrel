@@ -1,8 +1,8 @@
 package degrel.visualize.viewmodel.grapharranger
 
 import degrel.core.{Edge, ID, Vertex}
+import degrel.ui.Vec
 import degrel.utils.collection.mutable.RingBuffer
-import degrel.visualize.Vec
 
 import scala.collection.mutable
 

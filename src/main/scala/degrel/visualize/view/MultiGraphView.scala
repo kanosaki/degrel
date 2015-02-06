@@ -7,8 +7,8 @@ import javafx.scene.layout.{AnchorPane, BorderPane}
 import javafx.util.Callback
 
 import degrel.core.Element
+import degrel.ui.{ViewBase, FXUtil}
 import degrel.visualize.viewmodel.ElementViewModel
-import degrel.visualize.{FXUtil, ViewBase}
 
 class MultiGraphView extends ViewBase {
   @FXML

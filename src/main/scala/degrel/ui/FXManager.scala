@@ -1,8 +1,10 @@
-package degrel.visualize
+package degrel.ui
 
 import java.util.concurrent.{CountDownLatch, TimeUnit}
 import javafx.application.{Application, Platform}
 import javafx.stage.Stage
+
+import degrel.ui.ViewBase
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.ref.WeakReference

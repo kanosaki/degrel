@@ -1,20 +1,15 @@
-package degrel.visualize
+package degrel.ui
 
 import javafx.geometry.VPos
-import javafx.scene.canvas.Canvas
-import javafx.scene.canvas.GraphicsContext
-import javafx.scene.effect.BlendMode
-import javafx.scene.effect.Effect
-import javafx.scene.image.Image
-import javafx.scene.image.PixelWriter
+import javafx.scene.canvas.{Canvas, GraphicsContext}
+import javafx.scene.effect.{BlendMode, Effect}
+import javafx.scene.image.{Image, PixelWriter}
 import javafx.scene.paint.Paint
-import javafx.scene.shape.ArcType
-import javafx.scene.shape.FillRule
-import javafx.scene.shape.StrokeLineCap
-import javafx.scene.shape.StrokeLineJoin
-import javafx.scene.text.Font
-import javafx.scene.text.TextAlignment
+import javafx.scene.shape.{ArcType, FillRule, StrokeLineCap, StrokeLineJoin}
+import javafx.scene.text.{Font, TextAlignment}
 import javafx.scene.transform.Affine
+
+import degrel.ui.Vec
 
 /**
  * Decorator for javafx.scene.canvas.GraphicsContext

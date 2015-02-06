@@ -4,7 +4,8 @@ import javafx.embed.swing.SwingNode
 import javafx.fxml.FXML
 
 import degrel.core.{Element, Graph, Vertex}
-import degrel.visualize.{ViewBase, utils}
+import degrel.ui.ViewBase
+import degrel.visualize.utils
 import org.graphstream.graph.implementations.SingleGraph
 import org.graphstream.graph.{Edge, Graph => GSGraph, Node}
 import org.graphstream.ui.layout.HierarchicalLayout

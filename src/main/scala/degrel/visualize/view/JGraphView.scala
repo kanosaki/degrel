@@ -12,7 +12,7 @@ import com.mxgraph.util.mxEventSource.mxIEventListener
 import com.mxgraph.util.{mxEvent, mxEventObject}
 import com.mxgraph.view.mxGraph
 import degrel.core.{Element, Graph, ID, Vertex}
-import degrel.visualize.ViewBase
+import degrel.ui.ViewBase
 
 import scala.collection.mutable
 

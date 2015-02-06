@@ -1,4 +1,6 @@
-package degrel.visualize;
+package degrel.ui;
+
+import degrel.ui.Vec;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;

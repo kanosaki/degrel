@@ -10,9 +10,9 @@ import javafx.scene.layout.{AnchorPane, BorderPane}
 import javafx.scene.paint.Color
 
 import degrel.core.{Graph, Element, Traverser, Vertex}
+import degrel.ui.{ViewBase, UpdateTimer, Vec, GraphicsContextWrapper}
 import degrel.utils.toRunnable
 import degrel.visualize.viewmodel.grapharranger.{DynamicsGraphArranger, GraphArranger}
-import degrel.visualize.{GraphicsContextWrapper, UpdateTimer, Vec, ViewBase}
 
 class GraphView extends ViewBase with GraphPresenter {
   val updateTimer = new UpdateTimer(15) {

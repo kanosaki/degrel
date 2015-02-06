@@ -1,6 +1,7 @@
 package degrel.visualize
 
 import degrel.core.Element
+import degrel.ui.FXUtil
 import degrel.visualize.view.MultiGraphView
 
 object VisualizeService {

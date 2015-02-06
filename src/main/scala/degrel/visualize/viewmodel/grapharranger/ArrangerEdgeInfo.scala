@@ -1,7 +1,7 @@
 package degrel.visualize.viewmodel.grapharranger
 
 import degrel.core.Edge
-import degrel.visualize.Vec
+import degrel.ui.Vec
 
 trait ArrangerEdgeInfo {
   def origin: Edge

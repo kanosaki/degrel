@@ -1,4 +1,4 @@
-package degrel.visualize
+package degrel.ui
 
 // TODO: ちょうどいい行列ライブラリがあったら置き換え
 class Vec(var x: Double, var y: Double) {
