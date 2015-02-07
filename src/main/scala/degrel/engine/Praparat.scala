@@ -1,6 +1,7 @@
 package degrel.engine
 
-import degrel.core.{Traverser, Cell, Label, Vertex}
+import degrel.DegrelException
+import degrel.core.{Cell, Label, Traverser, Vertex}
 import degrel.engine.rewriting.Rewriter
 
 /**
@@ -29,10 +30,23 @@ class Praparat(val cell: Cell) extends Reactor {
   }
 
   def rewriteTargets: Iterable[Vertex] = {
-    val roots = cell.
-      edges.
-      filter(_.label != Label.V.rule).
-      map(_.dst)
-    roots.flatMap(Traverser(_))
+    val roots = cell
+      .edges
+      .filter(_.label != Label.E.cellRule)
+      .map(_.dst)
+    roots.flatMap(Traverser(_, edgePred = _.dst.label != Label.V.cell))
+  }
+
+  def stepUntilStop(limit: Int = -1): Int = {
+    var count = 0
+    while (true) {
+      val rewrote = this.step()
+      count += 1
+      if (!rewrote) return count
+      if(limit > 0 && count > limit) {
+        throw new DegrelException("Exec limitation exceeded.")
+      }
+    }
+    count
   }
 }

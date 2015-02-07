@@ -64,7 +64,7 @@ class PrarapatTest extends FlatSpec {
         | c -> d
         |}""".stripMargin)
     val pra = new Praparat(cell)
-    (0 to 4).foreach(n => {
+    (1 to 4).foreach(n => {
       assert(pra.step(), s"Rule apply $n")
     })
     assert(!pra.step(), "haven't finished")
