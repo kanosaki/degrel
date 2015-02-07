@@ -17,7 +17,7 @@ class FlatDocument(src: Graph) extends DDocument {
     src.vertices.zipWithIndex.map {
       case (v, index) => {
         val edges = v.
-          edges().
+          edges.
           map(e => DEdge(idTable(v), e.label.expr, DRef(idTable(e.dst)))).
           toSeq
         DVertex(index, v.label.expr, edges)

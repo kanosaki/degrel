@@ -30,7 +30,7 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
         if (allEdges.isEmpty) {
           s"${this.repr}"
         } else {
-          val edgesExpr = this.edges().map(_.reprRecursive(nextHistory)).mkString(", ")
+          val edgesExpr = this.edges.map(_.reprRecursive(nextHistory)).mkString(", ")
           s"${this.repr}($edgesExpr)"
         }
       }
@@ -41,20 +41,15 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
   }
 
   protected def allEdges: Iterable[Edge] = {
-    if (_edges == null) throw new Exception("You cannot refer edges untill initialized.")
+    if (_edges == null) throw new Exception("You cannot refer edges until initialized.")
     _edges
   }
 
-  def edges(label: Label): Iterable[Edge] = {
-    label match {
-      case Label.V.wildcard => allEdges
-      case _ => allEdges.filter(_.label == label)
-    }
-  }
+  override def edges: Iterable[Edge] = allEdges
 
   def repr: String = {
     val id = this.id.shorten
-    s"${this.reprLabel}@${id}${this.reprAttrs}"
+    s"${this.reprLabel}@$id${this.reprAttrs}"
   }
 
   def id: ID = _id
@@ -88,24 +83,24 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
   def build(context: BuildingContext): Vertex = {
     context.matchedVertex(this) match {
       case Some(matchedV) => {
-        val matchedEdges = this.edges().map(context.matchedEdgeExact).toSet
+        val matchedEdges = this.edges.map(context.matchedEdgeExact).toSet
         val builtEdges = matchedV
-          .edges()
+          .edges
           .filter(!matchedEdges.contains(_))
           .map(_.duplicate()) ++
-          this.edges()
+          this.edges
             .map(_.build(context))
         Vertex(matchedV.label.expr, builtEdges.toSeq, matchedV.attributes)
       }
       case None => {
-        val buildEdges = this.edges().map(_.build(context))
+        val buildEdges = this.edges.map(_.build(context))
         Vertex(this.label.expr, buildEdges.toSeq, this.attributes)
       }
     }
   }
 
   def shallowCopy: Vertex = {
-    VertexBody(label, attributes, this.edges(), this.id)
+    VertexBody(label, attributes, this.edges, this.id)
   }
 }
 

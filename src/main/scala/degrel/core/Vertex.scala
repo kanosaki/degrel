@@ -4,7 +4,14 @@ package degrel.core
 import degrel.engine.rewriting.{BuildingContext, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
-  def edges(label: Label = Label.V.wildcard): Iterable[Edge]
+  def edges: Iterable[Edge]
+
+  def edgesWith(label: Label = Label.V.wildcard): Iterable[Edge] = {
+    label match {
+      case Label.V.wildcard => this.edges
+      case _ => this.edges.filter(_.label == label)
+    }
+  }
 
   def attributes: Map[Label, String]
 
@@ -27,7 +34,7 @@ trait Vertex extends Element with Comparable[Vertex] {
   def label: Label
 
   def hasEdge(label: Label = Label.V.wildcard): Boolean = {
-    this.edges(label).nonEmpty
+    this.edgesWith(label).nonEmpty
   }
 
   def matches(pattern: Vertex, context: MatchingContext = MatchingContext.empty): VertexMatching = {
@@ -39,7 +46,7 @@ trait Vertex extends Element with Comparable[Vertex] {
   def isReference: Boolean = this.label == Label.V.reference
 
   def thruSingle(label: Label): Vertex = {
-    val candidates = this.edges(label)
+    val candidates = this.edgesWith(label)
     candidates.size match {
       case 1 => candidates.head.dst
       case 0 => throw new Exception("No edge found.")
@@ -48,11 +55,11 @@ trait Vertex extends Element with Comparable[Vertex] {
   }
 
   def thru(label: Label): Iterable[Vertex] = {
-    this.edges(label).map(_.dst)
+    this.edgesWith(label).map(_.dst)
   }
 
   def thru(pred: Edge => Boolean): Iterable[Vertex] = {
-    this.edges().filter(pred).map(_.dst)
+    this.edges.filter(pred).map(_.dst)
   }
 
   def asRule: Rule = {

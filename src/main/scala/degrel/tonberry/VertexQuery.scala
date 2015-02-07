@@ -20,7 +20,7 @@ class VertexQuery(val src: Iterable[core.Vertex], val expr: String, val parent: 
   }
 
   def nextE(expr: String = Query.any): EdgeQuery = {
-    new EdgeQuery(matched.flatMap(_.edges()), expr, this)
+    new EdgeQuery(matched.flatMap(_.edges), expr, this)
   }
 
   override def toString = {

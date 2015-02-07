@@ -23,11 +23,11 @@ class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: It
       matchedV
     } else {
       val matchedEdges = this.referenceTarget
-        .edges()
+        .edges
         .map(context.matchedEdgeExact)
         .toSet
       val unmatchedEdges = matchedV
-        .edges()
+        .edges
         .filter(!matchedEdges.contains(_))
         .map(_.duplicate())
       val margingEdges = unreferenceEdges.map(_.build(context))
@@ -57,7 +57,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: It
   }
 
   def referenceTarget: Vertex = {
-    val refEdges = this.edges(SpecialLabels.E_REFERENCE_TARGET)
+    val refEdges = this.edgesWith(SpecialLabels.E_REFERENCE_TARGET)
     refEdges.head.dst
   }
 }

@@ -35,7 +35,7 @@ class Traverser(val start: Vertex,
     def next(): Vertex = {
       val nextV = vQueue.dequeue()
       vQueue ++= nextV.
-        edges().
+        edges.
         filter(e => !vHistory.contains(e.dst) && edgePred(e)).
         map(_.dst)
       vHistory += nextV
@@ -55,7 +55,7 @@ class Traverser(val start: Vertex,
       val nextDepth = depth + 1
       if (nextDepth <= hopLimit) {
         val nextEntries = nextV
-          .edges()
+          .edges
           .filter(e => !vHistory.contains(e.dst) && edgePred(e))
           .map(_.dst -> nextDepth)
         vQueue ++= nextEntries

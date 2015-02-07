@@ -52,7 +52,7 @@ class PrettyPrinter(val root: Vertex) {
     def root: Vertex
 
     def children = {
-      root.edges().map(e => getPrinter(e.dst))
+      root.edges.map(e => getPrinter(e.dst))
     }
 
     var isCycled = false
@@ -82,7 +82,7 @@ class PrettyPrinter(val root: Vertex) {
 
   protected class VertexPrinter(val root: Vertex) extends Printer {
     private def edgesExprSingle(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
-      val edges = root.edges().toSeq
+      val edges = root.edges.toSeq
       if (edges.nonEmpty) {
         sb += '('
         repsep[Edge](edges, sb, ",", (e, sb_) => {
@@ -117,10 +117,10 @@ class PrettyPrinter(val root: Vertex) {
       traj.walk(v) {
         case Unvisited(trj) => {
           sb ++= "{"
-          repsep[Edge](v.edges(Label.E.cellItem), sb, ";", (e, sb_) => {
+          repsep[Edge](v.edgesWith(Label.E.cellItem), sb, ";", (e, sb_) => {
             getPrinter(e.dst).single(sb_)
           })
-          val ruleEdges = v.edges(Label.E.cellRule)
+          val ruleEdges = v.edgesWith(Label.E.cellRule)
           if(ruleEdges.nonEmpty) {
             sb ++= ";"
             repsep[Edge](ruleEdges, sb, ";", (e, sb_) => {

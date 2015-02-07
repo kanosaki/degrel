@@ -21,7 +21,7 @@ class RootIsomorphismComparator(self: Vertex, another: Vertex) {
       case None => {
         history += self -> that
         self.label == that.label &&
-          self.edges().size == that.edges().size &&
+          self.edges.size == that.edges.size &&
           areIsoEdges(history, self, that)
       }
     }
@@ -30,8 +30,8 @@ class RootIsomorphismComparator(self: Vertex, another: Vertex) {
   private def areIsoEdges(history: History,
                           self: Vertex,
                           that: Vertex): Boolean = {
-    val self_edges = self.edges().toSeq.sorted
-    val that_edges = that.edges().toSeq.sorted
+    val self_edges = self.edges.toSeq.sorted
+    val that_edges = that.edges.toSeq.sorted
     if (self_edges.size != that_edges.size) return false
     if (self_edges.size == 0) return true
     val self_grouped_edges = self_edges.groupBy(_.label).values.toSeq

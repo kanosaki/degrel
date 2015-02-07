@@ -62,7 +62,7 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
    */
   override def pushVertex(v: Vertex) = {
     adapterMapping += v.id -> new ArrangerVertexAdapter(v)
-    v.edges().foreach(edges += new ArrangerEdgeAdapter(_))
+    v.edges.foreach(edges += new ArrangerEdgeAdapter(_))
   }
 
   /**
@@ -116,7 +116,7 @@ class DynamicsGraphArranger(initialVertices: Iterable[Vertex] = Seq(),
 
     def step() = {
       val currentForce = Vec.zero
-      val neighborSet = origin.edges().map(_.dst).toSet
+      val neighborSet = origin.edges.map(_.dst).toSet
 
       for (v <- vertices.filter(_ ne this)) {
         var delta = this.location - v.location

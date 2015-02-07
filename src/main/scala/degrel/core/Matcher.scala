@@ -12,8 +12,8 @@ case class Matcher(self: Vertex) {
     val selfVersion = self.version
     if (!self.label.matches(pattern.label))
       return NoMatching
-    if (pattern.edges().isEmpty) {
-      return MonoVertexMatching(VertexBridge(pattern, patVersion, self, selfVersion, self.edges()), Stream())
+    if (pattern.edges.isEmpty) {
+      return MonoVertexMatching(VertexBridge(pattern, patVersion, self, selfVersion, self.edges), Stream())
     }
     val matchCombinations = this.matchEdges(pattern, context, patVersion, selfVersion)
     if (matchCombinations.isEmpty) {
@@ -26,7 +26,7 @@ case class Matcher(self: Vertex) {
   }
 
   private def matchEdges(pattern: Vertex, context: MatchingContext, patV: VertexVersion, selfV: VertexVersion): Seq[VertexMatching] = {
-    if (pattern.edges().size > self.edges().size)
+    if (pattern.edges.size > self.edges.size)
       return Stream()
     val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_, context)).toList
     if (edgeGroups.forall(!_.isEmpty)) {
@@ -35,7 +35,7 @@ case class Matcher(self: Vertex) {
       edgeMatches.map(e => {
         val matchedEdgeMatchings = e.flatten[EdgeMatching]
         val matchedDataEdges = matchedEdgeMatchings.map(_.bridge.dataEdge)
-        val unmetchedEdges = self.edges().toSet &~ matchedDataEdges.toSet
+        val unmetchedEdges = self.edges.toSet &~ matchedDataEdges.toSet
         val vertexMatch = VertexBridge(pattern, patV, self, selfV, unmetchedEdges)
         MonoVertexMatching(vertexMatch, matchedEdgeMatchings.toStream)
       })
@@ -52,7 +52,7 @@ case class Matcher(self: Vertex) {
                              context: MatchingContext): List[Seq[EdgeMatching]] = {
     val patternEdges = patternEdgesIt.toSeq
     val targetLabel = patternEdges.head.label
-    val dataEdges = self.edges(targetLabel).toSet
+    val dataEdges = self.edgesWith(targetLabel).toSet
     if (dataEdges.isEmpty || dataEdges.size < patternEdges.size)
       return Nil
     val combination = dataEdges.subsets(patternEdges.size).toStream.flatMap(_.toSeq.permutations)

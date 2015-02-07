@@ -30,7 +30,7 @@ class Praparat(val cell: Cell) extends Reactor {
 
   def rewriteTargets: Iterable[Vertex] = {
     val roots = cell.
-      edges().
+      edges.
       filter(_.label != Label.V.rule).
       map(_.dst)
     roots.flatMap(Traverser(_))
