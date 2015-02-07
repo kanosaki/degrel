@@ -26,5 +26,25 @@ class TraverserTest extends FlatSpec {
     assert(traversed.size === 4)
     assert(traversed.map(_.label.expr).toSet === Set("foo", "baz", "fuga", "b"))
   }
-  // TODO: Write more
+
+  it should "work with edge predicate" in {
+    val graph = parse("foo(bar: baz, hoge: fuga, piyo: hoge)")
+    val traversed = Traverser(
+      graph,
+      edgePred =
+        e => e.label != Label("hoge") && e.dst.label != Label("hoge")).
+      toSeq
+    assert(traversed.map(_.label).toSet === Set("foo", "baz"))
+  }
+
+  it should "work with edge predicate and hop limit" in {
+    val graph = parse("foo(bar: baz(x: y, p: q(r: s)), hoge: fuga(a: b))")
+    val traversed = Traverser(
+      graph,
+      2,
+      edgePred =
+        e => e.label != Label("hoge") && e.label != Label("x")).
+      toSeq
+    assert(traversed.map(_.label).toSet === Set("foo", "baz", "q"))
+  }
 }

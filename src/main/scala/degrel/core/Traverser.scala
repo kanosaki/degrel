@@ -6,9 +6,12 @@ import scala.collection.mutable
  * グラフを幅優先で探索する
  * @param start 起点となる頂点
  * @param maxHops 最大ホップ数
+ * @param edgePred 頂点をトラバースする際に，この条件を満たさないエッジはトラバースされません
  * @todo マルチスレッド化?
  */
-class Traverser(val start: Vertex, val maxHops: Option[Int] = None) extends Iterable[Vertex] {
+class Traverser(val start: Vertex,
+                val maxHops: Option[Int],
+                val edgePred: Edge => Boolean) extends Iterable[Vertex] {
   maxHops match {
     case Some(mh) if mh < 0 => throw new IllegalArgumentException("maxHopsは0以上の数である必要があります")
     case _ =>
@@ -27,11 +30,14 @@ class Traverser(val start: Vertex, val maxHops: Option[Int] = None) extends Iter
     vQueue += start
     vHistory += start
 
-    def hasNext: Boolean = !vQueue.isEmpty
+    def hasNext: Boolean = vQueue.nonEmpty
 
     def next(): Vertex = {
       val nextV = vQueue.dequeue()
-      vQueue ++= nextV.edges().map(_.dst).filter(!vHistory.contains(_))
+      vQueue ++= nextV.
+        edges().
+        filter(e => !vHistory.contains(e.dst) && edgePred(e)).
+        map(_.dst)
       vHistory += nextV
       nextV
     }
@@ -42,16 +48,16 @@ class Traverser(val start: Vertex, val maxHops: Option[Int] = None) extends Iter
     protected val vHistory = new mutable.HashSet[Vertex]()
     vQueue += start -> 0
 
-    def hasNext: Boolean = !vQueue.isEmpty
+    def hasNext: Boolean = vQueue.nonEmpty
 
     def next(): Vertex = {
       val (nextV, depth) = vQueue.dequeue()
       val nextDepth = depth + 1
       if (nextDepth <= hopLimit) {
-        val nextEntries = nextV.edges()
-          .map(_.dst)
-          .filter(!vHistory.contains(_))
-          .map(_ -> nextDepth)
+        val nextEntries = nextV
+          .edges()
+          .filter(e => !vHistory.contains(e.dst) && edgePred(e))
+          .map(_.dst -> nextDepth)
         vQueue ++= nextEntries
       }
       vHistory += nextV
@@ -64,11 +70,17 @@ class Traverser(val start: Vertex, val maxHops: Option[Int] = None) extends Iter
 object Traverser {
   val UNLIMITED = -1
 
-  def apply(start: Vertex, maxHops: Int = UNLIMITED) = {
+  val fTrue : Edge => Boolean = _ => true
+
+  def apply(start: Vertex, maxHops: Int = UNLIMITED, edgePred: Edge => Boolean = null) = {
+    val ep = edgePred match {
+      case null => fTrue
+      case other => other
+    }
     if (maxHops < 0) {
-      new Traverser(start, None)
+      new Traverser(start, None, ep)
     } else {
-      new Traverser(start, Some(maxHops))
+      new Traverser(start, Some(maxHops), ep)
     }
   }
 }
