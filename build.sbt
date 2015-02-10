@@ -46,7 +46,8 @@ libraryDependencies ++= {
     "com.github.monkeysintown" % "jgraphx" % "3.1.2.1",
     "org.graphstream" % "gs-core" % graphStreamVersion,
     "org.graphstream" % "gs-ui" % graphStreamVersion,
-    "org.graphstream" % "gs-algo" % graphStreamVersion
+    "org.graphstream" % "gs-algo" % graphStreamVersion,
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.5.1"
   )
 }
 

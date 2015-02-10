@@ -1,9 +1,22 @@
 package degrel.dgspec
 
-import org.scalatest.FlatSpec
+import java.nio.file.Path
+
+import org.scalatest.{FlatSpecLike, Tag}
 
 import scala.io.Source
 
-class Dgspec(specfile: Source) extends FlatSpec {
+trait Dgspec extends FlatSpecLike {
+  def isIgnored = false
 
+  def description: String
+
+  def specTags: Array[Tag] = Array()
+
+  def apply() = {
+  }
+
+  override def toString: String = {
+    s"<Dgspec $description>"
+  }
 }
