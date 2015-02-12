@@ -204,10 +204,6 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
       AstLinerExpr(exp, followingExprs).toTree
   }
 
-  def apply(str: String): Ast = {
-    new Ast(parseCell(str))
-  }
-
   def parseExpr(str: String): AstVertex = {
     parseAll(expr, str) match {
       case Success(e, _) => e
@@ -218,7 +214,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   }
 
   def parseCell(str: String): AstCell = {
-    parseAll(cellBody, str) match {
+    parseAll(cell, str) match {
       case Success(gr, _) => gr
       case fail: NoSuccess => {
         throw new SyntaxError(s"${fail.toString} \nat line ${fail.next.pos.line} col ${fail.next.pos.column}")

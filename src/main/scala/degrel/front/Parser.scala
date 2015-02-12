@@ -6,7 +6,7 @@ object Parser {
   }
 
   def cell(s: String): AstCell = {
-    ???
+    TermParser.parseCell(s)
   }
 
   def vertex(s: String): AstVertex = {

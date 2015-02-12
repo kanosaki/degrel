@@ -49,9 +49,14 @@ class RootIsomorphismComparator(self: Vertex, another: Vertex) {
     }
   }
 
+  /**
+   * すべての接続が1価の場合は，ラベルでソートした後にそれぞれの対応する接続について
+   * 比較すれば相同である事が確認できます
+   */
   private def areIsoMonovalentEdges(history: History,
                                     self_edges: Seq[Edge],
                                     that_edges: Seq[Edge]): Boolean = {
+    require(self_edges.size == that_edges.size)
     self_edges
       .zip(that_edges)
       .forall({
@@ -60,15 +65,22 @@ class RootIsomorphismComparator(self: Vertex, another: Vertex) {
     })
   }
 
+  /**
+   * 多価頂点では，どの組み合わせで
+   */
   private def areIsoPolyvalentEdges(history: History,
                                     self_grouped_edges: Seq[Seq[Edge]],
                                     that_grouped_edges: Seq[Seq[Edge]]): Boolean = {
-    val target_pattern = self_grouped_edges.head
+    val target_pattern = self_grouped_edges.flatten // 探索する目標となる接続のパターンを決定します
+    // 取り得る接続の組み合わせを列挙します
     val candidate_patterns = that_grouped_edges
       .map(_.permutations.toList)
       .toList
       .sequence
       .map(_.flatten)
-    candidate_patterns.any(areIsoMonovalentEdges(history.clone(), target_pattern, _))
+    // どれか一つでも該当すれば等価である
+    candidate_patterns.any(pat => {
+      areIsoMonovalentEdges(history.clone(), target_pattern, pat)
+    })
   }
 }

@@ -11,10 +11,10 @@ object ParserUtils {
   }
 
   def parseRule(s: String): core.Rule = {
-    this.parseVertex(s).asInstanceOf[core.Rule]
+    degrel.parseVertex(s).asRule
   }
 
   def parseVertex(s: String): core.Cell = {
-    degrel.graphbuilder.build[core.Cell](termParser(s).root)
+    degrel.parseCell(s)
   }
 }

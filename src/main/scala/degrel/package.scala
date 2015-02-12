@@ -11,6 +11,7 @@ package object degrel {
   }
 
   def parseCell(s: String): Cell = {
-    front.Parser.cell(s).toGraph.asInstanceOf[Cell]
+    val ast = front.Parser.cell(s)
+    graphbuilder.build[core.Cell](ast)
   }
 }
