@@ -9,8 +9,6 @@ import javafx.scene.shape.{ArcType, FillRule, StrokeLineCap, StrokeLineJoin}
 import javafx.scene.text.{Font, TextAlignment}
 import javafx.scene.transform.Affine
 
-import degrel.ui.Vec
-
 /**
  * Decorator for javafx.scene.canvas.GraphicsContext
  */

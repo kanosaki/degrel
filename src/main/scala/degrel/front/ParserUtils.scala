@@ -13,8 +13,4 @@ object ParserUtils {
   def parseRule(s: String): core.Rule = {
     degrel.parseVertex(s).asRule
   }
-
-  def parseVertex(s: String): core.Cell = {
-    degrel.parseCell(s)
-  }
 }

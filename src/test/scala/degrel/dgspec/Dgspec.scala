@@ -15,7 +15,7 @@ trait Dgspec extends FlatSpecLike {
 
   def spec: SpecPiece
 
-  def apply() = {
+  def apply(): Unit = {
     val content = new SpecContext()
   }
 

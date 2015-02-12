@@ -80,7 +80,7 @@ class Console(val reserve: LocalReserve) {
   }
 
   def parse(s: String): Vertex = {
-    termParser.parseVertex(s)
+    degrel.parseVertex(s)
   }
 
   def rewriteMulti() = {

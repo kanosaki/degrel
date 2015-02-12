@@ -1,7 +1,7 @@
 package degrel
 
 object VisualizeDemo {
-  val parseV = front.ParserUtils.parseVertex _
+  val parseV = degrel.parseVertex _
   val parseDot = front.ParserUtils.parseDot _
 
   def main(args: Array[String]): Unit = {

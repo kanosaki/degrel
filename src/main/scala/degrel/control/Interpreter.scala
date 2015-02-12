@@ -35,7 +35,7 @@ class Interpreter(source: Source) {
   }
 
   def parse(s: String): Vertex = {
-    termParser.parseVertex(s)
+    degrel.parseVertex(s)
   }
 
   def rewriteMulti() = {

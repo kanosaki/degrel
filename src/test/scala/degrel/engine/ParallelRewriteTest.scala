@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 class ParallelRewriteTest extends FlatSpec {
   val parser = TermParser.default
 
-  def parse(s: String): core.Vertex = ParserUtils.parseVertex(s)
+  def parse(s: String): core.Vertex = degrel.parseVertex(s)
 
   def parseR(s: String): core.Rule = ParserUtils.parseRule(s)
 

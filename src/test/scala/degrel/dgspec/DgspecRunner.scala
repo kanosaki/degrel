@@ -17,11 +17,15 @@ class DgspecRunner extends FlatSpec {
 
   val specs = specDirs.flatMap(collectSpecs)
 
-  specs.foreach(s => {
-    if (!s.isIgnored) {
-      this.registerTest(s.description, s.specTags: _*)(s)
+  specs.foreach(spec => {
+    if (!spec.isIgnored) {
+      this.registerTest(spec.description, spec.specTags: _*) {
+        spec()
+      }
     } else {
-      this.registerIgnoredTest(s.description, s.specTags: _*)(s)
+      this.registerIgnoredTest(spec.description, spec.specTags: _*) {
+        spec()
+      }
     }
   })
 
