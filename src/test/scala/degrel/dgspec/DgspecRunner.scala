@@ -7,6 +7,9 @@ import org.scalatest.FlatSpec
 
 import scala.collection.mutable
 
+/**
+ * `dgspec`ファイルを探索し，ユニットテストとして登録します
+ */
 class DgspecRunner extends FlatSpec {
   val specDirs = Seq("dgspec")
     .map(Paths.get(_))
@@ -37,7 +40,7 @@ class DgspecRunner extends FlatSpec {
       if (filename.endsWith(".dgspec")
         && filename.endsWith(".yaml")
         && filename.endsWith(".yml")) {
-        foundSpecs += new DgspecFile(file)
+        foundSpecs += new FileDgspec(file)
       }
       FileVisitResult.CONTINUE
     }

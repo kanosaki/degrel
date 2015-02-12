@@ -68,6 +68,11 @@ trait Vertex extends Element with Comparable[Vertex] {
     Rule(lhs, rhs)
   }
 
+  def asCell: Cell = {
+    require(this.label == Label.V.cell)
+    Cell(this.edges)
+  }
+
   def toGraph: Graph = {
     this match {
       case g: Graph => g

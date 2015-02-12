@@ -1,15 +1,13 @@
 
 description: Rewrite simple vertex in one step.
-- input: 
-    cell: >
+seq_spec:
+  - init: > 
       {
         hoge(fuga: bar)
         hoge(fuga: _@X) -> piyo(foo: X)
       }
-
-- assert:
-    condition: stop
-    cell: >
+  - rewrite
+  - assert: >
       {
         piyo(foo: bar)
         hoge(fuga: _@X) -> piyo(foo: X)

@@ -13,7 +13,10 @@ trait Dgspec extends FlatSpecLike {
 
   def specTags: Array[Tag] = Array()
 
+  def spec: SpecPiece
+
   def apply() = {
+    val content = new SpecContext()
   }
 
   override def toString: String = {

@@ -47,7 +47,8 @@ libraryDependencies ++= {
     "org.graphstream" % "gs-core" % graphStreamVersion,
     "org.graphstream" % "gs-ui" % graphStreamVersion,
     "org.graphstream" % "gs-algo" % graphStreamVersion,
-    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.5.1"
+    "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.5.1",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0"
   )
 }
 

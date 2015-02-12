@@ -6,8 +6,9 @@ trait Cell extends Vertex {
 }
 
 object Cell {
-  def apply(docstring: String = "") = {
-    ???
+  def apply(edges: Iterable[Edge]) = {
+    val body = new CellBody(edges)
+    new CellHeader(body)
   }
 }
 
