@@ -15,6 +15,7 @@ class SpecFileTest extends FlatSpec {
     val spec = toSpec(
       """
         |description: Hogehoge
+        |version: 1
       """.stripMargin)
     assert(spec.description === "Hogehoge")
     assert(spec.evaluate(SpecContext.empty()) === NextPiece.Continue)
@@ -24,6 +25,7 @@ class SpecFileTest extends FlatSpec {
     val spec = toSpec(
       """
         |description: Hogehoge
+        |version: 1
         |seq_spec:
         |  - init: >
         |        a(b: c) -> e
@@ -37,6 +39,7 @@ class SpecFileTest extends FlatSpec {
     val spec = toSpec(
       """
         |description: Hogehoge
+        |version: 1
         |seq_spec:
         |  - init: >
         |      {
@@ -58,6 +61,7 @@ class SpecFileTest extends FlatSpec {
     val spec = toSpec(
       """
         |description: Hogehoge
+        |version: 1
         |seq_spec:
         |  - init: >
         |        a(b: c)
@@ -73,6 +77,7 @@ class SpecFileTest extends FlatSpec {
     val spec = toSpec(
       """
         |description: Hogehoge
+        |version: 1
         |seq_spec:
         |  - init: >
         |      {
@@ -96,6 +101,7 @@ class SpecFileTest extends FlatSpec {
     val spec = toSpec(
       """
         |description: Hogehoge
+        |version: 1
         |seq_spec:
         |  - init: >
         |      {
@@ -112,6 +118,7 @@ class SpecFileTest extends FlatSpec {
     val spec = toSpec(
       """
         |description: Hogehoge
+        |version: 1
         |seq_spec:
         |  - init: >
         |      {
