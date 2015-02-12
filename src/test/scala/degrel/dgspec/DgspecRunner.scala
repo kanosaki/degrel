@@ -42,8 +42,8 @@ class DgspecRunner extends FlatSpec {
       if (!attrs.isRegularFile) return FileVisitResult.CONTINUE
       val filename = file.getFileName.toString.toLowerCase
       if (filename.endsWith(".dgspec")
-        && filename.endsWith(".yaml")
-        && filename.endsWith(".yml")) {
+        || filename.endsWith(".yaml")
+        || filename.endsWith(".yml")) {
         foundSpecs += new FileDgspec(file)
       }
       FileVisitResult.CONTINUE

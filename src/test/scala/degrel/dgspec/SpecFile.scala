@@ -15,7 +15,8 @@ case class SpecFile(description: String,
 }
 
 object SpecFile {
-  val ROOT_SPEC_NAMES = Set("description")
+  val ROOT_SPEC_NAMES = Set("description", "version")
+  val SPEC_VERSION = "1"
 
   // TODO: DI使ったほうがいい?
   def defaultMapper: ObjectMapper = {
@@ -24,12 +25,18 @@ object SpecFile {
     mapper
   }
 
-  def decode(node: JsonNode)(implicit specFactory: SpecFactory): SpecFile = {
-    val descriptionNode = node.get("description")
-    if (descriptionNode == null) {
-      throw new Exception("description required")
+  def getRequired(node: JsonNode, key: String): JsonNode = {
+    val value = node.get(key)
+    if (value == null) {
+      throw new Exception(s"$key required")
     }
-    val description = descriptionNode.asText
+    value
+  }
+
+  def decode(node: JsonNode)(implicit specFactory: SpecFactory): SpecFile = {
+    val description = getRequired(node, "description").asText
+    val version = getRequired(node, "version").asInt.toString
+    require(version == SPEC_VERSION, s"Incompatible spec file(version $version), supported version: $SPEC_VERSION")
     val otherFields = node
       .fields
       .filter(entry => !ROOT_SPEC_NAMES.contains(entry.getKey))

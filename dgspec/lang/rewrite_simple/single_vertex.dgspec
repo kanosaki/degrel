@@ -1,19 +1,17 @@
 
 description: Rewrite simple vertex in one step.
-
-input: 
-  cell: >
-    {
-      a
-      a -> b
-    }
-
-assert:
-  condition: stop
-  cell: >
-    {
-      b
-      a -> b
-    }
+version: 1
+seq_spec:
+  - init: >
+      {
+        a
+        a -> b
+      }
+  - rewrite
+  - assert: >
+      {
+        b
+        a -> b
+      }
 
 # vim: ft=yaml sw=2 ts=2 sts=2
