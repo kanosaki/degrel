@@ -25,7 +25,7 @@ case class AstFunctor(name: AstName, attributes: Option[Seq[AstAttribute]], edge
   }
 }
 
-case class AstEdge(label: AstLabel, dst: AstFunctor) extends AstNode {
+case class AstEdge(label: AstLabel, dst: AstVertex) extends AstNode {
 }
 
 /**
@@ -36,7 +36,7 @@ case class AstEdge(label: AstLabel, dst: AstFunctor) extends AstNode {
  * は，以下のように展開されます
  * `foo(0: bar, 1: baz, 2: hoge, x: piyo`
  */
-case class AstAbbrEdge(label: Option[AstLabel], dst: AstFunctor) extends AstNode {
+case class AstAbbrEdge(label: Option[AstLabel], dst: AstVertex) extends AstNode {
   def toFullForm(pos: Int): AstEdge = {
     label match {
       case Some(lbl) => AstEdge(lbl, dst)

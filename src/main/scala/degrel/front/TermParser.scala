@@ -22,7 +22,11 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    */
   val PAT_ATTR_KEY = """[^:]+""".r
 
-  val PAT_BINOP = "[!#$%^&*+=|:<>/?.-]+".r
+  val CHARS_BINOP = """!#$%^&*+=|:<>/?.-"""
+
+  val PAT_BINOP = s"[$CHARS_BINOP]+".r
+
+  val PAT_FULL_LABEL = s"[_.${CHARS_BINOP}A-Za-z0-9]+".r
 
   val PAT_BINDING = """[A-Z0-9][a-zA-Z0-9_]*""".r
 
@@ -57,11 +61,13 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    */
   def label: Parser[AstLabel] = PAT_LABEL ^^ AstLabel
 
+  def fullLabel: Parser[AstLabel] = "'" ~> PAT_FULL_LABEL <~ "'"  ^^ AstLabel | label
+
   /**
    * 頂点に付くラベルと変数の組み合わせ
    */
   def name: Parser[AstName] =
-    label ~ opt("@" ~> binding) ^^ {
+    fullLabel ~ opt("@" ~> binding) ^^ {
       case lbl ~ b => AstName(Some(lbl), b)
     } |
       binding ^^ {
@@ -71,7 +77,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 接続のパーサー
    */
-  def edge: Parser[AstAbbrEdge] = opt(label <~ ":") ~ functor ^^ {
+  def edge: Parser[AstAbbrEdge] = opt(label <~ ":") ~ expr ^^ {
     case n ~ v => AstAbbrEdge(n, v)
   }
 
