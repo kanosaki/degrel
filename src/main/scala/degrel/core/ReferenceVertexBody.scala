@@ -20,12 +20,16 @@ class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: It
   override def build(context: BuildingContext): Vertex = {
     val matchedV = context.matchedVertexExact(this.referenceTarget)
     if (unreferenceEdges.isEmpty) {
-      matchedV
+      // マッチした頂点への参照を保ってbuildします
+      val h = matchedV.asInstanceOf[VertexHeader]
+      new VertexHeader(h.body)
     } else {
+      // 参照
       val matchedEdges = this.referenceTarget
         .edges
         .map(context.matchedEdgeExact)
         .toSet
+      // 新規に構成
       val unmatchedEdges = matchedV
         .edges
         .filter(!matchedEdges.contains(_))
