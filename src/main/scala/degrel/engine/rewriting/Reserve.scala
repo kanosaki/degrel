@@ -25,7 +25,7 @@ trait Reserve extends Logger {
   def rewriteStep() = {
     var rewrote = false
     for (rw <- this.rewriters) {
-      rewrote ||= rw.step(this)
+      //rewrote ||= rw.step(this)
     }
     rewrote
   }

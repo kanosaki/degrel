@@ -20,6 +20,6 @@ class RewriterWorker(rewriter: Rewriter) extends Actor {
 
 
   def receive: Actor.Receive = {
-    case RewriterWorker.Step(reserve) => sender ! RewriterWorker.Result(rewriter.step(reserve))
+    case RewriterWorker.Step(reserve) => // sender ! RewriterWorker.Result(rewriter.step(reserve))
   }
 }

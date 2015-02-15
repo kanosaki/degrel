@@ -1,13 +1,11 @@
-package degrel.core
+package degrel.engine.rewriting
 
-import org.scalatest.FlatSpec
-
-
+import degrel.front.Parser
 import degrel.utils.FlyWrite._
-import degrel.utils.VertexExtensions._
 import degrel.utils.TestUtils._
-import degrel.{graphbuilder, core, front}
-import degrel.front.{Parser, TermParser, ParserUtils}
+import degrel.utils.VertexExtensions._
+import degrel.{core, graphbuilder}
+import org.scalatest.FlatSpec
 
 /**
  * Around matching and (Mono)binding

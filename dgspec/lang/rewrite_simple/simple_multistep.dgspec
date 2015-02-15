@@ -1,0 +1,19 @@
+
+description: Rewrite simple vertex in multi steps.
+version: 1
+seq_spec:
+  - init: > 
+      {
+        hoge(fuga: bar)
+        hoge(fuga: _@X) -> piyo(foo: X)
+        piyo(foo: _@X) -> foobar(baz: X, hoge: fuga)
+      }
+  - rewrite
+  - assert: >
+      {
+        foobar(baz: bar, hoge: fuga)
+        hoge(fuga: _@X) -> piyo(foo: X)
+        piyo(foo: _@X) -> foobar(baz: X, hoge: fuga)
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

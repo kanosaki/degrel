@@ -1,9 +1,10 @@
-package degrel.core
+package degrel.engine.rewriting
 
-import degrel.engine.rewriting.{MonoVertexMatching, PolyVertexMatching, VertexBridge, _}
+import degrel.core.{Vertex, VertexVersion, Edge}
 import degrel.utils.IterableExtensions._
 
-import scalaz.Scalaz._
+import scalaz._
+import Scalaz._
 
 case class Matcher(self: Vertex) {
   // Perform as LhsVertex
@@ -29,7 +30,7 @@ case class Matcher(self: Vertex) {
     if (pattern.edges.size > self.edges.size)
       return Stream()
     val edgeGroups = pattern.groupedEdges.map(this.matchEdgeGroup(_, context)).toList
-    if (edgeGroups.forall(!_.isEmpty)) {
+    if (edgeGroups.forall(_.nonEmpty)) {
       // sequence([1,2], [3,4], [5,6]]) -> [[1,3,4], [1,3,6], [1,4,5], [1,4,6], ...]
       val edgeMatches = edgeGroups.sequence.toStream
       edgeMatches.map(e => {

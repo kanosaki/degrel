@@ -20,10 +20,6 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
     attributes.get(key)
   }
 
-  def groupedEdges: Iterable[Iterable[Edge]] = {
-    allEdges.groupBy(_.label).values
-  }
-
   def reprRecursive(trajectory: Trajectory): String = {
     trajectory.walk(this) {
       case Unvisited(nextHistory) => {

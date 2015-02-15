@@ -2,22 +2,14 @@ package degrel.core
 
 import degrel.engine.rewriting.BuildingContext
 
-import scala.concurrent.stm
-
 
 class VertexHeader(f: VertexBody) extends Vertex {
-  private[this] val _locator = stm.Ref(VertexLocator.createNew(f))
+  private var _body: VertexBody = f
 
   def edges: Iterable[Edge] = body.edges
 
-  def groupedEdges: Iterable[Iterable[Edge]] = body.groupedEdges
-
   def body: VertexBody = {
-    this.locator.single.get.activeVertex
-  }
-
-  protected def locator: stm.Ref[VertexLocator] = {
-    _locator
+    _body
   }
 
   def label: Label = body.label
@@ -52,20 +44,8 @@ class VertexHeader(f: VertexBody) extends Vertex {
 
 
   def write(v: Vertex) = v match {
-    case vb: VertexBody => locator.single.set(VertexLocator.createNew(vb))
-    case vh: VertexHeader => locator.single.set(VertexLocator.createNew(vh.body))
-  }
-
-  def beginTransaction()(implicit txn: Transaction): (VertexLocator, VertexLocator) = {
-    stm.atomic {
-      implicit _txn =>
-        val loc = this.locator.single.get
-        (loc, VertexLocator.createFrom(loc))
-    }
-  }
-
-  def commitTransaction(prev: VertexLocator, created: VertexLocator)(implicit txn: Transaction): Boolean = {
-    _locator.single.compareAndSetIdentity(prev, created)
+    case vb: VertexBody => _body = vb
+    case vh: VertexHeader => _body = vh.body
   }
 
   def attributes: Map[Label, String] = body.attributes

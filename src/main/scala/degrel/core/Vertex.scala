@@ -1,10 +1,21 @@
 package degrel.core
 
 
-import degrel.engine.rewriting.{BuildingContext, MatchingContext, VertexMatching}
+import degrel.core.utils.PrettyPrinter
+import degrel.engine.rewriting.{Matcher, BuildingContext, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
   def edges: Iterable[Edge]
+
+  def attributes: Map[Label, String]
+
+  def attr(key: Label): Option[String]
+
+  def id: ID
+
+  def label: Label
+
+  def pprint(): String = new PrettyPrinter(this).singleLine
 
   def edgesWith(label: Label = Label.V.wildcard): Iterable[Edge] = {
     label match {
@@ -12,12 +23,6 @@ trait Vertex extends Element with Comparable[Vertex] {
       case _ => this.edges.filter(_.label == label)
     }
   }
-
-  def attributes: Map[Label, String]
-
-  def attr(key: Label): Option[String]
-
-  def id: ID
 
   def hasAttr(key: String, value: String = null) = {
     value match {
@@ -29,9 +34,9 @@ trait Vertex extends Element with Comparable[Vertex] {
     }
   }
 
-  def groupedEdges: Iterable[Iterable[Edge]]
-
-  def label: Label
+  def groupedEdges: Iterable[Iterable[Edge]] = {
+    this.edges.groupBy(_.label).values
+  }
 
   def hasEdge(label: Label = Label.V.wildcard): Boolean = {
     this.edgesWith(label).nonEmpty
@@ -96,6 +101,8 @@ trait Vertex extends Element with Comparable[Vertex] {
       case _ => throw new Exception("VertexVersion is only available for VertexHeader.")
     }
   }
+
+  override def toString: String = new PrettyPrinter(this).singleLine
 }
 
 object Vertex {

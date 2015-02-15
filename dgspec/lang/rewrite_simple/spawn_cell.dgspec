@@ -1,0 +1,23 @@
+
+description: Cell spawn rule works for single step.
+version: 1
+seq_spec:
+  - init: >
+      {
+        foo(bar: baz)
+        foo(bar: _@X) -> {
+          hoge(fuga: X)
+        }
+      }
+  - rewrite
+  - assert: >
+      {
+        {
+          hoge(fuga: baz)
+        }
+        foo(bar: _@X) -> {
+          hoge(fuga: X)
+        }
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

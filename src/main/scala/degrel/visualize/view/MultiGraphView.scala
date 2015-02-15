@@ -13,7 +13,7 @@ import degrel.visualize.viewmodel.ElementViewModel
 class MultiGraphView extends ViewBase {
   @FXML
   var graphViewPane: AnchorPane = null
-  var graphView: GraphPresenter = new JGraphView()
+  var graphView: GraphPresenter = new GSGraphView()
 
   @FXML
   var graphsListView: ListView[ElementViewModel] = null
