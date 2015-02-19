@@ -2,7 +2,6 @@ package degrel.engine.rewriting
 
 import degrel.Logger
 import degrel.core._
-import degrel.utils.collection.ShuffledIterator
 
 
 /**
@@ -54,7 +53,13 @@ class Rewriter(val rule: Rule) extends Logger {
     pack.pickFirst
   }
 
-  abstract class ActionLog(val succeed: Boolean, val root: Vertex, val target: Vertex, prev: VertexBody, next: VertexBody) {
+  trait ActionLog {
+    val succeed: Boolean
+    val root: Vertex
+    val target: Vertex
+    val prev: VertexBody
+    val next: VertexBody
+
     def rule = self.rule
 
     def performed: Boolean
@@ -64,33 +69,44 @@ class Rewriter(val rule: Rule) extends Logger {
     def repr = s"$msg:\n  Rule  : $rule\n  Target: $target\n  Root  : $root\n  Prev  : $prev\n  Next  : $next"
   }
 
-  class BuildingFailure(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody)
-    extends ActionLog(false, root, target, prev, next) {
+  case class BuildingFailure(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody) extends ActionLog {
+    override val succeed = true
+
     def msg = "BuildingFailure"
 
     def performed = true
   }
 
-  class CommitingFailure(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody)
-    extends ActionLog(false, root, target, prev, next) {
+  case class CommitingFailure(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody) extends ActionLog {
+    override val succeed = true
+
     def msg = "CommitingFailure"
 
     def performed = true
   }
 
-  class RewritingSucceed(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody)
-    extends ActionLog(true, root, target, prev, next) {
+  case class RewritingSucceed(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody)
+    extends ActionLog {
+    override val succeed = true
+
     def msg = "RewritingSucceed"
 
     def performed = true
   }
 
-  object NOP extends ActionLog(false, null, null, null, null) {
+  case object NOP extends ActionLog {
+    override val succeed = false
+    override val root: Vertex = null
+    override val next: VertexBody = null
+    override val prev: VertexBody = null
+    override val target: Vertex = null
+
     def msg = "NOP"
 
     override def repr = "NOP"
 
     def performed = false
+
   }
 
 }
