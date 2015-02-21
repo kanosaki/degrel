@@ -13,19 +13,23 @@ trait AstExpr[+T <: Vertex] extends AstGraph[T] with AstCellItem {
 /**
  * 頂点を表すAST
  */
-case class AstFunctor(name: AstName, attributes: Option[Seq[AstAttribute]], edges: Seq[AstEdge]) extends AstExpr[Vertex] {
+case class AstFunctor(name: AstName, attributes: Option[Seq[AstAttribute]], edges: AstEdges) extends AstExpr[Vertex] {
   def labelExpr: String = name match {
     case AstName(Some(AstLabel(l)), _) => l
     case AstName(None, _) => SpecialLabel.Vertex.wildcard.name
   }
 
   def captureExpr: Option[String] = name match {
-    case AstName(_, Some(AstVertexBinding(cap))) => Some(cap)
+    case AstName(_, Some(AstBinding(cap))) => Some(cap)
     case _ => None
   }
 }
 
-case class AstEdge(label: AstLabel, dst: AstVertex) extends AstNode {
+case class AstEdges(plains: Seq[AstEdge], others: Option[AstOthersEdges]) extends AstNode
+
+trait AstEdgeElement extends AstNode
+
+case class AstEdge(label: AstLabel, dst: AstVertex) extends AstEdgeElement {
 }
 
 /**
@@ -36,7 +40,7 @@ case class AstEdge(label: AstLabel, dst: AstVertex) extends AstNode {
  * は，以下のように展開されます
  * `foo(0: bar, 1: baz, 2: hoge, x: piyo`
  */
-case class AstAbbrEdge(label: Option[AstLabel], dst: AstVertex) extends AstNode {
+case class AstAbbrEdge(label: Option[AstLabel], dst: AstVertex) extends AstEdgeElement {
   def toFullForm(pos: Int): AstEdge = {
     label match {
       case Some(lbl) => AstEdge(lbl, dst)
@@ -45,3 +49,6 @@ case class AstAbbrEdge(label: Option[AstLabel], dst: AstVertex) extends AstNode 
   }
 }
 
+case class AstOthersEdges(binding: AstBinding, isDeclare: Boolean) extends AstEdgeElement {
+
+}

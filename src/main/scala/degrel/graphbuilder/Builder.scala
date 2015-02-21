@@ -12,7 +12,7 @@ trait Builder[+T <: Vertex] {
   /**
    * このグラフ要素における環境
    */
-  def variables: LexicalVariables
+  def variables: LexicalSymbolTable
 
   /**
    * このグラフ要素を直接内包するCell
@@ -87,7 +87,7 @@ class BuilderRoot extends Primitive {
 
   override def outerCell: CellBuilder = null // TODO: null?
 
-  override val variables: LexicalVariables = LexicalVariables.empty
+  override val variables: LexicalSymbolTable = LexicalSymbolTable.empty
 
   override def parent = null
 

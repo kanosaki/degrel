@@ -31,7 +31,7 @@ class ExprBuilder(val parent: Primitive, val ast: AstBinExpr) extends Builder[Ve
   /**
    * このグラフ要素における環境
    */
-  override def variables: LexicalVariables = parent.variables
+  override def variables: LexicalSymbolTable = parent.variables
 
   /**
    * このメソッドが呼ばれると，ボディ部を作成します．

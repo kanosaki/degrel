@@ -48,4 +48,8 @@ class BuildingContext(val binding: Binding) {
       case None => None
     }
   }
+
+  def unmatchedEdges(patternVertex: Vertex): Iterable[Edge] = {
+    binding.unmatchedEdges(matchedVertexExact(patternVertex))
+  }
 }

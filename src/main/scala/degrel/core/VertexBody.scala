@@ -77,21 +77,15 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
    * また，マッチしていない場合は新規に頂点を構築します
    */
   def build(context: BuildingContext): Vertex = {
-    context.matchedVertex(this) match {
-      case Some(matchedV) => {
-        val matchedEdges = this.edges.map(context.matchedEdgeExact).toSet
-        val builtEdges = matchedV
-          .edges
-          .filter(!matchedEdges.contains(_))
-          .map(_.duplicate()) ++
-          this.edges
-            .map(_.build(context))
-        Vertex(matchedV.label.expr, builtEdges.toSeq, matchedV.attributes)
-      }
-      case None => {
-        val buildEdges = this.edges.map(_.build(context))
-        Vertex(this.label.expr, buildEdges.toSeq, this.attributes)
-      }
+    if (this.hasEdge(Label.E.others)) {
+      val plainEdges = this.edges.filter(_.label != Label.E.others)
+      val matchedV = this.thruSingle(Label.E.others) // TODO: Error handle: 二つ以上OthersEdgeが存在した場合
+      val unmatchedEdges = context.unmatchedEdges(matchedV)
+      val builtEdges = unmatchedEdges ++ plainEdges.map(_.build(context))
+      Vertex(this.label.expr, builtEdges.toSeq, this.attributes)
+    } else {
+      val buildEdges = this.edges.map(_.build(context))
+      Vertex(this.label.expr, buildEdges.toSeq, this.attributes)
     }
   }
 

@@ -1,17 +1,18 @@
 
-description: Apply single rule on a functotr
+description: Basic curried rule.
 version: 1
 seq_spec:
   - init: >
       {
-        foo(a, a, a)
-        a -> b
+        a
+        b
+        a -> b -> c
       }
   - rewrite
   - assert: >
       {
-        foo(b, b, b)
-        a -> b
+        c
+        a -> b -> c
       }
 
 # vim: ft=yaml sw=2 ts=2 sts=2

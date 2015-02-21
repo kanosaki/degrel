@@ -9,7 +9,7 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   /**
    * このグラフ要素における環境
    */
-  override val variables: LexicalVariables = parent.variables
+  override val variables: LexicalSymbolTable = parent.variables
 
   val lhsScope = new Scope(this)
   val rhsScope = new Scope(lhsScope)

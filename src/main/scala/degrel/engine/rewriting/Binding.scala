@@ -1,7 +1,7 @@
 package degrel.engine.rewriting
 
 import degrel.core
-import degrel.core.Element
+import degrel.core.{Edge, Vertex, Element}
 
 object Binding {
   def apply(bridges: Seq[MatchBridge[Element]]) = {
@@ -9,8 +9,17 @@ object Binding {
   }
 }
 
-class Binding(bridges: Seq[MatchBridge[Element]]) extends Map[Element, Element] {
+class Binding(private[rewriting] val bridges: Seq[MatchBridge[Element]]) extends Map[Element, Element] {
   protected val map: Map[Element, Element] = bridges.map(br => (br._1, br._2)).toMap
+
+  private val unmatchedEdgesTable: Map[Vertex, Iterable[Edge]] = bridges.flatMap {
+    case vb: VertexBridge => List(vb.dataVertex -> vb.notMatchedEdges)
+    case _ => Nil
+  }.toMap
+
+  def unmatchedEdges(v: Vertex): Iterable[Edge] = {
+    unmatchedEdgesTable.getOrElse(v, Seq())
+  }
 
   def get(key: Element): Option[Element] = map.get(key)
 

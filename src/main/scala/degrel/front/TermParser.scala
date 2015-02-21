@@ -54,48 +54,73 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 頂点束縛(Vertex Binding)
    */
-  def binding: Parser[AstVertexBinding] = PAT_BINDING ^^ AstVertexBinding
+  def binding: Parser[AstBinding] = PAT_BINDING ^^ AstBinding
+
+  def bindingDeclare: Parser[AstBinding] = "@" ~> binding
 
   /**
    * ラベルのパーサー
    */
   def label: Parser[AstLabel] = PAT_LABEL ^^ AstLabel
 
-  def fullLabel: Parser[AstLabel] = "'" ~> PAT_FULL_LABEL <~ "'"  ^^ AstLabel | label
+  def fullLabel: Parser[AstLabel] = "'" ~> PAT_FULL_LABEL <~ "'" ^^ AstLabel | label
 
   /**
    * 頂点に付くラベルと変数の組み合わせ
    */
   def name: Parser[AstName] =
-    fullLabel ~ opt("@" ~> binding) ^^ {
+    label ~ opt(bindingDeclare) ^^ {
+      case lbl ~ b => AstName(Some(lbl), b)
+    } | fullLabel ~ opt(bindingDeclare) ^^ {
       case lbl ~ b => AstName(Some(lbl), b)
     } |
       binding ^^ {
         case b => AstName(None, Some(b))
       }
 
-  /**
-   * 接続のパーサー
-   */
-  def edge: Parser[AstAbbrEdge] = opt(label <~ ":") ~ expr ^^ {
+  def othersEdge: Parser[AstEdgeElement] = ("_" ~ ":") ~> (
+    binding ^^ {
+      AstOthersEdges(_, isDeclare = false)
+    } |
+      bindingDeclare ^^ {
+        AstOthersEdges(_, isDeclare = true)
+      }
+    )
+
+  def normalEdge: Parser[AstEdgeElement] = opt(label <~ ":") ~ expr ^^ {
     case n ~ v => AstAbbrEdge(n, v)
   }
 
   /**
+   * 接続のパーサー
+   * MEMO:
+   * `othersEdge`は`normalEdge`としても有効なので，`othersEdge`を優先します
+   */
+  def edge: Parser[AstEdgeElement] = othersEdge | normalEdge
+
+  /**
    * 頂点の持つ接続の集合パーサー
    */
-  def edges: Parser[Seq[AstEdge]] = "(" ~> repsep(edge, ",") <~ ")" ^^ (abbrEdges => {
+  def edges: Parser[AstEdges] = "(" ~> repsep(edge, ",") <~ ")" ^^ (abbrEdges => {
+    // 最後の要素がOthersEdgeであるかどうかを確認します
+    val (plainEs, othersE) = abbrEdges.last match {
+      case oe: AstOthersEdges => (abbrEdges.dropRight(1), Some(oe))
+      case _ => (abbrEdges, None)
+    }
     // 非省略接続の後の省略接続は許可されないので，それを確認します
-    abbrEdges.foldLeft('hasAbbr) {
+    plainEs.foldLeft('hasAbbr) {
       case ('hasAbbr, AstAbbrEdge(Some(_), _)) => 'noAbbr
       case ('hasAbbr, AstAbbrEdge(None, _)) => 'hasAbbr
       case ('noAbbr, AstAbbrEdge(Some(_), _)) => 'noAbbr
       case ('noAbbr, AstAbbrEdge(None, _)) =>
         throw new SyntaxError("Cannot use edge label abbreviation after non-abbreviated edge.")
     }
-    abbrEdges.zipWithIndex.map {
-      case (item, index) => item.toFullForm(index)
+    // 省略形の接続を復元します
+    val fullPlainEs = plainEs.zipWithIndex.map {
+      case (item: AstAbbrEdge, index) => item.toFullForm(index)
+      case (item: AstEdge, index) => item
     }
+    AstEdges(fullPlainEs, othersE)
   })
 
 
@@ -119,16 +144,16 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    */
   def functor: Parser[AstFunctor] = name ~ opt(attributes) ~ opt(edges) ^^ {
     case n ~ attrs ~ Some(es) => AstFunctor(n, attrs, es)
-    case n ~ attrs ~ None => AstFunctor(n, attrs, Seq())
+    case n ~ attrs ~ None => AstFunctor(n, attrs, AstEdges(Seq(), None))
   }
 
-  def cell: Parser[AstCell] = {
+  def cell: Parser[AstCell] = "{" ~> {
     val nextCtx = new ParserContext(context)
     // this.type#Parser[AstCell]をコンパイラが要求してくるのでキャスト
     // Scalaパーサーの仕様
     val nextParser = new TermParser(nextCtx).asInstanceOf[this.type]
-    "{" ~> nextParser.cellBody <~ "}"
-  }
+    nextParser.cellBody
+  } <~ "}"
 
   def cellBody: Parser[AstCell] = cellItemList ^^ {
     case exprs => AstCell(exprs)

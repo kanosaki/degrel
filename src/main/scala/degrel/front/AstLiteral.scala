@@ -8,11 +8,11 @@ case class AstLabel(expr: String) extends AstLiteral {
 
 }
 
-case class AstVertexBinding(expr: String) extends AstLiteral {
+case class AstBinding(expr: String) extends AstLiteral {
 
 }
 
-case class AstName(label: Option[AstLabel], capture: Option[AstVertexBinding]) {
+case class AstName(label: Option[AstLabel], capture: Option[AstBinding]) {
   def labelExpr: Option[String] = label.flatMap(l => Some(l.expr))
 
   def captureExpr: Option[String] = capture.flatMap(c => Some(c.expr))

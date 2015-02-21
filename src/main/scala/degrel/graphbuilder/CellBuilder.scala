@@ -6,7 +6,7 @@ import degrel.front.AstCell
 class CellBuilder(val parent: Primitive,
                   val ast: AstCell) extends Builder[Cell] {
   val header = new CellHeader(null)
-  override val variables: LexicalVariables = new CellVariables(parent.variables)
+  override val variables: LexicalSymbolTable = new CellSymbolTable(parent.variables)
 
   override val children = ast.roots.map(a => factory.get(this, a))
 
@@ -27,5 +27,5 @@ class CellBuilder(val parent: Primitive,
   }
 }
 
-class CellVariables(val parent: LexicalVariables) extends LexicalVariables {
+class CellSymbolTable(val parent: LexicalSymbolTable) extends LexicalSymbolTable {
 }

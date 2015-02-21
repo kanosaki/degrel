@@ -16,10 +16,22 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     def concrete(): Unit
 
     def edges: Seq[Edge] = {
-      ast.edges.map(astEdge => {
+      val othersEdges: Seq[Edge] = ast.edges.others match {
+        case Some(oe) if ! oe.isDeclare => {
+          variables.lookupTyped(oe.binding.expr, LexicalType.OthersVertex) match {
+            case foundVertex: LookupFound[Builder[Vertex]] => {
+              Seq(Edge(this.header, SpecialLabels.E_OTHERS_EDGE, foundVertex.primary.header))
+            }
+            case _ => throw new Exception(s"Undefined variable: ${oe.binding}(others edges)")
+          }
+        }
+        case _ => Seq()
+      }
+      val plainEdges = ast.edges.plains.map(astEdge => {
         val builder = edgeChildMap(astEdge)
         Edge(this.header, astEdge.label.expr, builder.header)
       })
+      plainEdges ++ othersEdges
     }
   }
 
@@ -30,16 +42,22 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
   /**
    * @inheritdoc
    */
-  override val variables: LexicalVariables = parent.variables
+  override val variables: LexicalSymbolTable = parent.variables
 
   // もし変数宣言の場合は変数に自分の名前を登録
   ast.name match {
     case AstName(Some(_), Some(cap)) =>
-      variables.bindSymbol(cap.expr, this)
+      variables.bind(cap.expr, this, LexicalType.Vertex)
     case _ =>
   }
 
-  val edgeChildMap = ast.edges.
+  ast.edges.others match {
+    case Some(oe) if oe.isDeclare =>
+      variables.bind(oe.binding.expr, this, LexicalType.OthersVertex)
+    case _ =>
+  }
+
+  val edgeChildMap = ast.edges.plains.
     map(astEdge => astEdge -> factory.get[Vertex](this, astEdge.dst)).
     toMap
 
@@ -59,7 +77,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    * @return
    */
   def concreteReferenceVertex(targetName: String): Unit = {
-    val vs = variables.resolveGrouped(targetName)
+    val vs = variables.resolveTyped(targetName, LexicalType.Vertex)
     vs match {
       case List(target) :: _ =>
         builder = new MirrorFunctor(target)
@@ -112,7 +130,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    */
   def mkSystemAttributes: Iterable[(String, String)] = {
     ast.name match {
-      case AstName(_, Some(AstVertexBinding(e))) => Seq("__captured_as__" -> e)
+      case AstName(_, Some(AstBinding(e))) => Seq("__captured_as__" -> e)
       case _ => Seq()
     }
   }
@@ -174,4 +192,5 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
 
     override def concrete(): Unit = {}
   }
+
 }

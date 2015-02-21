@@ -1,0 +1,21 @@
+
+description: Apply single rule on single functor
+version: 1
+seq_spec:
+  - init: >
+      {
+        foo(a(foo: bar, x: hoge), 
+            a(baz: baz, x: fuga), 
+            a(piyo: piyo))
+        a(x: _@Y, _:@Others)  -> b(y: Y, foobar: hogefuga, _:Others)
+      }
+  - rewrite
+  - assert: >
+      {
+        foo(b(foo: bar, y: hoge, foobar: hogefuga), 
+            b(baz: baz, y: fuga, foobar: hogefuga), 
+            a(piyo: piyo))
+        a(x: _@Y, _:@Others)  -> b(y: Y, foobar: hogefuga, _:Others)
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

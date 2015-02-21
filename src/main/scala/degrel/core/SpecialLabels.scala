@@ -34,6 +34,11 @@ object SpecialLabels {
   val E_REFERENCE_TARGET = '__to__
 
   /**
+   * OthersEdgeを使用する際の対象となる頂点への接続
+   */
+  val E_OTHERS_EDGE = '__others__
+
+  /**
    * 二項演算右辺への接続
    */
   val E_RHS = '__rhs__

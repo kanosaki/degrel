@@ -3,6 +3,7 @@ package degrel.dgspec
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 
+import degrel.Logger
 import org.scalatest.FlatSpec
 
 import scala.collection.mutable
@@ -10,7 +11,7 @@ import scala.collection.mutable
 /**
  * `dgspec`ファイルを探索し，ユニットテストとして登録します
  */
-class DgspecRunner extends FlatSpec {
+class DgspecRunner extends FlatSpec with Logger {
   val specDirs = Seq("dgspec")
     .map(Paths.get(_))
     .filter(Files.isDirectory(_))
@@ -35,6 +36,11 @@ class DgspecRunner extends FlatSpec {
     visitor.foundSpecs.toSeq
   }
 
+  def loadSpec(file: Path): Dgspec = {
+    logger.info(s"Loading dgspec: $file")
+    new FileDgspec(file)
+  }
+
   class SpecFinder extends SimpleFileVisitor[Path] {
     val foundSpecs: mutable.ListBuffer[Dgspec] = mutable.ListBuffer()
 
@@ -44,7 +50,7 @@ class DgspecRunner extends FlatSpec {
       if (filename.endsWith(".dgspec")
         || filename.endsWith(".yaml")
         || filename.endsWith(".yml")) {
-        foundSpecs += new FileDgspec(file)
+        foundSpecs += loadSpec(file)
       }
       FileVisitResult.CONTINUE
     }

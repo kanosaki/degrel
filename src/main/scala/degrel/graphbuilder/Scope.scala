@@ -11,7 +11,7 @@ class Scope(val parent: Primitive) extends Primitive {
   /**
    * このグラフ要素における環境
    */
-  override val variables: LexicalVariables = new ScopeVariables(parent.variables)
+  override val variables: LexicalSymbolTable = new ScopeSymbolTable(parent.variables)
 
   /**
    * 自分の子の{@code Builder[T]}
