@@ -73,8 +73,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
       case lbl ~ b => AstName(Some(lbl), b)
     } | fullLabel ~ opt(bindingDeclare) ^^ {
       case lbl ~ b => AstName(Some(lbl), b)
-    } |
-      binding ^^ {
+    } | bindingDeclare ^^ {
+      case bind => AstName(Some(AstLabel("_")), Some(bind))
+    } | binding ^^ {
         case b => AstName(None, Some(b))
       }
 
