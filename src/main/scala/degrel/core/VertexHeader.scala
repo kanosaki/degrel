@@ -2,17 +2,22 @@ package degrel.core
 
 import degrel.engine.rewriting.BuildingContext
 
+trait VertexHeader extends Vertex {
+  def body: VertexBody
 
-class VertexHeader(f: VertexBody) extends Vertex {
-  private var _body: VertexBody = f
+  def write(v: Vertex): Unit
 
   def edges: Iterable[Edge] = body.edges
 
-  def body: VertexBody = {
-    _body
-  }
-
   def label: Label = body.label
+
+  def attr(key: Label): Option[String] = body.attr(key)
+
+  def build(context: BuildingContext): Vertex = body.build(context)
+
+  def attributes: Map[Label, String] = body.attributes
+
+  def id: ID = body.id
 
   def repr: String = {
     s"<${body.repr}>"
@@ -28,27 +33,10 @@ class VertexHeader(f: VertexBody) extends Vertex {
       }
     }
   }
+}
 
-  def shallowCopy: Vertex = {
-    new VertexHeader(this.body)
+object VertexHeader {
+  def apply(body: VertexBody): VertexHeader = {
+    new LocalVertexHeader(body)
   }
-
-  def isSameElement(other: Element): Boolean = other match {
-    case vh: VertexHeader => this.body ==~ vh.body
-    case _ => false
-  }
-
-  def attr(key: Label): Option[String] = body.attr(key)
-
-  def build(context: BuildingContext): Vertex = body.build(context)
-
-
-  def write(v: Vertex) = v match {
-    case vb: VertexBody => _body = vb
-    case vh: VertexHeader => _body = vh.body
-  }
-
-  def attributes: Map[Label, String] = body.attributes
-
-  def id: ID = body.id
 }

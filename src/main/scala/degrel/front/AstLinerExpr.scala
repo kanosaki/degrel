@@ -1,8 +1,5 @@
 package degrel.front
 
-import degrel.core.{Rule, Cell, Edge, Vertex}
-import degrel.graphbuilder.LexicalVariables$
-
 /**
  * a -> b -> cのような，項と2項演算子の連続．演算子優先順位は別途定義されるため
  * それに従って木を生成します
@@ -10,7 +7,7 @@ import degrel.graphbuilder.LexicalVariables$
  * @param following 続く(演算子,項)のSeq(-> b -> c)
  */
 case class AstLinerExpr(first: AstVertex, following: Seq[(AstBinOp, AstVertex)])
-                  (implicit parserCtx: ParserContext) extends AstNode with AstCellItem {
+                       (implicit parserCtx: ParserContext) extends AstNode with AstCellItem {
 
   def toTree: AstVertex = {
     // 単項の場合は，最初の項にデリゲート
@@ -138,5 +135,6 @@ case class AstLinerExpr(first: AstVertex, following: Seq[(AstBinOp, AstVertex)])
   case class Leaf(body: AstVertex) extends Term {
     override def toTree: AstVertex = body
   }
+
 }
 

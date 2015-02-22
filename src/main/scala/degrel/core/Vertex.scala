@@ -15,6 +15,8 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def label: Label
 
+  def shallowCopy(): Vertex
+
   def pprint(): String = new PrettyPrinter(this).singleLine
 
   def edgesWith(label: Label = Label.V.wildcard): Iterable[Edge] = {
@@ -85,12 +87,6 @@ trait Vertex extends Element with Comparable[Vertex] {
     }
   }
 
-  def deepCopy: Vertex = {
-    operators.duplicate(this)
-  }
-
-  def shallowCopy: Vertex
-
   def compareTo(o: Vertex): Int = {
     this.id.compareTo(o.id)
   }
@@ -111,7 +107,7 @@ object Vertex {
             attributes: Map[Label, String] = Map(),
             id: ID = ID.NA): Vertex = {
     val body = VertexBody(Label(label), attributes, edges.toSeq, id)
-    new VertexHeader(body)
+    new LocalVertexHeader(body)
   }
 
   /**
@@ -126,7 +122,7 @@ object Vertex {
              attributes: Map[Label, String] = Map(),
              id: ID = ID.NA)
             (edgeInit: Vertex => Iterable[Edge]): Vertex = {
-    val vh = new VertexHeader(null)
+    val vh = new LocalVertexHeader(null)
     val edges = edgeInit(vh)
     val body = VertexBody(label, attributes, edges.toSeq, id)
     vh.write(body)

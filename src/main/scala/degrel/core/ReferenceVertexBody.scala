@@ -3,7 +3,7 @@ package degrel.core
 import degrel.engine.rewriting.BuildingContext
 
 class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: Iterable[Edge], _id: ID)
-  extends VertexBody(
+  extends LocalVertexBody(
     label,
     attrs,
     all_edges,
@@ -22,7 +22,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: It
     if (unreferenceEdges.isEmpty) {
       // マッチした頂点への参照を保ってbuildします
       val h = matchedV.asInstanceOf[VertexHeader]
-      new VertexHeader(h.body)
+      new LocalVertexHeader(h.body)
     } else {
       // 参照
       val matchedEdges = this.referenceTarget
@@ -33,7 +33,7 @@ class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: It
       val unmatchedEdges = matchedV
         .edges
         .filter(!matchedEdges.contains(_))
-        .map(_.duplicate())
+        .map(_.shallowCopy())
       val margingEdges = unreferenceEdges.map(_.build(context))
       val builtEdges = unmatchedEdges ++ margingEdges
       Vertex(matchedV.label.expr, builtEdges.toSeq, matchedV.attributes)

@@ -140,11 +140,11 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    * @param labelExpr 頂点のラベル
    */
   class PlainVertex(labelExpr: String) extends FBuilder {
-    val header = new VertexHeader(null)
+    val header = VertexHeader(null)
 
     override def concrete(): Unit = {
       this.header.write(
-        new VertexBody(
+        VertexBody(
           Label(labelExpr),
           self.mkAttributesMap,
           this.edges,
@@ -159,7 +159,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    */
   class ReferenceVertex(target: Primitive) extends FBuilder {
     val label = SpecialLabels.V_REFERENCE
-    val header = new VertexHeader(null)
+    val header = VertexHeader(null)
 
     def concrete() = {
       val refEdge = Edge(

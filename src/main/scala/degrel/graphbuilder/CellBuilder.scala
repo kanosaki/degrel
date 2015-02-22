@@ -16,11 +16,9 @@ class CellBuilder(val parent: Primitive,
     case MainPhase => {
     }
     case FinalizePhase => {
-      val rules = children.filter(_.header.isInstanceOf[Rule])
-      val roots = children.filter(!_.header.isInstanceOf[Rule])
-      val ruleEdges = rules.map(b => Edge(this.header, SpecialLabels.E_CELL_RULE, b.header))
-      val rootEdges = roots.map(b => Edge(this.header, SpecialLabels.E_CELL_ITEM, b.header))
-      val body = new CellBody(rootEdges ++ ruleEdges)
+      val rules = children.filter(_.header.isInstanceOf[Rule]).map(_.header.asInstanceOf[Rule])
+      val roots = children.filter(!_.header.isInstanceOf[Rule]).map(_.header)
+      val body = new CellBody(roots, rules)
       header.write(body)
     }
     case _ =>

@@ -1,7 +1,7 @@
 package degrel.core
 
 class RuleVertexHeader(_lhs: Vertex, _rhs: Vertex, _id: ID)
-  extends VertexHeader(RuleVertexBody(_lhs, _rhs, _id)) with Rule {
+  extends LocalVertexHeader(RuleVertexBody(_lhs, _rhs, _id)) with Rule {
 
   def rhs = rBody.rhs
 

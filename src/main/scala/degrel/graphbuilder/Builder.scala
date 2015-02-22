@@ -1,6 +1,6 @@
 package degrel.graphbuilder
 
-import degrel.core.{VertexBody, Vertex, VertexHeader}
+import degrel.core.{Vertex, VertexHeader}
 
 /**
  * グラフは巡回するデータ構造のため，ヘッダ部とボディ部に分かれています．
@@ -91,7 +91,7 @@ class BuilderRoot extends Primitive {
 
   override def parent = null
 
-  override def header: Vertex = new VertexHeader(null)
+  override def header: Vertex = VertexHeader(null)
 
   override def children: Iterable[Primitive] = Seq()
 

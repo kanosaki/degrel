@@ -4,18 +4,15 @@ package degrel.core
 import degrel.engine.rewriting.BuildingContext
 
 object VertexBody {
-  def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID) = {
+  def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID): VertexBody = {
     label match {
       case Label.V.reference => new ReferenceVertexBody(label, attributes, allEdges, id)
-      case _ => new VertexBody(label, attributes, allEdges, id)
+      case _ => new LocalVertexBody(label, attributes, allEdges, id)
     }
   }
 }
 
-class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: Iterable[Edge], _previd: ID) extends Vertex {
-  private[this] val _id = _previd.autoValidate
-  private[this] val _edges: Iterable[Edge] = _allEdges
-
+trait VertexBody extends Vertex {
   def attr(key: Label): Option[String] = {
     attributes.get(key)
   }
@@ -23,7 +20,7 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
   def reprRecursive(trajectory: Trajectory): String = {
     trajectory.walk(this) {
       case Unvisited(nextHistory) => {
-        if (allEdges.isEmpty) {
+        if (this.edges.isEmpty) {
           s"${this.repr}"
         } else {
           val edgesExpr = this.edges.map(_.reprRecursive(nextHistory)).mkString(", ")
@@ -36,19 +33,10 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
     }
   }
 
-  protected def allEdges: Iterable[Edge] = {
-    if (_edges == null) throw new Exception("You cannot refer edges until initialized.")
-    _edges
-  }
-
-  override def edges: Iterable[Edge] = allEdges
-
   def repr: String = {
     val id = this.id.shorten
     s"${this.reprLabel}@$id${this.reprAttrs}"
   }
-
-  def id: ID = _id
 
   def reprLabel: String = {
     this.attributes.get("__captured_as__") match {
@@ -56,8 +44,6 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
       case None => s"${this.label.expr}"
     }
   }
-
-  def label: Label = _label
 
   def reprAttrs: String = {
     val targetKvs = attributes
@@ -87,10 +73,6 @@ class VertexBody(_label: Label, val attributes: Map[Label, String], _allEdges: I
       val buildEdges = this.edges.map(_.build(context))
       Vertex(this.label.expr, buildEdges.toSeq, this.attributes)
     }
-  }
-
-  def shallowCopy: Vertex = {
-    VertexBody(label, attributes, this.edges, this.id)
   }
 }
 

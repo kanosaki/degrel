@@ -72,8 +72,8 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
 
   def isReference: Boolean = this.label.symbol == SpecialLabels.E_REFERENCE_TARGET
 
-  def duplicate(): Edge = {
-    Edge(null, this.label, this.dst.deepCopy)
+  def shallowCopy(): Edge = {
+    Edge(this.src, this.label, this.dst)
   }
 
   override def compareTo(o: Edge): Int = {
