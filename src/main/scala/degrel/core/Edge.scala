@@ -39,13 +39,7 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
     result
   }
 
-  def repr: String = {
-    s"${label.expr}:"
-  }
-
-  def reprRecursive(history: Trajectory) = {
-    s"${label.expr}:${dst.reprRecursive(history)}"
-  }
+  override def toString: String = s"${label.expr}: ${utils.pp(dst)}"
 
   def matches(pattern: Edge, context: MatchingContext): EdgeMatching = {
     if (this.label.matches(pattern.label))

@@ -21,7 +21,7 @@ class BuildingContext(val binding: Binding) {
         case v: Vertex => v
         case _ => throw new IllegalStateException("Invalid matching detected.")
       }
-      case None => throw new IllegalStateException(s"Invalid matching$patternVertex not found in $binding}.")
+      case None => throw new IllegalStateException(s"Invalid matching: $patternVertex not found in $binding}.")
     }
   }
 
@@ -31,7 +31,7 @@ class BuildingContext(val binding: Binding) {
         case e: Edge => e
         case _ => throw new IllegalStateException("Invalid matching detected.")
       }
-      case None => throw new IllegalStateException(s"Invalid matching$patternEdge not found in $binding}.")
+      case None => throw new IllegalStateException(s"Invalid matching: $patternEdge not found in $binding}.")
     }
   }
 

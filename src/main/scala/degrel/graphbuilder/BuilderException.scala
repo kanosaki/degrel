@@ -1,7 +1,7 @@
 package degrel.graphbuilder
 
-import degrel.DegrelException
+import degrel.DefaultDegrelException
 
-class BuilderException(msg: String) extends DegrelException(msg) {
+class BuilderException(msg: String, cause: Throwable = null) extends DefaultDegrelException(msg, cause) {
 
 }

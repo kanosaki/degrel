@@ -14,17 +14,29 @@ class SpecFileTest extends FlatSpec {
   "Minimal spec" should "pass" in {
     val spec = toSpec(
       """
-        |description: Hogehoge
+        |caption: Hogehoge
         |version: 1
       """.stripMargin)
-    assert(spec.description === "Hogehoge")
+    assert(spec.caption === "Hogehoge")
+    assert(spec.description === None)
+    assert(spec.evaluate(SpecContext.empty()) === NextPiece.Continue)
+  }
+
+  "A spec" should "be able to have a description" in {
+    val spec = toSpec(
+      """
+        |caption: Hogehoge
+        |description: Foobar
+        |version: 1
+      """.stripMargin)
+    assert(spec.description === Some("Foobar"))
     assert(spec.evaluate(SpecContext.empty()) === NextPiece.Continue)
   }
 
   "Simple set and assert" should "pass in same vertices" in {
     val spec = toSpec(
       """
-        |description: Hogehoge
+        |caption: Hogehoge
         |version: 1
         |seq_spec:
         |  - init: >
@@ -38,7 +50,7 @@ class SpecFileTest extends FlatSpec {
   it should "pass in same cells" in {
     val spec = toSpec(
       """
-        |description: Hogehoge
+        |caption: Hogehoge
         |version: 1
         |seq_spec:
         |  - init: >
@@ -60,7 +72,7 @@ class SpecFileTest extends FlatSpec {
   it should "fail in difference vertices" in {
     val spec = toSpec(
       """
-        |description: Hogehoge
+        |caption: Hogehoge
         |version: 1
         |seq_spec:
         |  - init: >
@@ -76,7 +88,7 @@ class SpecFileTest extends FlatSpec {
   it should "fail in difference cells" in {
     val spec = toSpec(
       """
-        |description: Hogehoge
+        |caption: Hogehoge
         |version: 1
         |seq_spec:
         |  - init: >
@@ -100,7 +112,7 @@ class SpecFileTest extends FlatSpec {
   "Set, rewrite and assert" should "pass in empty cell" in {
     val spec = toSpec(
       """
-        |description: Hogehoge
+        |caption: Hogehoge
         |version: 1
         |seq_spec:
         |  - init: >
@@ -117,7 +129,7 @@ class SpecFileTest extends FlatSpec {
   it should "pass single rewriting cell" in {
     val spec = toSpec(
       """
-        |description: Hogehoge
+        |caption: Hogehoge
         |version: 1
         |seq_spec:
         |  - init: >

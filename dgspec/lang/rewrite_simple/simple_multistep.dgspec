@@ -1,5 +1,5 @@
 
-description: Rewrite simple vertex in multi steps.
+caption: Rewrite simple vertex in multi steps.
 version: 1
 seq_spec:
   - init: > 

@@ -42,7 +42,7 @@ class JsonProvider extends FormatProvider[DDocument, JObject] {
   override def loadString(in: String): DDocument = {
     JsonMethods.parse(in) match {
       case obj: JObject => this.load(obj)
-      case _ => throw new DegrelException("Invalid format")
+      case _ => throw DegrelException("Invalid format")
     }
   }
 }

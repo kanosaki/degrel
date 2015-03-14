@@ -170,8 +170,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
       val vb = new ReferenceVertexBody(
         Label(label),
         self.mkAttributesMap,
-        Stream(refEdge) ++ this.edges,
-        ID.NA
+        Stream(refEdge) ++ this.edges
       )
       this.header.write(vb)
     }

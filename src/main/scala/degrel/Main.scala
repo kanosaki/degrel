@@ -1,7 +1,6 @@
 package degrel
 
 import degrel.control.Interpreter
-import degrel.engine.rewriting.LocalReserve
 
 import scala.io.Source
 
@@ -39,8 +38,5 @@ object Main {
   }
 
   def startConsole() = {
-    val reserve = new LocalReserve()
-    val console = new degrel.control.Console(reserve)
-    console.start()
   }
 }

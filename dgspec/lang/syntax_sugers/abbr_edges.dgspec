@@ -1,5 +1,5 @@
 
-description: Abbreviated edge should have numbered edge.
+caption: Abbreviated edge should have numbered edge.
 version: 1
 seq_spec:
   - init: >

@@ -48,10 +48,6 @@ class RawRootedGraph(_root: Vertex) extends RootedGraph {
   def edges: Seq[Edge] = {
     Traverser(root).flatMap(_.edges).toSeq
   }
-
-  override def reprRecursive(history: Trajectory): String = root.reprRecursive(history)
-
-  override def repr: String = root.repr
 }
 
 class FrozenRootedGraph(val root: Vertex, val vertices: Seq[Vertex]) {

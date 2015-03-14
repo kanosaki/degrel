@@ -11,8 +11,7 @@ trait BindingPack /* extends Iterable[Binding] */ {
   def ++(other: BindingPack) = this.join(other)
 
   def pickFirst: Binding = {
-    val picked = this.pick(new PickOption())
-    Binding(picked)
+    Binding(this.pick(new PickOption()))
   }
 
   def pick(pickOpt: PickOption): Seq[MatchBridge[Element]]

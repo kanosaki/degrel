@@ -1,5 +1,5 @@
 
-description: Nested capturing test.
+caption: Nested capturing test.
 version: 1
 seq_spec:
   - init: >

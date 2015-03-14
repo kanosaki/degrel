@@ -1,8 +1,8 @@
 package degrel.core
 
 
-import degrel.core.utils.PrettyPrinter
-import degrel.engine.rewriting.{Matcher, BuildingContext, MatchingContext, VertexMatching}
+import degrel.core.utils.{PrettyPrintOptions, PrettyPrinter}
+import degrel.engine.rewriting.{BuildingContext, Matcher, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
   def edges: Iterable[Edge]
@@ -17,7 +17,7 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def shallowCopy(): Vertex
 
-  def pprint(): String = new PrettyPrinter(this).singleLine
+  def pprint()(implicit opt: PrettyPrintOptions): String = new PrettyPrinter(this).apply()
 
   def edgesWith(label: Label = Label.V.wildcard): Iterable[Edge] = {
     label match {
@@ -50,7 +50,12 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def build(context: BuildingContext): Vertex
 
-  def isReference: Boolean = this.label == Label.V.reference
+  def isReference: Boolean = this.label == Label.V.reference && this.hasEdge(Label.E.ref)
+
+  def isRule: Boolean =
+    this.label == Label.V.rule &&
+    this.hasEdge(Label.E.rhs) &&
+    this.hasEdge(Label.E.lhs)
 
   def thruSingle(label: Label): Vertex = {
     val candidates = this.edgesWith(label)
@@ -80,6 +85,10 @@ trait Vertex extends Element with Comparable[Vertex] {
     Cell(this.edges)
   }
 
+  def asHeader: VertexHeader = {
+    this.asInstanceOf[VertexHeader]
+  }
+
   def toGraph: Graph = {
     this match {
       case g: Graph => g
@@ -98,7 +107,7 @@ trait Vertex extends Element with Comparable[Vertex] {
     }
   }
 
-  override def toString: String = new PrettyPrinter(this).singleLine
+  override def toString: String = utils.pp(this)
 }
 
 object Vertex {

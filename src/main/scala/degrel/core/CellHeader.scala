@@ -1,7 +1,5 @@
 package degrel.core
 
-import degrel.engine.rewriting.BuildingContext
-
 class CellHeader(bdy: CellBody) extends VertexHeader with Cell {
   private var _body: CellBody = bdy
 
@@ -15,5 +13,7 @@ class CellHeader(bdy: CellBody) extends VertexHeader with Cell {
 
   override def rules: Seq[Rule] = _body.rules
 
-  override def roots: Seq[Vertex] =_body.roots
+  override def roots: Seq[Vertex] = _body.roots
+
+  override def removeRoot(v: Vertex): Unit = _body.removeRoot(v)
 }

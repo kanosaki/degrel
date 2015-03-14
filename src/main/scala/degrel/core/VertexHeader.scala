@@ -17,22 +17,7 @@ trait VertexHeader extends Vertex {
 
   def attributes: Map[Label, String] = body.attributes
 
-  def id: ID = body.id
-
-  def repr: String = {
-    s"<${body.repr}>"
-  }
-
-  def reprRecursive(trajectory: Trajectory) = {
-    trajectory.walk(this) {
-      case Unvisited(nextHistory) => {
-        s"<${body.reprRecursive(nextHistory)}>"
-      }
-      case Visited(_) => {
-        s"<${body.repr}(..)>"
-      }
-    }
-  }
+  val id: ID = ID.autoAssign
 }
 
 object VertexHeader {

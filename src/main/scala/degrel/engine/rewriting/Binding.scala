@@ -4,8 +4,12 @@ import degrel.core
 import degrel.core.{Edge, Vertex, Element}
 
 object Binding {
-  def apply(bridges: Seq[MatchBridge[Element]]) = {
-    new Binding(bridges)
+  def apply(bridges: Seq[MatchBridge[Element]], parent: Binding = null) = {
+    if (parent == null) {
+      new Binding(bridges)
+    } else {
+      new ChainedBinding(bridges, parent)
+    }
   }
 }
 
@@ -36,6 +40,17 @@ class Binding(private[rewriting] val bridges: Seq[MatchBridge[Element]]) extends
   def confirm(): Boolean = {
     bridges.forall(br => br.confirm())
   }
+}
+
+class ChainedBinding(_bridges: Seq[MatchBridge[Element]], val parent: Binding) extends Binding(_bridges) {
+  require(parent != null)
+
+  override def get(key: Element): Option[Element] = map.get(key) match {
+    case Some(v) => Some(v)
+    case None => parent.get(key)
+  }
+
+  override def iterator: Iterator[(Element, Element)] = map.iterator ++ parent.iterator
 }
 
 /**

@@ -12,7 +12,7 @@ class FileDgspec(path: Path) extends Dgspec {
   }
 
   override def description: String = {
-    s"""$path "${spec.description}""""
+    s"""$path "${spec.caption}""""
   }
 
   override def apply() = {

@@ -1,5 +1,5 @@
 
-description: Cell spawn rule works for multi step.
+caption: Cell spawn rule works for multi step.
 version: 1
 seq_spec:
   - init: >

@@ -20,8 +20,9 @@ class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Rule]) extends V
 
   override def label: Label = Label.V.cell
 
-  override def id: ID = ID.autoAssign
-
+  override def removeRoot(v: Vertex): Unit = {
+    _roots -= v
+  }
 }
 
 object CellBody {

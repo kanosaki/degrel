@@ -2,12 +2,11 @@ package degrel.core
 
 import degrel.engine.rewriting.BuildingContext
 
-class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: Iterable[Edge], _id: ID)
+class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: Iterable[Edge])
   extends LocalVertexBody(
     label,
     attrs,
-    all_edges,
-    _id) {
+    all_edges) {
   private[this] val unreferenceEdges = all_edges.filter(!_.isReference).toSeq
 
   /**
@@ -38,26 +37,6 @@ class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: It
       val builtEdges = unmatchedEdges ++ margingEdges
       Vertex(matchedV.label.expr, builtEdges.toSeq, matchedV.attributes)
     }
-  }
-
-  override def reprRecursive(history: Trajectory): String = {
-    history.walk(this) {
-      case Unvisited(nextHistory) => {
-        if (all_edges.isEmpty) {
-          s"@<${this.referenceTarget.reprRecursive(nextHistory)}>"
-        } else {
-          val edgesExpr = unreferenceEdges.map(_.reprRecursive(nextHistory)).mkString(", ")
-          s"@<${this.referenceTarget.reprRecursive(nextHistory)}($edgesExpr)>"
-        }
-      }
-      case Visited(_) => {
-        this.repr
-      }
-    }
-  }
-
-  override def repr: String = {
-    s"@<${this.referenceTarget.repr}>"
   }
 
   def referenceTarget: Vertex = {

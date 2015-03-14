@@ -8,7 +8,12 @@ class AssertSpecPiece(root: String) extends SpecPiece {
   val expectedCell = degrel.parseVertex(root)
 
   override def evaluate(ctx: SpecContext): NextPiece = {
-    assert(ctx.root ===~ expectedCell)
+    //degrel.visualize.showAndWait(ctx.root)
+    try {
+      assert(ctx.root ===~ expectedCell)
+    } catch {
+      case ex: Throwable => throw ex
+    }
     NextPiece.Continue
   }
 }

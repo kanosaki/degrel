@@ -6,8 +6,8 @@ import degrel.engine.rewriting.BuildingContext
 object VertexBody {
   def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID): VertexBody = {
     label match {
-      case Label.V.reference => new ReferenceVertexBody(label, attributes, allEdges, id)
-      case _ => new LocalVertexBody(label, attributes, allEdges, id)
+      case Label.V.reference => new ReferenceVertexBody(label, attributes, allEdges)
+      case _ => new LocalVertexBody(label, attributes, allEdges)
     }
   }
 }
@@ -15,27 +15,6 @@ object VertexBody {
 trait VertexBody extends Vertex {
   def attr(key: Label): Option[String] = {
     attributes.get(key)
-  }
-
-  def reprRecursive(trajectory: Trajectory): String = {
-    trajectory.walk(this) {
-      case Unvisited(nextHistory) => {
-        if (this.edges.isEmpty) {
-          s"${this.repr}"
-        } else {
-          val edgesExpr = this.edges.map(_.reprRecursive(nextHistory)).mkString(", ")
-          s"${this.repr}($edgesExpr)"
-        }
-      }
-      case Visited(_) => {
-        this.repr
-      }
-    }
-  }
-
-  def repr: String = {
-    val id = this.id.shorten
-    s"${this.reprLabel}@$id${this.reprAttrs}"
   }
 
   def reprLabel: String = {
@@ -74,5 +53,7 @@ trait VertexBody extends Vertex {
       Vertex(this.label.expr, buildEdges.toSeq, this.attributes)
     }
   }
+
+  override def id: ID = ???
 }
 

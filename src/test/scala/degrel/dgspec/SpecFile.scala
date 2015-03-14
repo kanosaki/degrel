@@ -7,15 +7,16 @@ import degrel.dgspec.specs.VoidSpecPiece
 
 import scala.collection.JavaConversions._
 
-case class SpecFile(description: String,
-                    spec: SpecPiece) extends SpecPiece {
+case class SpecFile(caption: String,
+                    spec: SpecPiece,
+                    description: Option[String]) extends SpecPiece {
   override def evaluate(ctx: SpecContext): NextPiece = {
     spec.evaluate(ctx)
   }
 }
 
 object SpecFile {
-  val ROOT_SPEC_NAMES = Set("description", "version")
+  val ROOT_SPEC_NAMES = Set("caption", "description", "version")
   val SPEC_VERSION = "1"
 
   // TODO: DI使ったほうがいい?
@@ -33,8 +34,18 @@ object SpecFile {
     value
   }
 
+  def getOption(node: JsonNode, key: String): Option[JsonNode] = {
+    val value = node.get(key)
+    if (value != null) {
+      Some(value)
+    } else {
+      None
+    }
+  }
+
   def decode(node: JsonNode)(implicit specFactory: SpecFactory): SpecFile = {
-    val description = getRequired(node, "description").asText
+    val caption = getRequired(node, "caption").asText
+    val description = getOption(node, "description").flatMap(n => Some(n.asText()))
     val version = getRequired(node, "version").asInt.toString
     require(version == SPEC_VERSION, s"Incompatible spec file(version $version), supported version: $SPEC_VERSION")
     val otherFields = node
@@ -44,8 +55,8 @@ object SpecFile {
       .map(entry => specFactory.getObject(entry.getKey, entry.getValue))
       .toList
     specs match {
-      case Nil => new SpecFile(description, VoidSpecPiece)
-      case first :: Nil => new SpecFile(description, specs.head)
+      case Nil => new SpecFile(caption, VoidSpecPiece, description)
+      case first :: Nil => new SpecFile(caption, specs.head, description)
       case _ => throw new Exception("Cannot handle 2 or more root specs.")
     }
   }

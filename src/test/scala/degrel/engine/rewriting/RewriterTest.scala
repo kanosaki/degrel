@@ -7,7 +7,7 @@ import org.scalatest.FlatSpec
 class RewriterTest extends FlatSpec {
   val vertex = degrel.parseVertex _
 
-  def rewriter(s: String) = new Rewriter(vertex(s).asRule)
+  def rewriter(s: String) = Rewriter(vertex(s).asRule)
 
   val parseDot = ParserUtils.parseDot _
 

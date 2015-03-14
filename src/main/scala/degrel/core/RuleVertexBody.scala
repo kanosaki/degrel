@@ -1,14 +1,12 @@
 package degrel.core
 
-case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex, _id: ID)
-  extends LocalVertexBody(SpecialLabels.V_RULE, Map(), Seq(), _id)
+case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
+  extends LocalVertexBody(SpecialLabels.V_RULE, Map(), Seq())
   with Rule {
 
   override val edges: Iterable[Edge] = Seq(
     Edge(this, SpecialLabels.E_LHS, _lhs),
     Edge(this, SpecialLabels.E_RHS, _rhs))
-
-  override def reprRecursive(history: Trajectory) = super[Rule].reprRecursive(history)
 
   def rhs = _rhs
 

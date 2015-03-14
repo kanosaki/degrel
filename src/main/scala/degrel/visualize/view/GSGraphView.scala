@@ -37,6 +37,7 @@ class GSGraphView extends ViewBase with GraphPresenter {
 
   protected def updateModel() = {
     graph.vertices.foreach(v => {
+      println(s"Add V ${v.id.toString} $v")
       val n: Node = gsgraph.addNode(v.id.toString)
       n.setAttribute("ui.label", v.label.expr)
     })
@@ -44,6 +45,7 @@ class GSGraphView extends ViewBase with GraphPresenter {
     graph.edges.foreach(e => {
       val from = e.src.id.toString
       val to = e.dst.id.toString
+      println(s"Add E $from -> $to ${e.src} , ${e.dst}")
       val gse: Edge = gsgraph.addEdge(s"$from-$to", from, to, true)
       gse.setAttribute("ui.label", e.label.expr)
     })

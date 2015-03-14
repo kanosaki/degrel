@@ -38,8 +38,7 @@ class PrarapatTest extends FlatSpec {
         | a -> b
         |}""".stripMargin)
     val pra = new Praparat(cell)
-    assert(pra.step(), "'a -> b' to a haven't applied.")
-    assert(!pra.step(), "haven't finished")
+    pra.stepUntilStop()
     val after = toCell(
       """{
         | b
@@ -57,9 +56,7 @@ class PrarapatTest extends FlatSpec {
         | a -> b
         |}""".stripMargin)
     val pra = new Praparat(cell)
-    assert(pra.step(), "'a -> b' to a(1) haven't applied.")
-    assert(pra.step(), "'a -> b' to a(2) haven't applied.")
-    assert(!pra.step(), "haven't finished")
+    pra.stepUntilStop()
     val after = toCell(
       """{
         | b
@@ -81,10 +78,7 @@ class PrarapatTest extends FlatSpec {
         | c -> d
         |}""".stripMargin)
     val pra = new Praparat(cell)
-    (1 to 4).foreach(n => {
-      assert(pra.step(), s"Rule apply $n")
-    })
-    assert(!pra.step(), "haven't finished")
+    pra.stepUntilStop()
     val after = toCell(
       """{
         | b

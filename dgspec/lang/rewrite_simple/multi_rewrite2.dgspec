@@ -1,5 +1,5 @@
 
-description: Apply single rule on single functor
+caption: Apply single rule on single functor
 version: 1
 seq_spec:
   - init: >

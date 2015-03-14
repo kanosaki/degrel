@@ -7,38 +7,46 @@ import degrel.core._
 /**
  * 書き換えを実行します
  */
-class Rewriter(val rule: Rule) extends Logger {
+trait Rewriter extends Logger {
   self =>
+  def rule: Rule
+
   /**
    * この書き換え機で`target`を書き換えます．
    * @param target 書き換える対象のグラフ
    * @return 書き換えが実行された場合は`true`，何も行われなかった場合は`false`
+   * @todo Ruleなrhsをbuildして書き込んでしまうと継続の際のbindingが壊れてしまうため
+   *       とりあえず参照を書き込む．
+   *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: Vertex): Boolean = {
-    this.build(target) match {
-      case Some(builtGraph) => {
-        val vh = target.asInstanceOf[VertexHeader]
+  def rewrite(target: Vertex): RewriteResult = {
+    val mch = target.matches(rule.lhs)
+    if (mch.success) {
+      val binding = this.pick(mch.pack)
+      val vh = target.asInstanceOf[VertexHeader]
+      if (rule.rhs.isRule) {
+        val cont = Continuation.HasNext(rule.rhs.asRule, binding)
+        RewriteResult(done = true, cont)
+      } else {
+        val context = new BuildingContext(binding)
+        val builtGraph = rule.rhs.build(context)
         vh.write(builtGraph)
-        true
+        RewriteResult(done = true)
       }
-      case None => false
+    } else {
+      RewriteResult(done = false)
     }
   }
 
-  /**
-   * この書き換え機で`target`を根とするグラフに対しパターンマッチと構築を行います
-   * このメソッドでは`target`に対し影響を与えません
-   * @param target 対象となるグラフ
-   * @return パターンマッチに成功し，グラフ構築に成功した場合はその構築されたグラフが
-   *         どちらかに失敗した場合は`None`が返されます
-   */
+
+  protected def getBinding(pack: BindingPack): Binding
+
   def build(target: Vertex): Option[Vertex] = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
       val binding = this.pick(mch.pack)
       val context = new BuildingContext(binding)
-      val builtGraph = rule.rhs.build(context)
-      Some(builtGraph)
+      Some(rule.rhs.build(context))
     } else {
       None
     }
@@ -52,61 +60,13 @@ class Rewriter(val rule: Rule) extends Logger {
   protected def pick(pack: BindingPack): Binding = {
     pack.pickFirst
   }
+}
 
-  trait ActionLog {
-    val succeed: Boolean
-    val root: Vertex
-    val target: Vertex
-    val prev: VertexBody
-    val next: VertexBody
-
-    def rule = self.rule
-
-    def performed: Boolean
-
-    def msg: String
-
-    def repr = s"$msg:\n  Rule  : $rule\n  Target: $target\n  Root  : $root\n  Prev  : $prev\n  Next  : $next"
+object Rewriter {
+  def apply(v: Vertex, contOpt: Option[Continuation] = None): Rewriter = {
+    contOpt match {
+      case Some(cont) => new ContinueRewriter(v.asRule, cont)
+      case None => new NakedRewriter(v.asRule)
+    }
   }
-
-  case class BuildingFailure(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody) extends ActionLog {
-    override val succeed = true
-
-    def msg = "BuildingFailure"
-
-    def performed = true
-  }
-
-  case class CommitingFailure(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody) extends ActionLog {
-    override val succeed = true
-
-    def msg = "CommitingFailure"
-
-    def performed = true
-  }
-
-  case class RewritingSucceed(root: Vertex, target: Vertex, prev: VertexBody, next: VertexBody)
-    extends ActionLog {
-    override val succeed = true
-
-    def msg = "RewritingSucceed"
-
-    def performed = true
-  }
-
-  case object NOP extends ActionLog {
-    override val succeed = false
-    override val root: Vertex = null
-    override val next: VertexBody = null
-    override val prev: VertexBody = null
-    override val target: Vertex = null
-
-    def msg = "NOP"
-
-    override def repr = "NOP"
-
-    def performed = false
-
-  }
-
 }

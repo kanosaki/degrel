@@ -3,6 +3,8 @@ package degrel.core
 trait Cell extends Vertex {
   def rules: Seq[Rule]
   def roots: Seq[Vertex]
+
+  def removeRoot(v: Vertex)
 }
 
 object Cell {

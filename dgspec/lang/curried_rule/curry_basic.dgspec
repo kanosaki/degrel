@@ -1,5 +1,5 @@
 
-description: Basic curried rule.
+caption: Basic curried rule.
 version: 1
 seq_spec:
   - init: >
