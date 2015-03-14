@@ -125,7 +125,7 @@ class PrettyPrinter(val root: Vertex)
 
     val nl = opts.multiLine match {
       case true => "\n" + opts.indentItem * indentLevel
-      case false => ";"
+      case false => ""
     }
 
     val nlEnd = opts.multiLine match {

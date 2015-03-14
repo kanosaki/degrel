@@ -24,7 +24,6 @@ class Praparat(val cell: Cell) extends Reactor {
    * 3. 書き換えの実行
    */
   def step(): Boolean = {
-    println(s"CURRENT: ${cell.pprint()}")
     for (rw <- contRewriters ++ this.rewriters) {
       for (v <- this.rewriteTargets) {
         try {
@@ -33,7 +32,6 @@ class Praparat(val cell: Cell) extends Reactor {
           }
         } catch {
           case e: Throwable => {
-            println(s"BREAK: ${cell.pprint()}}")
             throw e
           }
         }
@@ -43,10 +41,8 @@ class Praparat(val cell: Cell) extends Reactor {
   }
 
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
-    println(s"Checking: $v with ${rw.rule}")
     val res = rw.rewrite(v)
     if (res.done) {
-      println(s"RW: ${rw.rule}")
       import degrel.engine.rewriting.Continuation._
       res.continuation match {
         case c@HasNext(nextRule, _) => {

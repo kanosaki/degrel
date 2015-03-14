@@ -5,6 +5,7 @@ import org.scalatest.FlatSpec
 
 class PrettyPrinterTest extends FlatSpec {
   val parse = degrel.parseVertex _
+  implicit val ppOption = PrettyPrintOptions(showAllId = false, multiLine = false)
 
   def removeWs(src: String) = src.replaceAll("\\s", "")
 
