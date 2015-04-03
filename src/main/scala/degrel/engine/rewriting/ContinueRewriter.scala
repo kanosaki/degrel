@@ -1,6 +1,6 @@
 package degrel.engine.rewriting
 
-import degrel.core.{Rule, Vertex, VertexHeader}
+import degrel.core.Rule
 
 class ContinueRewriter(val rule: Rule, val continuation: Continuation) extends Rewriter {
   override protected def getBinding(pack: BindingPack): Binding = {

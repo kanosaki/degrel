@@ -1,7 +1,7 @@
 package degrel.core
 
+import degrel.engine.rewriting.molding.MoldingContext
 
-import degrel.engine.rewriting.BuildingContext
 
 object VertexBody {
   def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID): VertexBody = {
@@ -35,25 +35,6 @@ trait VertexBody extends Vertex {
     }
   }
 
-  // Perform as RhsVertex
-  /**
-   * 自身を書き換え右辺の頂点として，新規に頂点を構成します
-   * 自分が左辺でマッチしている頂点，すなわち対応するredex上の頂点を持つ場合は，頂点をマージします
-   * また，マッチしていない場合は新規に頂点を構築します
-   */
-  def build(context: BuildingContext): Vertex = {
-    if (this.hasEdge(Label.E.others)) {
-      val plainEdges = this.edges.filter(_.label != Label.E.others)
-      val matchedV = this.thruSingle(Label.E.others) // TODO: Error handle: 二つ以上OthersEdgeが存在した場合
-      val unmatchedEdges = context.unmatchedEdges(matchedV)
-      val builtEdges = unmatchedEdges ++ plainEdges.map(_.build(context))
-      Vertex(this.label.expr, builtEdges.toSeq, this.attributes)
-    } else {
-      val buildEdges = this.edges.map(_.build(context))
-      Vertex(this.label.expr, buildEdges.toSeq, this.attributes)
-    }
-  }
-
-  override def id: ID = ???
+  override def id: ID = new LocalID(-1)
 }
 

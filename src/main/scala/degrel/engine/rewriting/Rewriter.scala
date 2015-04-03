@@ -2,6 +2,7 @@ package degrel.engine.rewriting
 
 import degrel.Logger
 import degrel.core._
+import degrel.engine.rewriting.molding.MoldingContext
 
 
 /**
@@ -28,8 +29,7 @@ trait Rewriter extends Logger {
         val cont = Continuation.HasNext(rule.rhs.asRule, binding)
         RewriteResult(done = true, cont)
       } else {
-        val context = new BuildingContext(binding)
-        val builtGraph = rule.rhs.build(context)
+        val builtGraph = molding.mold(rule.rhs, binding)
         vh.write(builtGraph)
         RewriteResult(done = true)
       }
@@ -38,15 +38,13 @@ trait Rewriter extends Logger {
     }
   }
 
-
   protected def getBinding(pack: BindingPack): Binding
 
   def build(target: Vertex): Option[Vertex] = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
       val binding = this.pick(mch.pack)
-      val context = new BuildingContext(binding)
-      Some(rule.rhs.build(context))
+      Some(molding.mold(rule.rhs, binding))
     } else {
       None
     }

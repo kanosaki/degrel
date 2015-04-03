@@ -1,5 +1,7 @@
 package degrel.core
 
+import degrel.core.utils.PrettyPrintOptions
+
 
 object Graph {
   def getVertexBody(v: Vertex): VertexBody = v match {
@@ -47,6 +49,10 @@ class RawRootedGraph(_root: Vertex) extends RootedGraph {
 
   def edges: Seq[Edge] = {
     Traverser(root).flatMap(_.edges).toSeq
+  }
+
+  override def pp(implicit opt: PrettyPrintOptions = PrettyPrintOptions.default): String = {
+    s"Graph(root=${root.pp()})"
   }
 }
 

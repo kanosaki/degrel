@@ -1,0 +1,33 @@
+
+caption: Send message.
+description: Spawn cells and send message vertex
+version: 1
+seq_spec:
+  - init: >
+      {
+        foo(bar: baz)
+        foo(bar: piyo)
+
+        foo(bar: @X) -> child({
+          hoge(fuga: @Y) -> piyo(X, Y)
+        })
+
+        child(@C) -> C ! hoge(fuga: foobar)
+      }
+  - rewrite
+  - assert: >
+      {
+        child({
+          piyo(baz, foobar)
+        })
+
+        child({
+          piyo(piyo, foobar)
+        })
+
+        foo(bar: @X) -> child({
+          hoge(fuga: @Y) -> piyo(X, Y)
+        })
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

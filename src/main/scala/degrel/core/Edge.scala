@@ -1,5 +1,8 @@
 package degrel.core
 
+import degrel.core.utils.PrettyPrintOptions
+import degrel.engine.rewriting.matching._
+import degrel.engine.rewriting.molding.MoldingContext
 import degrel.engine.rewriting.{EdgeBridge, _}
 
 object Edge {
@@ -39,8 +42,6 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
     result
   }
 
-  override def toString: String = s"${label.expr}: ${utils.pp(dst)}"
-
   def matches(pattern: Edge, context: MatchingContext): EdgeMatching = {
     if (this.label.matches(pattern.label))
       dst.matches(pattern.dst, context) match {
@@ -52,10 +53,6 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
   }
 
   def label = _label
-
-  def build(context: BuildingContext): Edge = {
-    Edge(this.src, this.label, dst.build(context))
-  }
 
   def src_=(v: Vertex) = {
     if (v == null) {
@@ -72,5 +69,9 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
 
   override def compareTo(o: Edge): Int = {
     this.label.compareTo(o.label)
+  }
+
+  override def pp(implicit opt: PrettyPrintOptions = PrettyPrintOptions.default): String = {
+    s"${label.expr}: ${utils.pp(dst)}"
   }
 }

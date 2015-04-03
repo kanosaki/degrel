@@ -1,6 +1,7 @@
 package degrel.utils
 
 import degrel.core.Element
+import degrel.core.utils.PrettyPrintOptions
 import org.scalatest.exceptions.TestFailedException
 
 import scala.language.implicitConversions
@@ -9,10 +10,11 @@ import scala.language.implicitConversions
 object TestUtils {
 
   class TestUtilsElementExtensions(elem: Element) {
+    implicit val ppOpt = PrettyPrintOptions(multiLine = true)
 
     def ===~(other: Element) = {
       if (elem =/~ other) {
-        throw new TestFailedException(s"$elem did not equal $other", 0)
+        throw new TestFailedException(s"${elem.pp} did not equal ${other.pp}", 0)
       }
       true
     }

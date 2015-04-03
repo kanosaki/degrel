@@ -1,6 +1,6 @@
 package degrel.core.utils
 
-case class PrettyPrintOptions(showAllId: Boolean = true,
+case class PrettyPrintOptions(showAllId: Boolean = false,
                               multiLine: Boolean = false,
                               indentItem: String = "  ") {
 

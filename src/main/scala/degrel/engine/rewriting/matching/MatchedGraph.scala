@@ -1,4 +1,6 @@
-package degrel.engine.rewriting
+package degrel.engine.rewriting.matching
+
+import degrel.engine.rewriting._
 
 // Bridges data graph and rule graph
 

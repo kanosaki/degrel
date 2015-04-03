@@ -15,7 +15,7 @@ class PrarapatTest extends FlatSpec {
         | a@A(b: _@B, c: _@C, done: false) -> foo(a: A(b: B, c: C), b: B, c: C, done: true)
         |}""".stripMargin)
     val pra = new Praparat(cell)
-    pra.stepUntilStop()
+    pra.stepUntilStop(100)
     val after = toCell(
       """{
         | foo(a: a(b: b@B, c: c@C), b: B, c: C, done: true)

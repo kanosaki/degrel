@@ -22,11 +22,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    */
   val PAT_ATTR_KEY = """[^:]+""".r
 
-  val CHARS_BINOP = """!#$%^&*+=|:<>/?.-"""
+  val PAT_BINOP = """[\-\.!#$%^&*+=|:<>/?]+""".r
 
-  val PAT_BINOP = s"[$CHARS_BINOP]+".r
-
-  val PAT_FULL_LABEL = s"[_.${CHARS_BINOP}A-Za-z0-9]+".r
+  val PAT_FULL_LABEL = """[_\-\.!#$%^&*+=|:<>/?A-Za-z0-9]+""".r
 
   val PAT_BINDING = """[A-Z0-9][a-zA-Z0-9_]*""".r
 

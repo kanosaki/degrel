@@ -2,7 +2,8 @@ package degrel.core
 
 
 import degrel.core.utils.{PrettyPrintOptions, PrettyPrinter}
-import degrel.engine.rewriting.{BuildingContext, Matcher, MatchingContext, VertexMatching}
+import degrel.engine.rewriting.matching.{VertexMatching, MatchingContext, Matcher}
+import degrel.engine.rewriting.molding.MoldingContext
 
 trait Vertex extends Element with Comparable[Vertex] {
   def edges: Iterable[Edge]
@@ -17,7 +18,7 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def shallowCopy(): Vertex
 
-  def pprint()(implicit opt: PrettyPrintOptions): String = new PrettyPrinter(this).apply()
+  override def pp(implicit opt: PrettyPrintOptions): String = new PrettyPrinter(this).apply()
 
   def edgesWith(label: Label = Label.V.wildcard): Iterable[Edge] = {
     label match {
@@ -48,8 +49,6 @@ trait Vertex extends Element with Comparable[Vertex] {
     Matcher(this).matches(pattern, context)
   }
 
-  def build(context: BuildingContext): Vertex
-
   def isReference: Boolean = this.label == Label.V.reference && this.hasEdge(Label.E.ref)
 
   def isRule: Boolean =
@@ -61,8 +60,8 @@ trait Vertex extends Element with Comparable[Vertex] {
     val candidates = this.edgesWith(label)
     candidates.size match {
       case 1 => candidates.head.dst
-      case 0 => throw new Exception("No edge found.")
-      case _ => throw new Exception("Too many edge found.")
+      case 0 => throw new Exception(s"No edge '${label.expr}' found.")
+      case _ => throw new Exception(s"Too many edge '${label.expr}' found.")
     }
   }
 

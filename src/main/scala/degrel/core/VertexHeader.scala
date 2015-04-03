@@ -1,7 +1,5 @@
 package degrel.core
 
-import degrel.engine.rewriting.BuildingContext
-
 trait VertexHeader extends Vertex {
   def body: VertexBody
 
@@ -12,8 +10,6 @@ trait VertexHeader extends Vertex {
   def label: Label = body.label
 
   def attr(key: Label): Option[String] = body.attr(key)
-
-  def build(context: BuildingContext): Vertex = body.build(context)
 
   def attributes: Map[Label, String] = body.attributes
 

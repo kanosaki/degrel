@@ -1,4 +1,4 @@
-package degrel.engine.rewriting
+package degrel.engine.rewriting.matching
 
 import degrel.front.Parser
 import degrel.utils.FlyWrite._

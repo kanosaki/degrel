@@ -1,6 +1,6 @@
 package degrel.engine.rewriting
 
-import degrel.core.{Rule, Vertex, VertexHeader}
+import degrel.core.Rule
 
 /**
  * 継続の情報等を一切持たない`Rule`だけに依存した書き換えを行う`Rewriter`です

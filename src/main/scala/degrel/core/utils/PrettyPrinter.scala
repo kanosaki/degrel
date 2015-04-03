@@ -25,7 +25,13 @@ class PrettyPrinter(val root: Vertex)
         case Label.V.cell => new CellPrinter(root, parent)
         case Label.V.reference => new RefPrinter(root, parent)
         case Label.V.rule => new RulePrinter(root, parent)
-        case _ => new VertexPrinter(root, parent)
+        case _ => {
+          if (root.edges.map(_.label).toSet == Set(Label.E.lhs, Label.E.rhs)) {
+            new BinOpPrinter(root, parent)
+          } else {
+            new VertexPrinter(root, parent)
+          }
+        }
       })
   }
 
@@ -107,7 +113,26 @@ class PrettyPrinter(val root: Vertex)
         }
       }
     }
+  }
 
+  protected class BinOpPrinter(val root: Vertex, val parent: Printer) extends Printer {
+    override def print(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
+      val v = root
+      traj.walk(v) {
+        case Unvisited(trj) => {
+          val lhsPrinter = getPrinter(v.thruSingle(Label.E.lhs), this)
+          val rhsPrinter = getPrinter(v.thruSingle(Label.E.rhs), this)
+          lhsPrinter.print(sb)
+          sb ++= " "
+          sb ++= v.label.expr
+          sb ++= " "
+          rhsPrinter.print(sb)
+        }
+        case Visited(trj) => {
+          ???
+        }
+      }
+    }
   }
 
   protected class CellPrinter(val root: Vertex, val parent: Printer) extends Printer {
@@ -176,20 +201,31 @@ class PrettyPrinter(val root: Vertex)
 
   protected class RefPrinter(val root: Vertex, val parent: Printer) extends Printer {
     assert(root.label == Label.V.reference)
-    val refTargetPrinter = getPrinter(root.thruSingle(Label.E.ref), this)
+    val refTargetPrinter = root.thru(Label.E.ref).toList match {
+      case target :: Nil => getPrinter(target, this)
+      case first :: _ => new ConstantPrinter("<!! MULTI REFERENCE EDGE !!>", this)
+      case Nil => new ConstantPrinter("<???>", this)
+    }
 
     override def print(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
       val v = root
       traj.walk(v) {
         case Unvisited(trj) => {
-          val next = v.thruSingle(Label.E.ref)
-          getPrinter(next, this).print(sb)
+          refTargetPrinter.print(sb)
         }
         case Visited(_) => {
           // Do nothing?
         }
       }
     }
+  }
+
+  protected class ConstantPrinter(msg: String, val parent: Printer) extends Printer {
+    override def print(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
+      sb.append(msg)
+    }
+
+    override def root: Vertex = null
   }
 
   protected class TerminalPrinter extends Printer {

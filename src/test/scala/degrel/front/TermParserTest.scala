@@ -124,6 +124,43 @@ class TermParserTest extends FlatSpec {
     assert(graph ===~ expected)
   }
 
+  it should "parse a rule definition rule" in {
+    val ast = parser("(@Lhs == @Rhs) -> op.equals(Lhs, Rhs)")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ '->' {
+        |  -> '==' : __lhs__
+        |  -> 'op.equals' : __rhs__
+        |  '==' -> '_'$1 : __lhs__
+        |  '==' -> '_'$2 : __rhs__
+        |  'op.equals' -> __ref__$1 : 0
+        |  __ref__$1 -> '_'$1 : __to__
+        |  'op.equals' -> __ref__$2 : 1
+        |  __ref__$2 -> '_'$2 : __to__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "parse a rule definition rule in cell" in {
+    val ast = parser("{(@Lhs == @Rhs) -> op.equals(Lhs, Rhs)}")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->' : __rule__
+        |  '->' -> '==' : __lhs__
+        |  '->' -> 'op.equals' : __rhs__
+        |  '==' -> '_'$1 : __lhs__
+        |  '==' -> '_'$2 : __rhs__
+        |  'op.equals' -> __ref__$1 : 0
+        |  __ref__$1 -> '_'$1 : __to__
+        |  'op.equals' -> __ref__$2 : 1
+        |  __ref__$2 -> '_'$2 : __to__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
   it should "parse a rule which generates an empty cell" in {
     val ast = parser("foo -> {}")
     val graph = graphbuilder.build(ast)

@@ -1,10 +1,11 @@
-package degrel.engine.rewriting
+package degrel.engine.rewriting.matching
 
-import degrel.core.{Vertex, VertexVersion, Edge}
+import degrel.core.{Edge, Vertex, VertexVersion}
+import degrel.engine.rewriting._
 import degrel.utils.IterableExtensions._
 
+import scalaz.Scalaz._
 import scalaz._
-import Scalaz._
 
 case class Matcher(self: Vertex) {
   // Perform as LhsVertex

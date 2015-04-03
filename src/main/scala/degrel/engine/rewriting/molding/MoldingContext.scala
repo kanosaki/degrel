@@ -1,18 +1,19 @@
-package degrel.engine.rewriting
+package degrel.engine.rewriting.molding
 
 import degrel.core.{Edge, Vertex}
+import degrel.engine.rewriting.Binding
 
 import scala.collection.mutable
 
-class BuildingContext(val binding: Binding) {
-  val builtVertices = mutable.HashMap[Vertex, Vertex]()
+class MoldingContext(val binding: Binding, val factory: MolderFactory) {
+  private[this] val molderMapping = mutable.HashMap[Vertex, Molder]()
 
-  def registerBuiltVertex(redexV: Vertex, builtV: Vertex) = {
-    builtVertices += redexV -> builtV
+  def addMolder(mold: Vertex, molder: Molder) = {
+    molderMapping += mold -> molder
   }
 
-  def fromBuiltVertex(redexV: Vertex) = {
-    builtVertices.get(redexV)
+  def getMolder(mold: Vertex): Molder = {
+    molderMapping.getOrElseUpdate(mold, factory.get(mold, this))
   }
 
   def matchedVertexExact(patternVertex: Vertex): Vertex = {
