@@ -1,6 +1,6 @@
 package degrel.engine.rewriting.molding
 
-import degrel.core.{Edge, Vertex}
+import degrel.core.{VertexHeader, Edge, Vertex}
 import degrel.engine.rewriting.Binding
 
 import scala.collection.mutable
@@ -15,6 +15,8 @@ class MoldingContext(val binding: Binding, val factory: MolderFactory) {
   def getMolder(mold: Vertex): Molder = {
     molderMapping.getOrElseUpdate(mold, factory.get(mold, this))
   }
+
+  def getHeader(mold: Vertex): VertexHeader = factory.getHeader(mold, this)
 
   def matchedVertexExact(patternVertex: Vertex): Vertex = {
     binding.get(patternVertex) match {

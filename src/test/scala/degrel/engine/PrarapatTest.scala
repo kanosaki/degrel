@@ -8,6 +8,27 @@ class PrarapatTest extends FlatSpec {
 
   def toCell(s: String) = degrel.parseVertex(s).asInstanceOf[Cell]
 
+  it should "Send message to a cell" in {
+    val cell = toCell(
+      """{
+        | child({})
+        |
+        | (__cell__(_:@Others) ! @X) ->  __cell__(__item__: @X, _:Others)
+        | child(@C) -> C ! hoge(fuga: foobar)
+        |}""".stripMargin)
+    val pra = new Praparat(cell)
+    pra.stepUntilStop()
+    val after = toCell(
+      """{
+        | child({hoge(fuga: foobar)})
+        |
+        | (__cell__(_:@Others) ! @X) ->  __cell__(__item__: @X, _:Others)
+        | child(@C) -> C ! hoge(fuga: foobar)
+        |}
+      """.stripMargin)
+    assert(pra.cell ===~ after)
+  }
+
   it should "rewrite vertex with nested capturing" in {
     val cell = toCell(
       """{

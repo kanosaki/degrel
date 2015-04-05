@@ -1,7 +1,5 @@
 package degrel.core
 
-import degrel.engine.rewriting.molding.MoldingContext
-
 
 object VertexBody {
   def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID): VertexBody = {
@@ -26,13 +24,22 @@ trait VertexBody extends Vertex {
 
   def reprAttrs: String = {
     val targetKvs = attributes
-      .filter { case (k, v) => !k.isMeta}
+      .filter { case (k, v) => !k.isMeta }
     if (targetKvs.nonEmpty) {
-      val kvsExpr = targetKvs.map { case (k, v) => s"$k:$v"}.mkString(", ")
+      val kvsExpr = targetKvs.map { case (k, v) => s"$k:$v" }.mkString(", ")
       s"{$kvsExpr}"
     } else {
       ""
     }
+  }
+
+  override def asCell: Cell = {
+    this.asCellBody
+  }
+
+  def asCellBody: CellBody = {
+    require(this.label == Label.V.cell)
+    CellBody(this.edges)
   }
 
   override def id: ID = new LocalID(-1)

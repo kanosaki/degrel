@@ -5,6 +5,7 @@ class CellHeader(bdy: CellBody) extends VertexHeader with Cell {
 
   override def write(v: Vertex): Unit = v match {
     case cb: CellBody => _body = cb
+    case vb: VertexBody => _body = vb.asCellBody
   }
 
   override def body: VertexBody = _body

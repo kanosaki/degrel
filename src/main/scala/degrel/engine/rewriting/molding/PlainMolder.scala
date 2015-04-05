@@ -3,7 +3,7 @@ package degrel.engine.rewriting.molding
 import degrel.core._
 
 class PlainMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
-  override val header: VertexHeader = new LocalVertexHeader(null)
+  override val header: VertexHeader = context.getHeader(mold)
 
   override def process(ph: MoldPhase): Unit = {
     ph match {
@@ -24,10 +24,8 @@ class PlainMolder(val mold: Vertex, val context: MoldingContext) extends Molder 
    */
   private def doMold(): Unit = {
     if (mold.hasEdge(Label.E.others)) {
-      val plainEdges = mold.edges.filter(_.label != Label.E.others)
-      val matchedV = mold.thruSingle(Label.E.others) // TODO: Error handle: 二つ以上OthersEdgeが存在した場合
-      val unmatchedEdges = context.unmatchedEdges(matchedV)
-      val builtEdges = unmatchedEdges ++ moldEdges(plainEdges)
+      val plainEdges = mold.edges.filter(!_.isOthers)
+      val builtEdges = othersEdges.getOrElse(Seq()) ++ moldEdges(plainEdges)
       val vb = VertexBody(mold.label, mold.attributes, builtEdges.toSeq, ID.autoAssign)
       this.header.write(vb)
     } else {

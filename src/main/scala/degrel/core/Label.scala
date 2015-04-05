@@ -27,7 +27,7 @@ trait Label extends Ordered[Label] {
 
   def symbol: Symbol = Symbol(this.expr)
 
-  def isMeta: Boolean = this.expr.startsWith("_")
+  def isMeta: Boolean = this.expr.startsWith("__")
 }
 
 object Label {

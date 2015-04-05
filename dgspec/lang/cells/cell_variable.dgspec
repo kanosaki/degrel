@@ -13,6 +13,7 @@ seq_spec:
         })
 
         child(@C) -> C ! hoge(fuga: foobar)
+        (__cell__(_:@Others) ! @X) ->  __cell__(__item__: @X, _:Others)
       }
   - rewrite
   - assert: >
@@ -28,6 +29,9 @@ seq_spec:
         foo(bar: @X) -> child({
           hoge(fuga: @Y) -> piyo(X, Y)
         })
+
+        child(@C) -> C ! hoge(fuga: foobar)
+        (__cell__(_:@Others) ! @X) ->  __cell__(__item__: @X, _:Others)
       }
 
 # vim: ft=yaml sw=2 ts=2 sts=2

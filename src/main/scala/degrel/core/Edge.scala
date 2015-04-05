@@ -61,7 +61,11 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
     _src = v
   }
 
-  def isReference: Boolean = this.label.symbol == SpecialLabels.E_REFERENCE_TARGET
+  def isReference: Boolean = this.label == Label.E.ref
+
+  def isOthers: Boolean = this.label == Label.E.others
+
+  def isMeta: Boolean = this.label.isMeta
 
   def shallowCopy(): Edge = {
     Edge(this.src, this.label, this.dst)

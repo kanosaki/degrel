@@ -3,7 +3,24 @@ package degrel.engine.rewriting.molding
 import degrel.core._
 
 class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
-  private[this] val unreferenceEdges = mold.edges.filter(!_.isReference).toSeq
+  /**
+   * Pattern vertex.
+   */
+  val referenceTarget: Vertex = {
+    this.mold.thru(Label.E.ref).toList match {
+      case v :: Nil => v
+      case _ => throw new RuntimeException("Malformed vertex.")
+    }
+  }
+
+  /**
+   * Mold edges.
+   */
+  val unreferenceEdges: Seq[Edge] = {
+    this.mold.edges.filter(e => !e.isReference && !e.isOthers).toSeq
+  }
+
+  val matchedVertex = this.context.matchedVertexExact(this.referenceTarget)
 
   override val header: VertexHeader = new LocalVertexHeader(null)
 
@@ -32,6 +49,7 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
       val h = matchedV.asInstanceOf[VertexHeader]
       this.header.write(h.body)
     } else {
+      val othersEs = this.othersEdges.getOrElse(Seq()).toSet
       // 参照
       val matchedEdges = this.referenceTarget
         .edges
@@ -40,16 +58,13 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
       // 新規に構成
       val unmatchedEdges = matchedV
         .edges
-        .filter(!matchedEdges.contains(_))
+        .filter(e => !matchedEdges.contains(e) && !othersEs.contains(e))
         .map(_.shallowCopy())
       val mergingEdges = moldEdges(unreferenceEdges)
-      val builtEdges = unmatchedEdges ++ mergingEdges
+      val builtEdges = unmatchedEdges ++ mergingEdges ++ othersEs
       val vb = VertexBody(matchedV.label, matchedV.attributes, builtEdges.toSeq, ID.autoAssign)
       this.header.write(vb)
     }
   }
 
-  def referenceTarget: Vertex = {
-    mold.thruSingle(Label.E.ref)
-  }
 }

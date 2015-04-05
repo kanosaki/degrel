@@ -26,5 +26,9 @@ class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Rule]) extends V
 }
 
 object CellBody {
-
+  def apply(edges: Iterable[Edge]) = {
+    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst.asRule)
+    val roots = edges.filter(_.label == Label.E.cellItem).map(_.dst)
+    new CellBody(roots, rules)
+  }
 }

@@ -1,6 +1,6 @@
 package degrel.engine.rewriting.molding
 
-import degrel.core.{Edge, Vertex, VertexHeader}
+import degrel.core.{Edge, Label, Vertex, VertexHeader}
 
 trait Molder {
   val header: VertexHeader
@@ -19,6 +19,26 @@ trait Molder {
     edges.map { e =>
       val nextMolder = context.getMolder(e.dst)
       Edge(e.src, e.label, nextMolder.header)
+    }
+  }
+
+  /**
+   * Data vertex.
+   */
+  def othersTarget: Option[Vertex] = {
+    this.mold.thru(Label.E.others).toList match {
+      case Nil => None
+      case v :: Nil => Some(v)
+      case _ => throw new RuntimeException("Malformed vertex.")
+    }
+  }
+
+  /**
+   * Data edges.
+   */
+  def othersEdges: Option[Iterable[Edge]] = {
+    this.othersTarget.flatMap { othersV =>
+      Some(this.context.unmatchedEdges(othersV))
     }
   }
 }
