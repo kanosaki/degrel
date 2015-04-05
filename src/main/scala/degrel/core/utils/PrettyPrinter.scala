@@ -20,7 +20,8 @@ class PrettyPrinter(val root: Vertex)
 
   // Flyweight
   protected def getPrinter(root: Vertex, parent: Printer): Printer = {
-    printerCache.getOrElseUpdate(root,
+    printerCache.getOrElseUpdate(
+      root,
       root.label match {
         case Label.V.cell => new CellPrinter(root, parent)
         case Label.V.reference => new RefPrinter(root, parent)
@@ -56,7 +57,7 @@ class PrettyPrinter(val root: Vertex)
 
     val parent: Printer
 
-    var indentLevel: Int = if(parent != null) parent.indentLevel else 0
+    var indentLevel: Int = if (parent != null) parent.indentLevel else 0
 
     def children = {
       root.edges.map(e => getPrinter(e.dst, this))
@@ -88,6 +89,23 @@ class PrettyPrinter(val root: Vertex)
   }
 
   protected class VertexPrinter(val root: Vertex, val parent: Printer) extends Printer {
+    def putNameExpr(sb: StringBuilder): Unit = {
+      root.attr(Label.A.capturedAs) match {
+        case Some(capAs) if root.label == Label.V.wildcard => {
+          sb += '@'
+          sb ++= capAs
+        }
+        case Some(capAs) if root.label != Label.V.wildcard => {
+          sb ++= this.labelExpr
+          sb += '@'
+          sb ++= capAs
+        }
+        case _ =>
+          sb ++= this.labelExpr
+      }
+      sb ++= this.idExpr
+    }
+
     private def edgesExprSingle(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
       val edges = root.edges.toSeq
       if (edges.nonEmpty) {
@@ -105,11 +123,13 @@ class PrettyPrinter(val root: Vertex)
       val v = root
       traj.walk(v) {
         case Unvisited(trj) => {
-          sb ++= this.labelExpr ++= this.idExpr
+          this.putNameExpr(sb)
           edgesExprSingle(sb)
         }
         case Visited(trj) => {
-          sb ++= "<" ++= this.labelExpr ++= this.idExpr ++= ">"
+          sb += '<'
+          this.putNameExpr(sb)
+          sb += '>'
         }
       }
     }
@@ -167,7 +187,7 @@ class PrettyPrinter(val root: Vertex)
             getPrinter(e.dst, this).print(sb_)
           })
           val ruleEdges = v.edgesWith(Label.E.cellRule)
-          if(ruleEdges.nonEmpty) {
+          if (ruleEdges.nonEmpty) {
             sb ++= itemSep
             repsep[Edge](ruleEdges, sb, itemSep, (e, sb_) => {
               getPrinter(e.dst, this).print(sb_)

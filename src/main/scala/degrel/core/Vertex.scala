@@ -27,7 +27,7 @@ trait Vertex extends Element with Comparable[Vertex] {
     }
   }
 
-  def hasAttr(key: String, value: String = null) = {
+  def hasAttr(key: Label, value: String = null) = {
     value match {
       case null => this.attr(key).isDefined
       case v => this.attr(key) match {

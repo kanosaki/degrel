@@ -75,9 +75,9 @@ object Label {
 
   val Attributes = A
 
-  def convertAttrMap(origin: Iterable[(String, String)]): Map[Label, String] = {
+  def convertAttrMap(origin: Iterable[(Label, String)]): Map[Label, String] = {
     origin.map {
-      case (k, v) => Label(k) -> v
+      case (k, v) => k -> v
     }.toMap
   }
 }

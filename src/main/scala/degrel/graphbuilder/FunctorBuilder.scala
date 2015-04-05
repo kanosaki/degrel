@@ -119,7 +119,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    */
   def mkAttributesMap: Map[Label, String] = {
     val srcattrs = ast.attributes match {
-      case Some(attrs) => attrs.map(a => (a.key, a.value))
+      case Some(attrs) => attrs.map(a => (Label(a.key), a.value))
       case None => Map()
     }
     Label.convertAttrMap(srcattrs ++ this.mkSystemAttributes)
@@ -128,9 +128,9 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
   /**
    * 構文解析器によって自動的に付与されるメタ属性を返します
    */
-  def mkSystemAttributes: Iterable[(String, String)] = {
+  def mkSystemAttributes: Iterable[(Label, String)] = {
     ast.name match {
-      case AstName(_, Some(AstBinding(e))) => Seq("__captured_as__" -> e)
+      case AstName(_, Some(AstBinding(e))) => Seq(Label.A.capturedAs -> e)
       case _ => Seq()
     }
   }

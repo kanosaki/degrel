@@ -94,7 +94,7 @@ class PrettyPrinterTest extends FlatSpec {
   it should "Print a functor with reference" in {
     val v = parse("a(b: c@X, d: X)")
     val actual = pp(v)
-    val expected = "a\\(b:c\\[\\w+\\],d:<c\\[\\w+\\]>\\)"
+    val expected = "a\\(b:c@X\\[\\w+\\],d:<c@X\\[\\w+\\]>\\)"
     assert(removeWs(actual).matches(expected), s"${removeWs(actual)} not matches $expected")
   }
 }

@@ -4,7 +4,7 @@ import degrel.core.Cell
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
-class PrarapatTest extends FlatSpec {
+class PraparatTest extends FlatSpec {
 
   def toCell(s: String) = degrel.parseVertex(s).asInstanceOf[Cell]
 

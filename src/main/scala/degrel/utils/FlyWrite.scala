@@ -8,17 +8,17 @@ import scala.language.implicitConversions
 
 object FlyWrite {
 
-  def vHead(s: String, attributes: Map[String, String] = Map()) = {
+  def vHead(s: String, attributes: Map[Label, String] = Map()) = {
     core.Vertex(s, List(), Label.convertAttrMap(attributes))
   }
 
-  def vAll(s: String, attributes: Map[String, String], edges: Iterable[core.Edge]) = {
+  def vAll(s: String, attributes: Map[Label, String], edges: Iterable[core.Edge]) = {
     core.Vertex(s, edges, Label.convertAttrMap(attributes))
   }
 
-  implicit def flywriteCoreStringExtension(s: String) = new StringExtensions(s)
+  implicit def flywriteCoreStringExtension(s: String): StringExtensions = new StringExtensions(s)
 
-  implicit def flywriteCoreVertexExtension(v: core.Vertex) = new VertexExtensions(v)
+  implicit def flywriteCoreVertexExtension(v: core.Vertex): VertexExtensions = new VertexExtensions(v)
 
   class StringExtensions(s: String) {
     def |^|(edges: Iterable[core.Edge]) = {
