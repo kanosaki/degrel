@@ -10,7 +10,7 @@ import scala.collection.mutable
 /**
  * Cellの実行をします
  */
-class Praparat(val cell: Cell) extends Reactor {
+class Driver(val cell: Cell) extends Reactor {
   def rewriters = cell.rules.map(Rewriter(_))
 
   private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()

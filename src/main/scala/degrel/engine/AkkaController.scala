@@ -2,7 +2,7 @@ package degrel.engine
 
 import akka.actor.ActorSystem
 
-class Engine(val name: String) {
+class AkkaController(val name: String) {
   // From http://doc.akka.io/docs/akka/snapshot/java/dispatchers.html (2.3-SNAPSHOT)
   private var actorSystem: ActorSystem = null
 

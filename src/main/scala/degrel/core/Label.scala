@@ -65,15 +65,23 @@ object Label {
 
     val cellRule = Label(SpecialLabels.E_CELL_RULE)
     val cellItem = Label(SpecialLabels.E_CELL_ITEM)
+    val cellBase = Label(SpecialLabels.E_CELL_BASE)
   }
 
   val Edge = E
 
   object A {
-    val capturedAs = Label('__captured_as__)
+    val capturedAs = Label(SpecialLabels.A_CAPTURED_AS)
   }
 
   val Attributes = A
+
+  // name :: List[Symbol]
+  object N {
+    val main = List(SpecialLabels.N_MAIN)
+  }
+
+  val Name = N
 
   def convertAttrMap(origin: Iterable[(Label, String)]): Map[Label, String] = {
     origin.map {

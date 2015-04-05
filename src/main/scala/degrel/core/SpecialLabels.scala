@@ -53,6 +53,23 @@ object SpecialLabels {
    */
   val E_CELL_RULE = '__rule__
   val E_CELL_ITEM = '__item__
+  /**
+   * Cellにおいて実行されるルールは，自分のCell内の`__rule__`頂点と
+   * `__base__`で辿れるCellの`__rule__`頂点です
+   */
+  val E_CELL_BASE = '__base__
   val E_CONTINUE = '__continue__
   val E_VALUE = '__val__
+
+  /**
+   * パターングラフにおいて，その頂点が変数束縛対象の場合，何という名前で束縛されていたかを保存します
+   */
+  val A_CAPTURED_AS = '__captured_as__
+
+
+  // 特殊名前空間名
+  /**
+   * 実行ルートCell
+   */
+  val N_MAIN = '__main__
 }
