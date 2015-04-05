@@ -5,7 +5,14 @@ import degrel.core._
 trait MolderFactory {
   def get(mold: Vertex, ctx: MoldingContext): Molder = {
     mold.label match {
-      case Label.V.reference => new ReferenceVertexMolder(mold, ctx)
+      case Label.V.reference => {
+        val refTarget = mold.thruSingle(Label.E.ref)
+        if (ctx.matchedVertex(refTarget).isDefined) {
+          new ReferenceVertexMolder(mold, ctx)
+        } else {
+          new PlainMolder(mold, ctx)
+        }
+      }
       case _ => new PlainMolder(mold, ctx)
     }
   }
