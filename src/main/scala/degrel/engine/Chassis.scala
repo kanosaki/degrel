@@ -15,7 +15,28 @@ class Chassis(val name: String) {
 
   def repository: namespace.Repository = _repo
 
-  def main: Cell = {
+  def getDriver(name: String): Option[Driver] = {
+    val key = name.split(namespace.NAME_DELIMITER).map(Symbol(_)).toList
+    this.getDriver(key)
+  }
+
+  def getDriver(name: List[Symbol]): Option[Driver] = {
+    this.repository.get(name)
+  }
+
+  def getName(drv: Driver): String = {
+    this.repository.getName(drv).map(_.name).mkString(namespace.NAME_DELIMITER)
+  }
+
+  def main: Driver = {
     repository.get(Label.N.main).get
+  }
+}
+
+object Chassis {
+  def createMain(name: String): Chassis = {
+    val ch = new Chassis(name)
+    ch.repository.register(Label.N.main, new Driver(Cell(Seq())))
+    ch
   }
 }

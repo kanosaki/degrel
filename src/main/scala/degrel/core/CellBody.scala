@@ -23,6 +23,14 @@ class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Rule]) extends V
   override def removeRoot(v: Vertex): Unit = {
     _roots -= v
   }
+
+  override def addRoot(v: Vertex): Unit = {
+    if (v.isRule) {
+      _rules += v.asRule
+    } else {
+      _roots += v
+    }
+  }
 }
 
 object CellBody {

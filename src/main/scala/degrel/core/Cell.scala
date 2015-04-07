@@ -5,6 +5,7 @@ trait Cell extends Vertex {
   def roots: Seq[Vertex]
 
   def removeRoot(v: Vertex)
+  def addRoot(v: Vertex)
 }
 
 object Cell {

@@ -12,9 +12,9 @@ scalaVersion := "2.11.6"
 resolvers += Resolver.sonatypeRepo("public")
 
 libraryDependencies ++= { 
-  val scalazVersion = "7.1.0"
-  val akkaVersion = "2.3.8"
-  val sprayVersion = "1.3.2"
+  val scalazVersion = "7.1.1"
+  val akkaVersion = "2.3.9"
+  val sprayVersion = "1.3.3"
   val graphStreamVersion = "1.2"
   Seq(
     "org.scalatest" % "scalatest_2.11" % "2.2.3" % "test",
@@ -37,7 +37,7 @@ libraryDependencies ++= {
     "com.typesafe.akka" % "akka-remote_2.11" % akkaVersion,
     "com.typesafe.akka" % "akka-agent_2.11" % akkaVersion,
     "io.spray"  %%  "spray-can"     % sprayVersion,
-    "io.spray"  %%  "spray-routing" % sprayVersion,
+    "io.spray"  %%  "spray-routing-shapeless2" % sprayVersion,
     "io.spray"  %%  "spray-testkit" % sprayVersion  % "test",
     "org.json4s" %% "json4s-native" % "3.2.11",
     "org.scaldi" %% "scaldi" % "0.4",
@@ -47,8 +47,10 @@ libraryDependencies ++= {
     "org.graphstream" % "gs-core" % graphStreamVersion,
     "org.graphstream" % "gs-ui" % graphStreamVersion,
     "org.graphstream" % "gs-algo" % graphStreamVersion,
+    "org.scala-lang.modules" %% "scala-xml" % "1.0.3",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.5.1",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0"
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0",
+    "org.parboiled" %% "parboiled" % "2.1.0"
   )
 }
 

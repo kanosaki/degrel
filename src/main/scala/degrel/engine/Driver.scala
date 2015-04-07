@@ -76,4 +76,11 @@ class Driver(val cell: Cell) extends Reactor {
     }
     count
   }
+
+  /**
+   * Send message vertex underlying cell
+   */
+  def send(msg: Vertex) = {
+    this.cell.addRoot(msg)
+  }
 }
