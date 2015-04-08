@@ -62,6 +62,10 @@ initialCommands in console := "import scalaz._, Scalaz._"
 
 assemblySettings
 
+mainClass in assembly := Some("degrel.Main")
+
+test in assembly := {}
+
 
 // scala.tools.jline関連のライブラリがassembly時にコンフリクトを起こすので
 // 時前で競合解消
