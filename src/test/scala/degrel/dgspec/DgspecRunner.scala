@@ -37,7 +37,6 @@ class DgspecRunner extends FlatSpec with Logger {
   }
 
   def loadSpec(file: Path): Dgspec = {
-    logger.info(s"Loading dgspec: $file")
     new FileDgspec(file)
   }
 

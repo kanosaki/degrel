@@ -11,10 +11,11 @@ import scala.collection.mutable
  * Cellの実行をします
  */
 class Driver(val cell: Cell) extends Reactor {
-  def rewriters = cell.rules.map(Rewriter(_))
-
-  private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
   implicit protected val printOption = PrettyPrintOptions(showAllId = true, multiLine = true)
+  private val children: mutable.Buffer[Driver] = mutable.ListBuffer()
+  private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
+
+  def rewriters = cell.rules.map(Rewriter(_))
 
   /**
    * 1回書き換えます
@@ -25,34 +26,21 @@ class Driver(val cell: Cell) extends Reactor {
    */
   def step(): Boolean = {
     for (rw <- contRewriters ++ this.rewriters) {
-      for (v <- this.rewriteTargets) {
-        try {
-          if (this.execRewrite(rw, v)) {
-            return true
-          }
-        } catch {
-          case e: Throwable => {
-            throw e
-          }
-        }
+      this.rewriteTargets.find { v =>
+        this.execRewrite(rw, v)
+      } match {
+        case Some(_) => return true
+        case _ =>
       }
     }
     false
   }
 
-  private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
-    val res = rw.rewrite(v)
-    if (res.done) {
-      import degrel.engine.rewriting.Continuation._
-      res.continuation match {
-        case c@HasNext(nextRule, _) => {
-          contRewriters += Rewriter(nextRule, Some(c))
-          cell.removeRoot(v)
-        }
-        case Empty => contRewriters -= rw
-      }
+  def stepRecursive(): Boolean = {
+    this.children.find(_.stepRecursive()) match {
+      case Some(_) => true
+      case None => this.step()
     }
-    res.done
   }
 
   def rewriteTargets: Iterable[Vertex] = {
@@ -61,13 +49,13 @@ class Driver(val cell: Cell) extends Reactor {
       .filter(_.label != Label.E.cellRule)
       .map(_.dst)
       .filter(_.label != Label.V.rule)
-    roots.flatMap(Traverser(_, edgePred = _.dst.label != Label.V.cell))
+    roots.flatMap(Traverser(_, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.InnerOnly)))
   }
 
   def stepUntilStop(limit: Int = -1): Int = {
     var count = 0
     while (true) {
-      val rewrote = this.step()
+      val rewrote = this.stepRecursive()
       count += 1
       if (!rewrote) return count
       if (limit > 0 && count > limit) {
@@ -82,5 +70,24 @@ class Driver(val cell: Cell) extends Reactor {
    */
   def send(msg: Vertex) = {
     this.cell.addRoot(msg)
+  }
+
+  private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
+    val res = rw.rewrite(v)
+    if (res.done) {
+      import degrel.engine.rewriting.Continuation._
+      res.continuation match {
+        case c@HasNext(nextRule, _) => {
+          contRewriters += Rewriter(nextRule, Some(c))
+          cell.removeRoot(v)
+        }
+        case Empty => contRewriters -= rw
+      }
+      if (rw.spawnsCells) {
+        val spawnedCells = Traverser(v, _.isCell, TraverseRegion.WallOnly)
+        children ++= spawnedCells.map(_.asCell).map(new Driver(_))
+      }
+    }
+    res.done
   }
 }

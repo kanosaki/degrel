@@ -2,9 +2,9 @@ package degrel.core
 
 import scala.collection.mutable
 
-class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Rule]) extends VertexBody with Cell {
-  private val _rules = mutable.ListBuffer(initRules.toSeq: _*)
-  private val _roots = mutable.ListBuffer(initRoots.toSeq: _*)
+class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Vertex]) extends VertexBody with Cell {
+  private lazy val _rules = mutable.ListBuffer(initRules.map(_.asRule).toSeq: _*)
+  private lazy val _roots = mutable.ListBuffer(initRoots.toSeq: _*)
 
   override def rules: Seq[Rule] = _rules
 
@@ -35,8 +35,8 @@ class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Rule]) extends V
 
 object CellBody {
   def apply(edges: Iterable[Edge]) = {
-    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst.asRule)
     val roots = edges.filter(_.label == Label.E.cellItem).map(_.dst)
+    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst)
     new CellBody(roots, rules)
   }
 }

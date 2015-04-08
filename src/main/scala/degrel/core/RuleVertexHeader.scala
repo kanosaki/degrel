@@ -8,5 +8,7 @@ class RuleVertexHeader(_lhs: Vertex, _rhs: Vertex)
   private def rBody = this.body.asInstanceOf[RuleVertexBody]
 
   def lhs = rBody.lhs
+
+  override def asRule: Rule = this
 }
 

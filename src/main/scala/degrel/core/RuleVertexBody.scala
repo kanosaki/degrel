@@ -8,6 +8,8 @@ case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
     Edge(this, SpecialLabels.E_LHS, _lhs),
     Edge(this, SpecialLabels.E_RHS, _rhs))
 
+  override def asRule: Rule = this
+
   def rhs = _rhs
 
   def lhs = _lhs

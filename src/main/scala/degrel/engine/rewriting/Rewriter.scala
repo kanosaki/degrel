@@ -12,6 +12,8 @@ trait Rewriter extends Logger {
   self =>
   def rule: Rule
 
+  lazy val spawnsCells = Traverser(rule.rhs).exists(_.isCell)
+
   /**
    * この書き換え機で`target`を書き換えます．
    * @param target 書き換える対象のグラフ

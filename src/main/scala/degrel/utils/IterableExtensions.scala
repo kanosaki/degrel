@@ -7,11 +7,21 @@ import scala.language.implicitConversions
 
 object IterableExtensions {
 
-  implicit def iterableExtensions[T](it: Iterable[T]) = new IterableExtensions(it.iterator)
+  implicit def iterableExtensions[T](it: Iterable[T]): IterableExtensions[T] = new IterableExtensions(it.iterator)
 
-  implicit def iteratorExtensions[T](it: Iterator[T]) = new IterableExtensions(it)
+  implicit def iteratorExtensions[T](it: Iterator[T]): IterableExtensions[T] = new IterableExtensions(it)
 
   class IterableExtensions[T](it: Iterator[T]) {
+
+    def findFirst[V](f: T => Option[V]): Option[V] = {
+      for(item <- it) {
+        f(item) match {
+          case Some(res) => return Some(res)
+          case _ =>
+        }
+      }
+      None
+    }
 
     def mapUntil[V](f: T => Option[V]): Iterator[V] = {
       class InnerIterator extends Iterator[V] {

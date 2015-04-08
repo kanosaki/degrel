@@ -27,24 +27,45 @@ class TraverserTest extends FlatSpec {
     assert(traversed.map(_.label.expr).toSet === Set("foo", "baz", "fuga", "b"))
   }
 
-  it should "work with edge predicate" in {
-    val graph = parse("foo(bar: baz, hoge: fuga, piyo: hoge)")
-    val traversed = Traverser(
-      graph,
-      edgePred =
-        e => e.label != Label("hoge") && e.dst.label != Label("hoge")).
-      toSeq
-    assert(traversed.map(_.label).toSet === Set("foo", "baz"))
+  it should "traverse vertices with cycled graph" in {
+    val graph = parse("foo(bar: baz@B, hoge: fuga(a: B, c: b))")
+    val traversed = Traverser(graph).toSeq
+    assert(traversed.map(_.label.expr).toSet === Set("foo", "baz", "fuga", "b"))
   }
 
-  it should "work with edge predicate and hop limit" in {
-    val graph = parse("foo(bar: baz(x: y, p: q(r: s)), hoge: fuga(a: b))")
-    val traversed = Traverser(
-      graph,
-      2,
-      edgePred =
-        e => e.label != Label("hoge") && e.label != Label("x")).
-      toSeq
-    assert(traversed.map(_.label).toSet === Set("foo", "baz", "q"))
+  it should "traverse with region inner only" in {
+    val graph = parse("foo(a, b, c, {d; e; f})")
+    val traversed = Traverser(graph, _.label == Label.V.cell, TraverseRegion.InnerOnly).toSeq
+    assert(traversed.map(_.label.expr).toSet === Set("foo", "a", "b", "c"))
+  }
+
+  it should "traverse with region inner and wall" in {
+    val graph = parse("foo(a, b, c, {d; e; f})")
+    val traversed = Traverser(graph, _.label == Label.V.cell, TraverseRegion.InnerAndWall).toSeq
+    assert(traversed.map(_.label.expr).toSet === Set("foo", "a", "b", "c", "__cell__"))
+  }
+
+  it should "return nothing if root is wall and region is inner only." in {
+    val graph = parse("foo(a, b, c, {d; e; f})")
+    val traversed = Traverser(graph, _.label == Label("foo"), TraverseRegion.InnerOnly).toSeq
+    assert(traversed.map(_.label.expr).toSet === Set())
+  }
+
+  it should "return root if root is wall and region is inner andn wall." in {
+    val graph = parse("foo(a, b, c, {d; e; f})")
+    val traversed = Traverser(graph, _.label == Label("foo"), TraverseRegion.InnerAndWall).toSeq
+    assert(traversed.map(_.label.expr).toSet === Set("foo"))
+  }
+
+  it should "traverse all wall vertices and its inner vertices" in {
+    val graph = parse("bar(foo1(foo2, foo3, c, {d; e; f}), baz)")
+    val traversed = Traverser(graph, _.label.expr.startsWith("foo"), TraverseRegion.InnerAndWall).toSeq
+    assert(traversed.map(_.label.expr).toSet === Set("bar", "baz", "foo1", "foo2", "foo3"))
+  }
+
+  it should "traverse all wall vertices" in {
+    val graph = parse("bar(foo1(foo2, foo3, c, {d; e; f}), baz)")
+    val traversed = Traverser(graph, _.label.expr.startsWith("foo"), TraverseRegion.WallOnly).toSeq
+    assert(traversed.map(_.label.expr).toSet === Set("foo1", "foo2", "foo3"))
   }
 }

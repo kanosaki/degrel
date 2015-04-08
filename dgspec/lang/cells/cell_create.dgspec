@@ -17,12 +17,15 @@ seq_spec:
       {
         {
           piyopiyo(piyo)
+          hoge(fuga: @Y) -> piyopiyo(Y)
         }
         {
           piyopiyo(hogefuga)
+          hoge(fuga: @Y) -> piyopiyo(Y)
         }
         foo(bar: @X) -> {
           hoge(fuga: X)
+          hoge(fuga: @Y) -> piyopiyo(Y)
         }
       }
 

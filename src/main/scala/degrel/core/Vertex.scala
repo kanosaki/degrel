@@ -56,6 +56,8 @@ trait Vertex extends Element with Comparable[Vertex] {
     this.hasEdge(Label.E.rhs) &&
     this.hasEdge(Label.E.lhs)
 
+  def isCell: Boolean = this.label == Label.V.cell
+
   def thruSingle(label: Label): Vertex = {
     val candidates = this.edgesWith(label)
     candidates.size match {
@@ -107,6 +109,10 @@ trait Vertex extends Element with Comparable[Vertex] {
   }
 
   override def toString: String = utils.pp(this)
+
+  def neighbors: Iterable[Vertex] = {
+    this.edges.map(_.dst)
+  }
 }
 
 object Vertex {
