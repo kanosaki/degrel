@@ -6,13 +6,14 @@ seq_spec:
       {
         a(bar: baz)
         b(hoge: fuga, piyo: foobar)
-        a(bar: @A) -> b(hoge: @Fuga, piyo: @Foobar) -> c(A, Fuga, Foobar)
+        c(homu)
+        a(bar: @A) -> b(hoge: @Fuga, piyo: @Foobar) -> c(@Homu) -> d(A, Fuga, Foobar, Homu)
       }
   - rewrite
   - assert: >
       {
-        c(baz, fuga, foobar)
-        a(bar: @A) -> b(hoge: @Fuga, piyo: @Foobar) -> c(A, Fuga, Foobar)
+        d(baz, fuga, foobar, homu)
+        a(bar: @A) -> b(hoge: @Fuga, piyo: @Foobar) -> c(@Homu) -> d(A, Fuga, Foobar, Homu)
       }
 
 # vim: ft=yaml sw=2 ts=2 sts=2

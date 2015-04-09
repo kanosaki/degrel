@@ -25,7 +25,7 @@ trait Rewriter extends Logger {
   def rewrite(target: Vertex): RewriteResult = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
-      val binding = this.pick(mch.pack)
+      val binding = this.getBinding(mch.pack)
       val vh = target.asInstanceOf[VertexHeader]
       if (rule.rhs.isRule) {
         val cont = Continuation.HasNext(rule.rhs.asRule, binding)
