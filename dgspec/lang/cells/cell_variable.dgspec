@@ -1,5 +1,5 @@
 
-caption: Send message.
+caption: Send message. (incomplete)
 description: Spawn cells and send message vertex
 version: 1
 seq_spec:
@@ -8,30 +8,32 @@ seq_spec:
         foo(bar: baz)
         foo(bar: piyo)
 
-        foo(bar: @X) -> child({
+        foo(bar: @X) -> before({
           hoge(fuga: @Y) -> piyo(X, Y)
         })
 
-        child(@C) -> C ! hoge(fuga: foobar)
-        (__cell__(_:@Others) ! @X) ->  __cell__(__item__: @X, _:Others)
+        before(@C) -> after(C ! hoge(fuga: foobar))
+        (__cell__(_:@Others) ! @X) ->  __cell__(__item__: X, _:Others)
       }
   - rewrite
   - assert: >
       {
-        child({
+        after({
           piyo(baz, foobar)
+          hoge(fuga: @Y) -> piyo(baz, Y)
         })
 
-        child({
+        after({
           piyo(piyo, foobar)
+          hoge(fuga: @Y) -> piyo(piyo, Y)
         })
 
-        foo(bar: @X) -> child({
+        foo(bar: @X) -> before({
           hoge(fuga: @Y) -> piyo(X, Y)
         })
 
-        child(@C) -> C ! hoge(fuga: foobar)
-        (__cell__(_:@Others) ! @X) ->  __cell__(__item__: @X, _:Others)
+        before(@C) -> after(C ! hoge(fuga: foobar))
+        (__cell__(_:@Others) ! @X) ->  __cell__(__item__: X, _:Others)
       }
 
 # vim: ft=yaml sw=2 ts=2 sts=2
