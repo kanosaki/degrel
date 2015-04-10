@@ -1,6 +1,7 @@
 package degrel.front
 
 import scala.language.higherKinds
+import scala.util.matching.Regex
 import scala.util.parsing.combinator.JavaTokenParsers
 
 class TermParser(val parsercontext: ParserContext = ParserContext.default) extends JavaTokenParsers {
@@ -28,7 +29,8 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
 
   val PAT_BINDING = """[A-Z0-9][a-zA-Z0-9_]*""".r
 
-  val ws = """[ \t]*""".r
+  // original whiteSpace = \s+ == [ \t\n\x0B\f\r]+
+  override protected val whiteSpace: Regex = """[ \t]+""".r
 
   /**
    * End of Line
@@ -36,18 +38,13 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   def eol = sys.props("line.separator")
 
   /**
-   * End of Input
-   */
-  def eoi = """\z""".r
-
-  /**
    * End Of Statement (statement separator)
    */
-  def eos = token(";" | eol)
+  def eos = ";" | eol
 
-  def token[T](p: Parser[T]): Parser[T] = ws ~> p
+  def NLs = rep(eos)
 
-  def seek[T](p: Parser[T]): Parser[T] = rep(eos) ~> p
+  def seek[T](p: Parser[T]): Parser[T] = opt(NLs) ~> p
 
   /**
    * 頂点束縛(Vertex Binding)
@@ -97,10 +94,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    */
   def edge: Parser[AstEdgeElement] = othersEdge | normalEdge
 
-  /**
-   * 頂点の持つ接続の集合パーサー
-   */
-  def edges: Parser[AstEdges] = "(" ~> repsep(edge, ",") <~ ")" ^^ (abbrEdges => {
+
+  def handleEdgeElements(abbrEdges: List[AstEdgeElement]): AstEdges = {
+    if (abbrEdges.isEmpty) return AstEdges(Seq(), None)
     // 最後の要素がOthersEdgeであるかどうかを確認します
     val (plainEs, othersE) = abbrEdges.last match {
       case oe: AstOthersEdges => (abbrEdges.dropRight(1), Some(oe))
@@ -120,7 +116,14 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
       case (item: AstEdge, index) => item
     }
     AstEdges(fullPlainEs, othersE)
-  })
+  }
+
+  def edgeSep = opt(NLs) ~ "," ~ opt(NLs)
+
+  /**
+   * 頂点の持つ接続の集合パーサー
+   */
+  def edges: Parser[AstEdges] = ("(" ~> seek(repsep(edge, edgeSep)) <~ seek(")") | repsep(edge, edgeSep) )^^ handleEdgeElements
 
 
   /**
@@ -141,18 +144,18 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * 構文解析器における頂点とは，v(foo: bar)のような構文上正規の頂点のみです
    * Cell等もランタイムでは頂点ですが，ここでは頂点に含まれません
    */
-  def functor: Parser[AstFunctor] = name ~ opt(attributes) ~ opt(edges) ^^ {
-    case n ~ attrs ~ Some(es) => AstFunctor(n, attrs, es)
-    case n ~ attrs ~ None => AstFunctor(n, attrs, AstEdges(Seq(), None))
+  def functor: Parser[AstFunctor] = name ~  opt(edges) ^^ {
+    case n ~ Some(es) => AstFunctor(n, None, es)
+    case n ~ None => AstFunctor(n, None, AstEdges(Seq(), None))
   }
 
-  def cell: Parser[AstCell] = "{" ~> {
+  def cell: Parser[AstCell] = seek("{") ~> {
     val nextCtx = new ParserContext(context)
     // this.type#Parser[AstCell]をコンパイラが要求してくるのでキャスト
     // Scalaパーサーの仕様
     val nextParser = new TermParser(nextCtx).asInstanceOf[this.type]
     nextParser.cellBody
-  } <~ "}"
+  } <~ seek("}") ~> NLs
 
   def cellBody: Parser[AstCell] = cellItemList ^^ {
     case exprs => AstCell(exprs)
@@ -220,8 +223,8 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * {@code expr}において，次の演算子と項の部分
    */
-  def binopRight: Parser[(AstBinOp, AstVertex)] = binop ~ element ^^ {
-    case op ~ ex => (op, ex)
+  def binopRight: Parser[(AstBinOp, AstVertex)] = binop ~ opt(NLs) ~ element ^^ {
+    case  op ~ _ ~ ex => (op, ex)
   }
 
   /**
@@ -229,13 +232,15 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * foo -> {bar; hgoe -> fuga} -> foo * bar
    * foo, (->, {bar; hoge -> fuga}), (->, foo), (*, bar)
    */
-  def expr: Parser[AstVertex] = element ~ rep(binopRight) ^^ {
-    case exp ~ followingExprs =>
+  def expr: Parser[AstVertex] = element ~ opt(rep(binopRight)) ^^ {
+    case exp ~ Some(followingExprs) =>
       AstLinerExpr(exp, followingExprs).toTree
+    case exp ~ None =>
+      AstLinerExpr(exp, Seq()).toTree
   }
 
   def parseExpr(str: String): AstVertex = {
-    parseAll(expr, str) match {
+    parseAll(expr, str.trim()) match {
       case Success(e, _) => e
       case fail: NoSuccess => {
         throw new SyntaxError(s"${fail.toString} \nat line ${fail.next.pos.line} col ${fail.next.pos.column}")
@@ -244,7 +249,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   }
 
   def parseCell(str: String): AstCell = {
-    parseAll(cell, str) match {
+    parseAll(cell, str.trim()) match {
       case Success(gr, _) => gr
       case fail: NoSuccess => {
         throw new SyntaxError(s"${fail.toString} \nat line ${fail.next.pos.line} col ${fail.next.pos.column}")

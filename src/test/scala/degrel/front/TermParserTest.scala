@@ -1,9 +1,8 @@
 package degrel.front
 
-import degrel.core.Cell
 import degrel.graphbuilder
-import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
+import org.scalatest.FlatSpec
 
 class TermParserTest extends FlatSpec {
   val parser = Parser.vertex _
@@ -40,7 +39,7 @@ class TermParserTest extends FlatSpec {
   }
 
   it should "parse a rule" in {
-    val ast = parser("a \n\t-> b")
+    val ast = parser("a ->\n\t b")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@'->'{
@@ -236,32 +235,6 @@ class TermParserTest extends FlatSpec {
     assert(graph ===~ expected)
   }
 
-  // TODO: Add test for imports (not only for parsing but for its behavior)
-
-  it should "parse a import stetement" in {
-    parser("{import foobar.baz.hoge}")
-  }
-
-  it should "parse a import stetement with 'as'" in {
-    parser("{import foobar.baz.hoge as hogehoge}")
-  }
-
-  it should "parse a import with 'from'" in {
-    parser("{from foobar.baz import hoge}")
-  }
-
-  it should "parse a import with 'from' and 'as'" in {
-    parser("{from foobar.baz import hoge as hogehoge}")
-  }
-
-  it should "parse a multi imports" in {
-    parser("{import foo.bar, hoge.fuga}")
-  }
-
-  it should "parse a multi imports with 'from'" in {
-    parser("{from piyo import foo, bar}")
-  }
-
   it should "throw CodeError when multi import with 'as'" in {
     intercept[SyntaxError] {
       parser("{import foo, bar as hoge}")
@@ -309,6 +282,85 @@ class TermParserTest extends FlatSpec {
     intercept[SyntaxError] {
       parser("foo(bar, baz, hoge, x: piyo, baz)")
     }
+  }
+
+  it should "parse abbreviated label edges" in {
+    val ast = parser("foo(baz, hoge)")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@foo{
+        | -> baz: 0
+        | -> hoge: 1
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "parse brace abbreviated edges" in {
+    val ast = parser("foo foo: baz, bar: hoge")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@foo{
+        | -> baz: foo
+        | -> hoge: bar
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "parse brace and edge label abbreviated edges" in {
+    val ast = parser("foo baz, hoge")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@foo{
+        | -> baz: 0
+        | -> hoge: 1
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "brace abbr, and contains binop expressions" in {
+    val graph = parser("foo (foo + bar)").toGraph
+    val expected = parser("foo(0: '+'(__lhs__: foo, __rhs__: bar))").toGraph
+    assert(graph ===~ expected)
+  }
+
+  it should "brace abbr, three atoms" in {
+    val graph = parser("foo bar baz").toGraph
+    val expected = parser("foo(bar(baz))").toGraph
+    assert(graph ===~ expected)
+  }
+
+  it should "brace abbr, with cell" in {
+    val graph = parser("foo {hoge}").toGraph
+    val expected = parser("foo(0: __cell__(__item__: hoge))").toGraph
+    assert(graph ===~ expected)
+  }
+
+  it should "brace abbr, with cell 2" in {
+    val ast = parser("foo {hoge}, bar: {foo}")
+    val graph = ast.toGraph
+    val expected = parser("foo(0: __cell__(__item__: hoge), bar: __cell__(__item__: foo))").toGraph
+    assert(graph ===~ expected)
+  }
+
+  it should "parse vertex with newline in functor" in {
+    val graph = parser(
+      """foo(
+        |   bar,
+        |   baz
+        |)""".stripMargin).toGraph
+    val expected = parser("foo(bar, baz)").toGraph
+    assert(graph ===~ expected)
+  }
+
+  it should "parse vertex with newline in functor with abbreviated edges" in {
+    val graph = parser(
+      """foo bar,
+        |   baz""".stripMargin).toGraph
+    val expected = parser("foo(bar, baz)").toGraph
+    assert(graph ===~ expected)
   }
 }
 
