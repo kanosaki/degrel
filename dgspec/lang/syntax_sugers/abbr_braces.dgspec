@@ -1,0 +1,20 @@
+
+caption: Abbreviated edge should have numbered edge.
+version: 1
+seq_spec:
+  - init: >
+      foo bar baz
+  - assert: >
+      foo(bar(baz))
+  - init: >
+      foo bar + baz
+  - assert: >
+      '+'(__lhs__: foo(0: bar), __rhs__: baz)
+  - assert: >
+      foo(bar) + baz
+  - init: >
+      var hoge = fuga
+  - assert: >
+      '='(__lhs__: var(0: hoge), __rhs__: fuga)
+
+# vim: ft=yaml sw=2 ts=2 sts=2

@@ -5,8 +5,9 @@ import scala.util.matching.Regex
 import scala.util.parsing.combinator.JavaTokenParsers
 
 class TermParser(val parsercontext: ParserContext = ParserContext.default) extends JavaTokenParsers {
+  // original whiteSpace = \s+ == [ \t\n\x0B\f\r]+
+  override protected val whiteSpace: Regex = """[ \t]+""".r
   implicit val context = parsercontext
-
   /**
    * 頂点のラベルとして使えるものの正規表現
    */
@@ -22,15 +23,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * @todo エスケープできるようにする
    */
   val PAT_ATTR_KEY = """[^:]+""".r
-
   val PAT_BINOP = """[\-\.!#$%^&*+=|:<>/?]+""".r
-
   val PAT_FULL_LABEL = """[_\-\.!#$%^&*+=|:<>/?A-Za-z0-9]+""".r
-
   val PAT_BINDING = """[A-Z0-9][a-zA-Z0-9_]*""".r
-
-  // original whiteSpace = \s+ == [ \t\n\x0B\f\r]+
-  override protected val whiteSpace: Regex = """[ \t]+""".r
 
   /**
    * End of Line
@@ -71,8 +66,8 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
     } | bindingDeclare ^^ {
       case bind => AstName(Some(AstLabel("_")), Some(bind))
     } | binding ^^ {
-        case b => AstName(None, Some(b))
-      }
+      case b => AstName(None, Some(b))
+    }
 
   def othersEdge: Parser[AstEdgeElement] = ("_" ~ ":") ~> (
     binding ^^ {
@@ -83,7 +78,9 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
       }
     )
 
-  def normalEdge: Parser[AstEdgeElement] = opt(label <~ ":") ~ expr ^^ {
+  def normalEdge: Parser[AstEdgeElement] = label ~ ":" ~ expr ^^ {
+    case n ~ _ ~ v => AstAbbrEdge(Some(n), v)
+  } | opt(label <~ ":") ~ element ^^ {
     case n ~ v => AstAbbrEdge(n, v)
   }
 
@@ -123,15 +120,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * 頂点の持つ接続の集合パーサー
    */
-  def edges: Parser[AstEdges] = ("(" ~> seek(repsep(edge, edgeSep)) <~ seek(")") | repsep(edge, edgeSep) )^^ handleEdgeElements
-
-
-  /**
-   * 属性のパーサー
-   */
-  def attribute: Parser[AstAttribute] = PAT_ATTR_KEY ~ ":" ~ PAT_ATTR_VALUE ^^ {
-    case key ~ _ ~ value => AstAttribute(key, value)
-  }
+  def edges: Parser[AstEdges] = ("(" ~> seek(repsep(edge, edgeSep)) <~ seek(")") | repsep(edge, edgeSep)) ^^ handleEdgeElements
 
   /**
    * 頂点の持つ属性の集合パーサー
@@ -141,10 +130,17 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   }
 
   /**
+   * 属性のパーサー
+   */
+  def attribute: Parser[AstAttribute] = PAT_ATTR_KEY ~ ":" ~ PAT_ATTR_VALUE ^^ {
+    case key ~ _ ~ value => AstAttribute(key, value)
+  }
+
+  /**
    * 構文解析器における頂点とは，v(foo: bar)のような構文上正規の頂点のみです
    * Cell等もランタイムでは頂点ですが，ここでは頂点に含まれません
    */
-  def functor: Parser[AstFunctor] = name ~  opt(edges) ^^ {
+  def functor: Parser[AstFunctor] = name ~ opt(edges) ^^ {
     case n ~ Some(es) => AstFunctor(n, None, es)
     case n ~ None => AstFunctor(n, None, AstEdges(Seq(), None))
   }
@@ -224,7 +220,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    * {@code expr}において，次の演算子と項の部分
    */
   def binopRight: Parser[(AstBinOp, AstVertex)] = binop ~ opt(NLs) ~ element ^^ {
-    case  op ~ _ ~ ex => (op, ex)
+    case op ~ _ ~ ex => (op, ex)
   }
 
   /**

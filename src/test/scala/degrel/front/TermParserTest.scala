@@ -50,6 +50,18 @@ class TermParserTest extends FlatSpec {
     assert(graph ===~ expected)
   }
 
+  it should "parse a quoted vertex" in {
+    val ast = parser("'->'(__lhs__: a, __rhs__: b)")
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@'->'{
+        |  -> a : __lhs__
+        |  -> b : __rhs__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
   it should "construct a functor with one capture" in {
     val ast = parser("foo@X(bar: baz, hoge: fuga(piyo: X))")
     val graph = graphbuilder.build(ast)
@@ -309,12 +321,13 @@ class TermParserTest extends FlatSpec {
   }
 
   it should "parse brace and edge label abbreviated edges" in {
-    val ast = parser("foo baz, hoge")
+    val ast = parser("foo baz, hoge fuga")
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@foo{
         | -> baz: 0
         | -> hoge: 1
+        | hoge -> fuga: 0
         |}
       """.stripMargin)
     assert(graph ===~ expected)
@@ -323,6 +336,24 @@ class TermParserTest extends FlatSpec {
   it should "brace abbr, and contains binop expressions" in {
     val graph = parser("foo (foo + bar)").toGraph
     val expected = parser("foo(0: '+'(__lhs__: foo, __rhs__: bar))").toGraph
+    assert(graph ===~ expected)
+  }
+
+  it should "brace abbr, and contains binop expressions without braces" in {
+    val graph = parser("foo foo -> bar").toGraph
+    val expected = parser("foo(foo) -> bar").toGraph
+    assert(graph ===~ expected)
+  }
+
+  it should "brace abbr, and contains binop expressions without braces 2" in {
+    val graph = parser("foo foo -> bar baz").toGraph
+    val expected = parser("foo(foo) -> bar(baz)").toGraph
+    assert(graph ===~ expected)
+  }
+
+  it should "brace abbr, and contains binop expressions, and captureing without braces 2" in {
+    val graph = parser("foo foo, @Bar -> Bar baz").toGraph
+    val expected = parser("foo(foo, @Bar) -> Bar(baz)").toGraph
     assert(graph ===~ expected)
   }
 
