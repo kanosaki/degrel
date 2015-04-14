@@ -4,6 +4,9 @@ import degrel.core._
 
 trait MolderFactory {
   def get(mold: Vertex, ctx: MoldingContext): Molder = {
+    if (mold.isValue[Any]) {
+      return new ValueMolder(mold, ctx)
+    }
     mold.label match {
       case Label.V.reference => {
         val refTarget = mold.thruSingle(Label.E.ref)
