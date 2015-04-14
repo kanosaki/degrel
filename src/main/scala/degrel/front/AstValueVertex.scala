@@ -1,6 +1,6 @@
 package degrel.front
 
-import degrel.core.{ObjectVertex, ValueVertex}
+import degrel.core.ValueVertex
 
 trait AstValueVertex[T] extends AstVertex {
   def toVertex: ValueVertex[T]

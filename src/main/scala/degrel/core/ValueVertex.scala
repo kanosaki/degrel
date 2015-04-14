@@ -1,7 +1,8 @@
 package degrel.core
 
-trait ValueVertex[T] extends VertexBody {
-  val get: T
+import scala.reflect.runtime.universe.{TypeTag, typeOf, runtimeMirror}
+
+class ValueVertex[T: TypeTag](val get: T) extends VertexBody {
 
   override def edges: Iterable[Edge] = Seq()
 
@@ -14,12 +15,10 @@ trait ValueVertex[T] extends VertexBody {
     case other => Label(other.toString)
   }
 
-  override def isValue[TV]: Boolean = {
-    get.isInstanceOf[TV]
-  }
+  override def isValue: Boolean = true
 
-  override def getValue[TV]: Option[TV] = {
-    if (this.isValue[TV]) {
+  override def getValue[TV: TypeTag]: Option[TV] = {
+    if (typeOf[TV] =:= typeOf[T]) {
       Some(get.asInstanceOf[TV])
     } else {
       None
@@ -27,12 +26,8 @@ trait ValueVertex[T] extends VertexBody {
   }
 }
 
-class ObjectVertex[T](val get: T) extends ValueVertex[T] {
-
-}
-
 object ValueVertex {
-  def apply[T](value: T): ValueVertex[T] = {
-    new ObjectVertex[T](value)
+  def apply[T: TypeTag](value: T): ValueVertex[T] = {
+    new ValueVertex[T](value)
   }
 }

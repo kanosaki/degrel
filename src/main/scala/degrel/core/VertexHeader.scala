@@ -1,5 +1,7 @@
 package degrel.core
 
+import scala.reflect.runtime.universe.TypeTag
+
 trait VertexHeader extends Vertex {
   def body: VertexBody
 
@@ -13,10 +15,9 @@ trait VertexHeader extends Vertex {
 
   def attributes: Map[Label, String] = body.attributes
 
+  override def isValue: Boolean = body.isValue
 
-  override def isValue[T]: Boolean = body.isValue[T]
-
-  override def getValue[T]: Option[T] = body.getValue[T]
+  override def getValue[T: TypeTag]: Option[T] = body.getValue[T]
 
   val id: ID = ID.autoAssign
 }

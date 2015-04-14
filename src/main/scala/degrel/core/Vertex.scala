@@ -1,9 +1,8 @@
 package degrel.core
 
-
+import scala.reflect.runtime.universe.TypeTag
 import degrel.core.utils.{PrettyPrintOptions, PrettyPrinter}
-import degrel.engine.rewriting.matching.{VertexMatching, MatchingContext, Matcher}
-import degrel.engine.rewriting.molding.MoldingContext
+import degrel.engine.rewriting.matching.{Matcher, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
   def edges: Iterable[Edge]
@@ -53,14 +52,14 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def isRule: Boolean =
     this.label == Label.V.rule &&
-    this.hasEdge(Label.E.rhs) &&
-    this.hasEdge(Label.E.lhs)
+      this.hasEdge(Label.E.rhs) &&
+      this.hasEdge(Label.E.lhs)
 
   def isCell: Boolean = this.label == Label.V.cell
 
-  def isValue[T]: Boolean = false
+  def isValue: Boolean = false
 
-  def getValue[T]: Option[T] = None
+  def getValue[T: TypeTag]: Option[T] = None
 
   def thruSingle(label: Label): Vertex = {
     val candidates = this.edgesWith(label)

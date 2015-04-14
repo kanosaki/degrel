@@ -4,7 +4,7 @@ import degrel.core._
 
 trait MolderFactory {
   def get(mold: Vertex, ctx: MoldingContext): Molder = {
-    if (mold.isValue[Any]) {
+    if (mold.isValue) {
       return new ValueMolder(mold, ctx)
     }
     mold.label match {
