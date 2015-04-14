@@ -49,7 +49,14 @@ class DgspecRunner extends FlatSpec with Logger {
       if (filename.endsWith(".dgspec")
         || filename.endsWith(".yaml")
         || filename.endsWith(".yml")) {
-        foundSpecs += loadSpec(file)
+        try {
+          foundSpecs += loadSpec(file)
+        } catch {
+          case e: Throwable => {
+            System.err.println(s"Error file loading $file")
+            throw e
+          }
+        }
       }
       FileVisitResult.CONTINUE
     }

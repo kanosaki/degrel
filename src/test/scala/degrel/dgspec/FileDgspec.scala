@@ -11,6 +11,9 @@ class FileDgspec(path: Path) extends Dgspec {
     SpecFile.decode(tree)
   }
 
+
+  override def isIgnored: Boolean = spec.ignored
+
   override def description: String = {
     s"""$path "${spec.caption}""""
   }

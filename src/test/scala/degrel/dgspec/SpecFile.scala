@@ -9,14 +9,15 @@ import scala.collection.JavaConversions._
 
 case class SpecFile(caption: String,
                     spec: SpecPiece,
-                    description: Option[String]) extends SpecPiece {
+                    description: Option[String],
+                    ignored: Boolean) extends SpecPiece {
   override def evaluate(ctx: SpecContext): NextPiece = {
     spec.evaluate(ctx)
   }
 }
 
 object SpecFile {
-  val ROOT_SPEC_NAMES = Set("caption", "description", "version")
+  val ROOT_SPEC_NAMES = Set("caption", "description", "version", "ignore")
   val SPEC_VERSION = "1"
 
   // TODO: DI使ったほうがいい?
@@ -24,6 +25,25 @@ object SpecFile {
     val mapper = new ObjectMapper(new YAMLFactory())
     mapper.registerModule(DefaultScalaModule)
     mapper
+  }
+
+  def decode(node: JsonNode)(implicit specFactory: SpecFactory): SpecFile = {
+    val caption = getRequired(node, "caption").asText
+    val description = getOption(node, "description").map(_.asText())
+    val ignored = getOption(node, "ignore").exists(_.asBoolean(false))
+    val version = getRequired(node, "version").asInt.toString
+    require(version == SPEC_VERSION, s"Incompatible spec file(version $version), supported version: $SPEC_VERSION")
+    val otherFields = node
+      .fields
+      .filter(entry => !ROOT_SPEC_NAMES.contains(entry.getKey))
+    val specs = otherFields
+      .map(entry => specFactory.getObject(entry.getKey, entry.getValue))
+      .toList
+    specs match {
+      case Nil => new SpecFile(caption, VoidSpecPiece, description, ignored)
+      case first :: Nil => new SpecFile(caption, specs.head, description, ignored)
+      case _ => throw new Exception("Cannot handle 2 or more root specs.")
+    }
   }
 
   def getRequired(node: JsonNode, key: String): JsonNode = {
@@ -40,24 +60,6 @@ object SpecFile {
       Some(value)
     } else {
       None
-    }
-  }
-
-  def decode(node: JsonNode)(implicit specFactory: SpecFactory): SpecFile = {
-    val caption = getRequired(node, "caption").asText
-    val description = getOption(node, "description").flatMap(n => Some(n.asText()))
-    val version = getRequired(node, "version").asInt.toString
-    require(version == SPEC_VERSION, s"Incompatible spec file(version $version), supported version: $SPEC_VERSION")
-    val otherFields = node
-      .fields
-      .filter(entry => !ROOT_SPEC_NAMES.contains(entry.getKey))
-    val specs = otherFields
-      .map(entry => specFactory.getObject(entry.getKey, entry.getValue))
-      .toList
-    specs match {
-      case Nil => new SpecFile(caption, VoidSpecPiece, description)
-      case first :: Nil => new SpecFile(caption, specs.head, description)
-      case _ => throw new Exception("Cannot handle 2 or more root specs.")
     }
   }
 }
