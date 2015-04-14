@@ -7,12 +7,13 @@ import degrel.engine.rewriting.molding.MoldingContext
 
 /**
  * 書き換えを実行します
+ * 基本的にグラフの規則を元に書き換えを実行しますが，一部規則は
+ * ネイティブ実装されます．
  */
 trait Rewriter extends Logger {
   self =>
-  def rule: Rule
+  def isSpawnsCells: Boolean
 
-  lazy val spawnsCells = Traverser(rule.rhs).exists(_.isCell)
 
   /**
    * この書き換え機で`target`を書き換えます．
@@ -22,44 +23,9 @@ trait Rewriter extends Logger {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: Vertex): RewriteResult = {
-    val mch = target.matches(rule.lhs)
-    if (mch.success) {
-      val binding = this.getBinding(mch.pack)
-      val vh = target.asInstanceOf[VertexHeader]
-      if (rule.rhs.isRule) {
-        val cont = Continuation.HasNext(rule.rhs.asRule, binding)
-        RewriteResult(done = true, cont)
-      } else {
-        val builtGraph = molding.mold(rule.rhs, binding)
-        vh.write(builtGraph)
-        RewriteResult(done = true)
-      }
-    } else {
-      RewriteResult(done = false)
-    }
-  }
+  def rewrite(target: Vertex): RewriteResult
 
-  protected def getBinding(pack: BindingPack): Binding
-
-  def build(target: Vertex): Option[Vertex] = {
-    val mch = target.matches(rule.lhs)
-    if (mch.success) {
-      val binding = this.pick(mch.pack)
-      Some(molding.mold(rule.rhs, binding))
-    } else {
-      None
-    }
-  }
-
-  /**
-   * マッチした可能性のうち一つを選択します
-   * @param pack すべてのパターンマッチのパターン
-   * @return そのうち1つのパターンマッチ
-   */
-  protected def pick(pack: BindingPack): Binding = {
-    pack.pickFirst
-  }
+  def build(target: Vertex): Option[Vertex]
 }
 
 object Rewriter {

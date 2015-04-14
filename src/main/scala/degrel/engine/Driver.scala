@@ -15,7 +15,7 @@ class Driver(val cell: Cell) extends Reactor {
   private val children: mutable.Buffer[Driver] = mutable.ListBuffer()
   private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
 
-  def rewriters = cell.rules.map(Rewriter(_))
+  def rewriters = cell.rules.map(Rewriter(_)) ++ degrel.builtins.rewriter.default
 
   /**
    * 1回書き換えます
@@ -79,7 +79,7 @@ class Driver(val cell: Cell) extends Reactor {
         }
         case Empty => contRewriters -= rw
       }
-      if (rw.spawnsCells) {
+      if (rw.isSpawnsCells) {
         val spawnedCells = Traverser(v, _.isCell, TraverseRegion.WallOnly)
         children ++= spawnedCells.map(_.asCell).map(new Driver(_))
       }

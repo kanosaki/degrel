@@ -24,6 +24,7 @@ class BuiltinBuilderFactory extends BuilderFactory {
       case _ => new ExprBuilder(parent, binExpr)
     }
     case functor: AstFunctor => new FunctorBuilder(parent, functor)
+    case value: AstValueVertex[_] => new ValueVertexBuilder(parent, value)
     case _ => throw new BuilderException(s"Cannot found builder for $ast")
   }
 

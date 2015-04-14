@@ -58,6 +58,10 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def isCell: Boolean = this.label == Label.V.cell
 
+  def isValue[T]: Boolean = false
+
+  def getValue[T]: Option[T] = None
+
   def thruSingle(label: Label): Vertex = {
     val candidates = this.edgesWith(label)
     candidates.size match {

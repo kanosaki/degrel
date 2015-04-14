@@ -204,10 +204,15 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
 
   def cellItemList: Parser[Seq[AstCellItem]] = rep(cellItem)
 
+  def value: Parser[AstVertex] =
+    stringLiteral ^^ AstStringVertex |
+    wholeNumber ^^ AstIntegerVertex |
+    floatingPointNumber ^^ AstFloatVertex
+
   /**
    * 二項演算子のオペランドになる項
    */
-  def element: Parser[AstVertex] = "(" ~> expr <~ ")" | cell | functor
+  def element: Parser[AstVertex] = "(" ~> expr <~ ")" | cell | value | functor
 
   /**
    * 二項演算子

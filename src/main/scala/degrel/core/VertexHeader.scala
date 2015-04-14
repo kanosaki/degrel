@@ -13,6 +13,11 @@ trait VertexHeader extends Vertex {
 
   def attributes: Map[Label, String] = body.attributes
 
+
+  override def isValue[T]: Boolean = body.isValue[T]
+
+  override def getValue[T]: Option[T] = body.getValue[T]
+
   val id: ID = ID.autoAssign
 }
 

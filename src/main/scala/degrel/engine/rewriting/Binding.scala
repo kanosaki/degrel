@@ -4,13 +4,15 @@ import degrel.core
 import degrel.core.{Edge, Vertex, Element}
 
 object Binding {
-  def apply(bridges: Seq[MatchBridge[Element]], parent: Binding = null) = {
+  def apply(bridges: Seq[MatchBridge[Element]], parent: Binding = null): Binding = {
     if (parent == null) {
       new Binding(bridges)
     } else {
       new ChainedBinding(bridges, parent)
     }
   }
+
+  def empty(): Binding = Binding(Seq())
 }
 
 class Binding(private[rewriting] val bridges: Seq[MatchBridge[Element]]) extends Map[Element, Element] {

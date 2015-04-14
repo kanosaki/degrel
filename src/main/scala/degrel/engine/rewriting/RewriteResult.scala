@@ -12,5 +12,10 @@ object RewriteResult {
   def apply(done: Boolean, cont: Continuation) = {
     new RewriteResult(done, cont)
   }
+
+  /**
+   * Nothing performed
+   */
+  val NOP = new RewriteResult(false)
 }
 

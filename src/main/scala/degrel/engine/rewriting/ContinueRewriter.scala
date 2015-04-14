@@ -2,7 +2,7 @@ package degrel.engine.rewriting
 
 import degrel.core.Rule
 
-class ContinueRewriter(val rule: Rule, val continuation: Continuation) extends Rewriter {
+class ContinueRewriter(val rule: Rule, val continuation: Continuation) extends BasicRewriter {
   override protected def getBinding(pack: BindingPack): Binding = {
     val currentBinding = this.pick(pack)
     val prevBinding = continuation match {
@@ -10,4 +10,5 @@ class ContinueRewriter(val rule: Rule, val continuation: Continuation) extends R
     }
     new ChainedBinding(currentBinding.bridges, prevBinding)
   }
+
 }
