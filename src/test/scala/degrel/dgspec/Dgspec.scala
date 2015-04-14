@@ -1,10 +1,6 @@
 package degrel.dgspec
 
-import java.nio.file.Path
-
 import org.scalatest.{FlatSpecLike, Tag}
-
-import scala.io.Source
 
 trait Dgspec extends FlatSpecLike {
   def isIgnored = false
@@ -15,9 +11,7 @@ trait Dgspec extends FlatSpecLike {
 
   def spec: SpecPiece
 
-  def apply(): Unit = {
-    val content = new SpecContext()
-  }
+  def apply(): Unit
 
   override def toString: String = {
     s"<Dgspec $description>"

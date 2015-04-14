@@ -9,7 +9,7 @@ import scala.io.Source
 
 object Main {
   def main(args: Array[String]) = {
-    val console = new ConsoleHandle(Chassis.createMain("degrel"))
+    val console = new ConsoleHandle(Chassis.createWithMain())
     console.start()
   }
 }

@@ -25,15 +25,12 @@ class Driver(val cell: Cell) extends Reactor {
    * 3. 書き換えの実行
    */
   def step(): Boolean = {
-    for (rw <- contRewriters ++ this.rewriters) {
-      this.rewriteTargets.find { v =>
+    val applicativeRewriters = contRewriters ++ this.rewriters
+    applicativeRewriters.exists { rw =>
+      this.rewriteTargets.exists { v =>
         this.execRewrite(rw, v)
-      } match {
-        case Some(_) => return true
-        case _ =>
       }
     }
-    false
   }
 
   def stepRecursive(): Boolean = {
@@ -46,9 +43,8 @@ class Driver(val cell: Cell) extends Reactor {
   def rewriteTargets: Iterable[Vertex] = {
     val roots = cell
       .edges
-      .filter(_.label != Label.E.cellRule)
+      .filter(_.label == Label.E.cellItem)
       .map(_.dst)
-      .filter(_.label != Label.V.rule)
     roots.flatMap(Traverser(_, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.InnerOnly)))
   }
 
@@ -59,7 +55,7 @@ class Driver(val cell: Cell) extends Reactor {
       count += 1
       if (!rewrote) return count
       if (limit > 0 && count > limit) {
-        throw DegrelException("Exec limitation exceeded.")
+        throw DegrelException(s"Exec limitation exceeded. \n${cell.pp}")
       }
     }
     count

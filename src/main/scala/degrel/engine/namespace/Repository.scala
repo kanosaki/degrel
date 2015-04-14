@@ -19,3 +19,9 @@ class Repository {
     map.get(name)
   }
 }
+
+object Repository {
+  def apply(): Repository = {
+    new Repository()
+  }
+}

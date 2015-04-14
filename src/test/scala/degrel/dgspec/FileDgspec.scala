@@ -19,7 +19,7 @@ class FileDgspec(path: Path) extends Dgspec {
   }
 
   override def apply() = {
-    val context = new SpecContext()
+    val context = SpecContext.default()
     spec.evaluate(context)
   }
 }

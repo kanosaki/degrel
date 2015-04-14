@@ -4,4 +4,6 @@ class SpecFileErrorSpec extends Dgspec {
   override def description: String = ???
 
   override def spec: SpecPiece = ???
+
+  override def apply(): Unit = ???
 }

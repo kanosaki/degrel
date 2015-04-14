@@ -1,19 +1,9 @@
 package degrel.engine
 
-import akka.actor.ActorSystem
-import degrel.core.{Label, Cell}
+import degrel.core.{Cell, Label}
 import degrel.engine.namespace.Repository
 
-class Chassis(val name: String) {
-  private val _repo = new Repository()
-
-  val akka = new AkkaController(name)
-
-  def boot(): Unit = akka.boot()
-
-  def system: ActorSystem = akka.system
-
-  def repository: namespace.Repository = _repo
+class Chassis(_repo: Repository) {
 
   def getDriver(name: String): Option[Driver] = {
     val key = name.split(namespace.NAME_DELIMITER).map(Symbol(_)).toList
@@ -31,11 +21,22 @@ class Chassis(val name: String) {
   def main: Driver = {
     repository.get(Label.N.main).get
   }
+
+  def repository: namespace.Repository = _repo
 }
 
 object Chassis {
-  def createMain(name: String): Chassis = {
-    val ch = new Chassis(name)
+  def create(initRepo: Repository = null): Chassis = {
+    val repo = if (initRepo == null) {
+      new Repository()
+    } else {
+      initRepo
+    }
+    new Chassis(repo)
+  }
+
+  def createWithMain(initRepo: Repository = null): Chassis = {
+    val ch = Chassis.create(initRepo)
     ch.repository.register(Label.N.main, new Driver(Cell(Seq())))
     ch
   }

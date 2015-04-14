@@ -2,7 +2,7 @@ package degrel
 
 package object engine {
   lazy val default = {
-    val engine = new Chassis("degrel")
+    val engine = Engine()
     engine.boot()
     engine
   }
