@@ -1,6 +1,6 @@
 package degrel.builtins.cell
 
-import degrel.core.{Cell, Vertex, Label}
+import degrel.core.{Cell, Label, Vertex, VertexHeader}
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
 
 class Fin extends Rewriter {
@@ -14,7 +14,7 @@ class Fin extends Rewriter {
 
   override def build(target: Vertex): Option[Vertex] = ???
 
-  override def rewrite(target: Vertex, parent: Cell): RewriteResult = {
+  override def rewrite(target: VertexHeader, parent: Cell): RewriteResult = {
     if (target.label == finLabel) {
       val lhs = target.thru(Label.E.lhs).headOption
       val rhs = target.thru(Label.E.rhs).headOption
@@ -22,8 +22,7 @@ class Fin extends Rewriter {
         case ((Some(l), Some(r))) if l.isCell => {
           val targetCell = l.asCell
           targetCell.addRoot(r)
-          val vh = target.asHeader
-          vh.write(targetCell)
+          target.write(targetCell)
           RewriteResult(done = true)
         }
         case _ => RewriteResult.NOP

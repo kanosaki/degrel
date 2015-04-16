@@ -5,7 +5,7 @@ import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
 class MathTest extends FlatSpec {
-  val vertex = degrel.parseVertex _
+  def vertex(s: String) = degrel.parseVertex(s).asHeader
 
   "Plus rewriter" should "plus numbers" in {
     val targetV = vertex("1 + 2")
