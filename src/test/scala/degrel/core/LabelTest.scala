@@ -19,4 +19,10 @@ class LabelTest extends FlatSpec {
     assert(l === "foobar")
     assert(l === 'foobar)
   }
+
+  it should "denoted as meta if it starts with double underscore" in {
+    assert(Label("__foobar__").isMeta)
+    assert(!Label("_foobar").isMeta)
+    assert(!Label("foobar").isMeta)
+  }
 }

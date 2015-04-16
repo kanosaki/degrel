@@ -1,7 +1,7 @@
 package degrel.builtins.rewriter.math
 
-import degrel.core.{Label, ValueVertex, Vertex}
-import degrel.engine.rewriting.{Binding, BindingPack, RewriteResult, Rewriter}
+import degrel.core.{Cell, Label, ValueVertex, Vertex}
+import degrel.engine.rewriting.{RewriteResult, Rewriter}
 import degrel.front.BinOp
 
 class Plus extends Rewriter {
@@ -9,7 +9,7 @@ class Plus extends Rewriter {
 
   override def isSpawnsCells: Boolean = false
 
-  override def rewrite(target: Vertex): RewriteResult = {
+  override def rewrite(target: Vertex, parent: Cell): RewriteResult = {
     if (target.label == plusLabel) {
       val result = for {
         lhs <- target.thru(Label.E.lhs).headOption

@@ -9,7 +9,10 @@ trait Cell extends Vertex {
 }
 
 object Cell {
-  def apply(edges: Iterable[Edge]) = {
+  def apply(): Cell = {
+    Cell(Seq())
+  }
+  def apply(edges: Iterable[Edge]): Cell = {
     new CellHeader(CellBody(edges))
   }
 }

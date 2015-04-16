@@ -2,6 +2,11 @@ package degrel.engine.rewriting.molding
 
 import degrel.core._
 
+/**
+ * 通常の頂点が`Mold`の場合に使用します
+ * @param mold
+ * @param context
+ */
 class PlainMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
   override val header: VertexHeader = context.getHeader(mold)
 

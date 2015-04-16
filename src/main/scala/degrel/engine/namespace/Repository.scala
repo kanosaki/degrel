@@ -1,5 +1,8 @@
 package degrel.engine.namespace
 
+/**
+ * 名前空間
+ */
 class Repository {
   val map = new degrel.utils.collection.mutable.BiHashMap[Name, Content]()
 

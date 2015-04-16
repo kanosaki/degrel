@@ -3,6 +3,11 @@ package degrel.engine
 import degrel.core.{Cell, Label}
 import degrel.engine.namespace.Repository
 
+/**
+ * 名前空間を管理します
+ * @todo 冗長?
+ * @param _repo 管理する名前空間
+ */
 class Chassis(_repo: Repository) {
 
   def getDriver(name: String): Option[Driver] = {

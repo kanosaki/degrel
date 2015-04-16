@@ -1,5 +1,6 @@
 package degrel.builtins.rewriter.math
 
+import degrel.core.Cell
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
@@ -16,7 +17,7 @@ class MathTest extends FlatSpec {
       "Plus rewriter" should description in {
         val targetV = vertex(target)
         val expectedV = vertex(expected)
-        assert(rw.rewrite(targetV).done)
+        assert(rw.rewrite(targetV, Cell()).done)
         assert(targetV ===~ expectedV)
       }
     }

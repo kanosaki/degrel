@@ -40,8 +40,12 @@ class ConsoleHandle(val chassis: Chassis, commandSet: Option[Seq[ConsoleCommand]
   }
 
   private def evalLine(line: String) = {
-    val input = degrel.parseVertex(line)
-    this.current.send(input)
+    try {
+      val input = degrel.parseVertex(line)
+      this.current.send(input)
+    } catch {
+      case e: Throwable => console.println(e.toString)
+    }
   }
 
   private def afterEval() = {

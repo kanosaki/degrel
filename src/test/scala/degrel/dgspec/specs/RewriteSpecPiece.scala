@@ -9,7 +9,7 @@ case class RewriteSpecPiece() extends SpecPiece {
     ctx.root match {
       case ctxCell: Cell => {
         val pra = new Driver(ctxCell)
-        pra.stepUntilStop()
+        pra.stepUntilStop(RewriteSpecPiece.DEFAULT_MAX_REWRITE_COUNT)
         NextPiece.Continue
       }
       case _ => {
@@ -17,4 +17,8 @@ case class RewriteSpecPiece() extends SpecPiece {
       }
     }
   }
+}
+
+object RewriteSpecPiece {
+  val DEFAULT_MAX_REWRITE_COUNT = 100
 }

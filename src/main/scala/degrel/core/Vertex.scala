@@ -74,6 +74,10 @@ trait Vertex extends Element with Comparable[Vertex] {
     this.edgesWith(label).map(_.dst)
   }
 
+  def thru(index: Int): Iterable[Vertex] = {
+    this.thru(Label(index.toString))
+  }
+
   def thru(pred: Edge => Boolean): Iterable[Vertex] = {
     this.edges.filter(pred).map(_.dst)
   }

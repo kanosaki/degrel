@@ -69,11 +69,11 @@ class Driver(val cell: Cell) extends Reactor {
   }
 
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
-    val res = rw.rewrite(v)
+    val res = rw.rewrite(v, this.cell)
     if (res.done) {
       import degrel.engine.rewriting.Continuation._
       res.continuation match {
-        case c@HasNext(nextRule, _) => {
+        case c@Continue(nextRule, _) => {
           contRewriters += Rewriter(nextRule, Some(c))
           cell.removeRoot(v)
         }

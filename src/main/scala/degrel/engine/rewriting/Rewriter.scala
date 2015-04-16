@@ -23,7 +23,7 @@ trait Rewriter extends Logger {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: Vertex): RewriteResult
+  def rewrite(target: Vertex, parent: Cell): RewriteResult
 
   def build(target: Vertex): Option[Vertex]
 }

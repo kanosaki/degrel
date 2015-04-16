@@ -2,6 +2,11 @@ package degrel.engine.rewriting.molding
 
 import degrel.core._
 
+/**
+ * 参照頂点についてMoldを実行します
+ * @param mold 使用する`Mold Vertex`
+ * @param context この`Molder`における`MoldingContext`
+ */
 class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
   /**
    * Pattern vertex.

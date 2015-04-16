@@ -15,6 +15,10 @@ object Binding {
   def empty(): Binding = Binding(Seq())
 }
 
+/**
+ * パターンマッチによって得られた，`Vertex`同士の対応を保存します．
+ * @param bridges 頂点同士の対応の列挙
+ */
 class Binding(private[rewriting] val bridges: Seq[MatchBridge[Element]]) extends Map[Element, Element] {
   protected val map: Map[Element, Element] = bridges.map(br => (br._1, br._2)).toMap
 
@@ -44,6 +48,11 @@ class Binding(private[rewriting] val bridges: Seq[MatchBridge[Element]]) extends
   }
 }
 
+/**
+ * 親を持つ`Binding`です．対応する`Vertex`を探索するときに自分で見つからなかった場合は親に委譲します
+ * @param _bridges 対応する頂点の`Seq`
+ * @param parent 親の`Binding`
+ */
 class ChainedBinding(_bridges: Seq[MatchBridge[Element]], val parent: Binding) extends Binding(_bridges) {
   require(parent != null)
 
