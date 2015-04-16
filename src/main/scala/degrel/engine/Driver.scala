@@ -87,3 +87,9 @@ class Driver(val cell: Cell) extends Reactor {
     res.done
   }
 }
+
+object Driver {
+  def apply(cell: Cell): Driver = {
+    new Driver(cell)
+  }
+}
