@@ -24,6 +24,12 @@ case class AstAttribute(key: String, value: String) extends AstLiteral {
 
 }
 
+/**
+ * 2項演算子を表すASTです．二項演算子は現れる文脈によってその結合方向と優先順位が変化します．
+ * その現在のコンテキストを`ParserContext`で受け取ります
+ * @param expr 二項演算子の表現
+ * @param ctx 現在の構文定義コンテキスト
+ */
 case class AstBinOp(expr: String)
                    (implicit ctx: ParserContext) extends AstLiteral with Comparable[AstBinOp]  {
   val op = ctx.findOp(expr) match {

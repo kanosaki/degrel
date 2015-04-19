@@ -32,6 +32,9 @@ class ParserContext(val parent: ParserContext = ParserContext.default) {
   }
 }
 
+/**
+ * デフォルトの`ParserContext`です．
+ */
 class DefaultParserContext extends ParserContext(null) {
   operators ++= BinOp.builtins.map(op => (op.expr, op))
 
