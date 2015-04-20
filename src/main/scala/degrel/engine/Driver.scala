@@ -2,8 +2,8 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.core._
-import degrel.core.utils.PrettyPrintOptions
 import degrel.engine.rewriting.Rewriter
+import degrel.utils.PrettyPrintOptions
 
 import scala.collection.mutable
 
@@ -68,8 +68,13 @@ class Driver(val cell: Cell) extends Reactor {
     this.cell.addRoot(msg)
   }
 
+  def spawn(cell: Cell): Cell = {
+    this.children += new Driver(cell)
+    cell
+  }
+
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
-    val res = rw.rewrite(v.asHeader, this.cell)
+    val res = rw.rewrite(v.asHeader, this)
     if (res.done) {
       import degrel.engine.rewriting.Continuation._
       res.continuation match {
@@ -79,16 +84,16 @@ class Driver(val cell: Cell) extends Reactor {
         }
         case Empty => contRewriters -= rw
       }
-      if (rw.isSpawnsCells) {
-        val spawnedCells = Traverser(v, _.isCell, TraverseRegion.WallOnly)
-        children ++= spawnedCells.map(_.asCell).map(new Driver(_))
-      }
     }
     res.done
   }
 }
 
 object Driver {
+  def apply(): Driver = {
+    Driver(Cell())
+  }
+
   def apply(cell: Cell): Driver = {
     new Driver(cell)
   }

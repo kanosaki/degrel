@@ -1,6 +1,7 @@
 package degrel.core.utils
 
 import degrel.core._
+import degrel.utils.PrettyPrintOptions
 
 import scala.collection.mutable
 

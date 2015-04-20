@@ -1,6 +1,7 @@
 package degrel.core.utils
 
 import degrel.front.Parser
+import degrel.utils.PrettyPrintOptions
 import org.scalatest.FlatSpec
 
 class PrettyPrinterTest extends FlatSpec {

@@ -2,7 +2,9 @@ package degrel.engine.rewriting
 
 import degrel.Logger
 import degrel.core._
+import degrel.engine.Driver
 import degrel.engine.rewriting.molding.MoldingContext
+import degrel.utils.PrettyPrintable
 
 
 /**
@@ -10,11 +12,8 @@ import degrel.engine.rewriting.molding.MoldingContext
  * 基本的にグラフの規則を元に書き換えを実行しますが，一部規則は
  * ネイティブ実装されます．
  */
-trait Rewriter extends Logger {
+trait Rewriter extends Logger with PrettyPrintable {
   self =>
-  def isSpawnsCells: Boolean
-
-
   /**
    * この書き換え機で`target`を書き換えます．
    * @param target 書き換える対象のグラフ
@@ -23,9 +22,11 @@ trait Rewriter extends Logger {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: VertexHeader, parent: Cell): RewriteResult
+  def rewrite(target: VertexHeader, parent: Driver): RewriteResult
 
-  def build(target: Vertex): Option[Vertex]
+  def rewrite(target: VertexHeader): RewriteResult = {
+    this.rewrite(target, Driver())
+  }
 }
 
 object Rewriter {

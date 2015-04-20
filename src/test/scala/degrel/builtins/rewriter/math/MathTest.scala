@@ -1,6 +1,6 @@
 package degrel.builtins.rewriter.math
 
-import degrel.core.Cell
+import degrel.engine.Driver
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
@@ -11,7 +11,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("1 + 2")
     val expectedV = vertex("3")
     val rw = new Plus()
-    assert(rw.rewrite(targetV, Cell()).done)
+    assert(rw.rewrite(targetV, Driver()).done)
     assert(targetV ===~ expectedV)
   }
 
@@ -19,7 +19,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("1 + x")
     val expectedV = vertex("1 + x")
     val rw = new Plus()
-    assert(!rw.rewrite(targetV, Cell()).done)
+    assert(!rw.rewrite(targetV, Driver()).done)
     assert(targetV ===~ expectedV)
   }
 
@@ -27,7 +27,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("1 + (-3)")
     val expectedV = vertex("-2")
     val rw = new Plus()
-    assert(rw.rewrite(targetV, Cell()).done)
+    assert(rw.rewrite(targetV, Driver()).done)
     assert(targetV ===~ expectedV)
   }
 
@@ -35,7 +35,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("(-3) + 1")
     val expectedV = vertex("-2")
     val rw = new Plus()
-    assert(rw.rewrite(targetV, Cell()).done)
+    assert(rw.rewrite(targetV, Driver()).done)
     assert(targetV ===~ expectedV)
   }
 
@@ -43,7 +43,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("(-3) + (-2)")
     val expectedV = vertex("-5")
     val rw = new Plus()
-    assert(rw.rewrite(targetV, Cell()).done)
+    assert(rw.rewrite(targetV, Driver()).done)
     assert(targetV ===~ expectedV)
   }
 

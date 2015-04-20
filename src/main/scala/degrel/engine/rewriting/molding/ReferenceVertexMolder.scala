@@ -31,11 +31,10 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
 
   override def process(ph: MoldPhase): Unit = {
     ph match {
-      case MoldPhase.Scan => {
-      }
       case MoldPhase.Mold => {
         this.doMold()
       }
+      case _ =>
     }
     super.process(ph)
   }

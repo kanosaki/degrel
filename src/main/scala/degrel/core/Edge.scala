@@ -1,9 +1,9 @@
 package degrel.core
 
-import degrel.core.utils.PrettyPrintOptions
 import degrel.engine.rewriting.matching._
 import degrel.engine.rewriting.molding.MoldingContext
 import degrel.engine.rewriting.{EdgeBridge, _}
+import degrel.utils.PrettyPrintOptions
 
 object Edge {
   def apply(src: Vertex, label: Label, dst: Vertex): Edge = {

@@ -1,6 +1,8 @@
 package degrel.engine.rewriting
 
 import degrel.core._
+import degrel.engine.Driver
+import degrel.utils.PrettyPrintOptions
 
 /**
  * グラフのルールを元に書き換えを実行します
@@ -20,7 +22,7 @@ abstract class BasicRewriter extends Rewriter {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: VertexHeader, parent: Cell): RewriteResult = {
+  def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
       val binding = this.getBinding(mch.pack)
@@ -28,7 +30,7 @@ abstract class BasicRewriter extends Rewriter {
         val cont = Continuation.Continue(rule.rhs.asRule, binding)
         RewriteResult(done = true, cont)
       } else {
-        val builtGraph = molding.mold(rule.rhs, binding)
+        val builtGraph = molding.mold(rule.rhs, binding, parent)
         target.write(builtGraph)
         RewriteResult(done = true)
       }
@@ -41,7 +43,7 @@ abstract class BasicRewriter extends Rewriter {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
       val binding = this.pick(mch.pack)
-      Some(molding.mold(rule.rhs, binding))
+      Some(molding.mold(rule.rhs, binding, ???))
     } else {
       None
     }
@@ -54,5 +56,9 @@ abstract class BasicRewriter extends Rewriter {
    */
   protected def pick(pack: BindingPack): Binding = {
     pack.pickFirst
+  }
+
+  override def pp(implicit opt: PrettyPrintOptions): String = {
+    this.rule.pp
   }
 }

@@ -12,11 +12,10 @@ class PlainMolder(val mold: Vertex, val context: MoldingContext) extends Molder 
 
   override def process(ph: MoldPhase): Unit = {
     ph match {
-      case MoldPhase.Scan => {
-      }
       case MoldPhase.Mold => {
         this.doMold()
       }
+      case _ =>
     }
     super.process(ph)
   }

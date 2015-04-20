@@ -1,20 +1,14 @@
 package degrel.builtins.cell
 
 import degrel.core.{Cell, Label, Vertex, VertexHeader}
+import degrel.engine.Driver
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.utils.PrettyPrintOptions
 
 class Fin extends Rewriter {
   val finLabel = Label("fin")
 
-  /**
-   * Cellを扱いますが生成は行わないため`false`
-   * @inheritdoc
-   */
-  override def isSpawnsCells: Boolean = true
-
-  override def build(target: Vertex): Option[Vertex] = ???
-
-  override def rewrite(target: VertexHeader, parent: Cell): RewriteResult = {
+  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
     if (target.label == finLabel) {
       val lhs = target.thru(Label.E.lhs).headOption
       val rhs = target.thru(Label.E.rhs).headOption
@@ -30,5 +24,9 @@ class Fin extends Rewriter {
     } else {
       RewriteResult.NOP
     }
+  }
+
+  override def pp(implicit opt: PrettyPrintOptions): String = {
+    "<Built-in rule 'Fin'>"
   }
 }

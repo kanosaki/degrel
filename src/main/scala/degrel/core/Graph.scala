@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.core.utils.PrettyPrintOptions
+import degrel.utils.PrettyPrintOptions
 
 
 object Graph {

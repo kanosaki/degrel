@@ -1,17 +1,15 @@
 package degrel.core
 
-import degrel.core.utils.PrettyPrintOptions
+import degrel.utils.PrettyPrintable
 
-trait Element {
+trait Element extends PrettyPrintable {
+  def ==~(other: Element): Boolean = this.isIsomorphicTo(other)
+
   def isIsomorphicTo(another: Element): Boolean = {
     operators.areIsomorphic(this, another)
   }
 
-  def ==~(other: Element): Boolean = this.isIsomorphicTo(other)
-
   def =/~(other: Element): Boolean = !this.isIsomorphicTo(other)
-
-  def pp(implicit opt: PrettyPrintOptions = PrettyPrintOptions.default): String
 
   override def toString: String = this.pp
 }

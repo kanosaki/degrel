@@ -1,15 +1,15 @@
 package degrel.builtins.rewriter.math
 
 import degrel.core._
+import degrel.engine.Driver
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
 import degrel.front.BinOp
+import degrel.utils.PrettyPrintOptions
 
 class Plus extends Rewriter {
   val plusLabel = BinOp.ADD.toLabel
 
-  override def isSpawnsCells: Boolean = false
-
-  override def rewrite(target: VertexHeader, parent: Cell): RewriteResult = {
+  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
     if (target.label == plusLabel) {
       val result = for {
         lhs <- target.thru(Label.E.lhs).headOption
@@ -29,5 +29,7 @@ class Plus extends Rewriter {
     }
   }
 
-  override def build(target: Vertex): Option[Vertex] = ???
+  override def pp(implicit opt: PrettyPrintOptions): String = {
+    "<Built-in rule 'Plus'>"
+  }
 }

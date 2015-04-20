@@ -1,7 +1,7 @@
 package degrel.control.console.commands
 
 import degrel.control.console.ConsoleHandle
-import degrel.core.utils.PrettyPrintOptions
+import degrel.utils.PrettyPrintOptions
 
 class PrintCommand extends ConsoleCommand {
   override def name: String = "print"

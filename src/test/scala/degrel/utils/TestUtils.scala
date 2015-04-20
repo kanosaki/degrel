@@ -1,13 +1,22 @@
 package degrel.utils
 
 import degrel.core.Element
-import degrel.core.utils.PrettyPrintOptions
 import org.scalatest.exceptions.TestFailedException
 
 import scala.language.implicitConversions
 
 
 object TestUtils {
+
+  implicit def testUtilsVertexExtension(elem: Element): TestUtilsElementExtensions = new TestUtilsElementExtensions(elem)
+
+  def assertElementSet(vA: Set[_ <: Element], vB: Set[_ <: Element]) = {
+    val vAmapped = vA.map(new ElementEqualityAdapter(_))
+    val vBmapped = vB.map(new ElementEqualityAdapter(_))
+    if (vAmapped != vBmapped) {
+      throw new TestFailedException(s"$vA not equals $vB", 0)
+    }
+  }
 
   class TestUtilsElementExtensions(elem: Element) {
     implicit val ppOpt = PrettyPrintOptions(multiLine = true)
@@ -24,16 +33,6 @@ object TestUtils {
         throw new TestFailedException(s"$elem did equal $other", 0)
       }
       true
-    }
-  }
-
-  implicit def testUtilsVertexExtension(elem: Element) = new TestUtilsElementExtensions(elem)
-
-  def assertElementSet(vA: Set[_ <: Element], vB: Set[_ <: Element]) = {
-    val vAmapped = vA.map(new ElementEqualityAdapter(_))
-    val vBmapped = vB.map(new ElementEqualityAdapter(_))
-    if (vAmapped != vBmapped) {
-      throw new TestFailedException(s"$vA not equals $vB", 0)
     }
   }
 }

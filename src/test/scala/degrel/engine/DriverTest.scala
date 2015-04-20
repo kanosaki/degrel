@@ -17,17 +17,32 @@ class DriverTest extends FlatSpec {
   }
 
   Seq(
+    ("Children works.",
+      """{
+        | before({
+        |   hoge(fuga: @X) -> X
+        | })
+        |
+        | before(@C) -> after(C ! hoge(fuga: foobar))
+        |}""".stripMargin,
+      """{
+        | after({
+        |   foobar
+        |   hoge(fuga: @X) -> X
+        | })
+        |
+        | before(@C) -> after(C ! hoge(fuga: foobar))
+        |}
+      """.stripMargin),
     ("Send message to a cell",
       """{
         | before({})
         |
-        | (__cell__(_:@Others) ! @X) ->  __cell__(__item__: X, _:Others)
         | before(@C) -> after(C ! hoge(fuga: foobar))
         |}""".stripMargin,
       """{
         | after({hoge(fuga: foobar)})
         |
-        | (__cell__(_:@Others) ! @X) ->  __cell__(__item__: X, _:Others)
         | before(@C) -> after(C ! hoge(fuga: foobar))
         |}
       """.stripMargin),

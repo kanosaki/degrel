@@ -1,4 +1,4 @@
-package degrel.core.utils
+package degrel.utils
 
 case class PrettyPrintOptions(showAllId: Boolean = false,
                               multiLine: Boolean = false,

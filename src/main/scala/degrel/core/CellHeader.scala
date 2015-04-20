@@ -22,4 +22,6 @@ class CellHeader(bdy: CellBody) extends VertexHeader with Cell {
   override def addRoot(v: Vertex): Unit = {
     _body.addRoot(v)
   }
+
+  override def asCell: Cell = this
 }

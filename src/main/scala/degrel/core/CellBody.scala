@@ -31,6 +31,10 @@ class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Vertex]) extends
       _roots += v
     }
   }
+
+  override def asCell: Cell = this
+
+  override def asCellBody: CellBody = this
 }
 
 object CellBody {

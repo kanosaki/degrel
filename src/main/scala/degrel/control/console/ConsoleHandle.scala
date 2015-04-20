@@ -2,8 +2,8 @@ package degrel.control.console
 
 import degrel.control.HandleBase
 import degrel.control.console.commands.ConsoleCommand
-import degrel.core.utils.PrettyPrintOptions
 import degrel.engine.Chassis
+import degrel.utils.PrettyPrintOptions
 import jline.console.ConsoleReader
 
 class ConsoleHandle(val chassis: Chassis, commandSet: Option[Seq[ConsoleCommand]] = None) extends HandleBase {

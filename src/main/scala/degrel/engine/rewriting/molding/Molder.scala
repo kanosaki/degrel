@@ -9,6 +9,14 @@ trait Molder {
     mold.edges
       .map(e => context.getMolder(e.dst))
       .foreach(_.process(ph))
+    ph match {
+      case MoldPhase.After => {
+        if (this.header.label == Label.V.cell) {
+          this.context.notifyCellSpawn(this.header.asCell)
+        }
+      }
+      case _ =>
+    }
   }
 
   def mold: Vertex
@@ -44,5 +52,5 @@ trait Molder {
 }
 
 object Molder {
-  val phases = Seq(MoldPhase.Scan, MoldPhase.Mold)
+  val phases = Seq(MoldPhase.Scan, MoldPhase.Mold, MoldPhase.After)
 }

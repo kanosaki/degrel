@@ -1,7 +1,9 @@
 package degrel.core
 
+import degrel.utils.PrettyPrintOptions
+
 import scala.reflect.runtime.universe.TypeTag
-import degrel.core.utils.{PrettyPrintOptions, PrettyPrinter}
+import degrel.core.utils.PrettyPrinter
 import degrel.engine.rewriting.matching.{Matcher, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
