@@ -1,4 +1,4 @@
-package degrel.builtins.cell
+package degrel.primitives.cell
 
 import degrel.engine.Driver
 import degrel.utils.TestUtils._

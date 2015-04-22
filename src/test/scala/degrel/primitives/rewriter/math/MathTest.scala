@@ -1,4 +1,4 @@
-package degrel.builtins.rewriter.math
+package degrel.primitives.rewriter.math
 
 import degrel.engine.Driver
 import degrel.utils.TestUtils._

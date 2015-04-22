@@ -1,15 +1,16 @@
-package degrel.builtins.cell
+package degrel.primitives.cell
 
 import degrel.core.{Cell, Label, Vertex, VertexHeader}
 import degrel.engine.Driver
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.front.BinOp
 import degrel.utils.PrettyPrintOptions
 
-class Fin extends Rewriter {
-  val finLabel = Label("fin")
+class SendMessage extends Rewriter {
+  val sendMessageLabel = BinOp.MSG_SEND.toLabel
 
   override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
-    if (target.label == finLabel) {
+    if (target.label == sendMessageLabel) {
       val lhs = target.thru(Label.E.lhs).headOption
       val rhs = target.thru(Label.E.rhs).headOption
       (lhs, rhs) match {
@@ -27,6 +28,6 @@ class Fin extends Rewriter {
   }
 
   override def pp(implicit opt: PrettyPrintOptions): String = {
-    "<Built-in rule 'Fin'>"
+    "<Built-in rule 'SendMessage'>"
   }
 }

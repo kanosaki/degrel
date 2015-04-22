@@ -1,4 +1,4 @@
-package degrel.builtins.rewriter
+package degrel.primitives.rewriter
 
 import degrel.core._
 
