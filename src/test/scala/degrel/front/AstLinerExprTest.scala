@@ -8,7 +8,7 @@ class AstLinerExprTest extends FlatSpec {
   val parseDot = ParserUtils.parseDot _
 
   def vertex(label: String, edges: Seq[AstEdge] = Seq()) =
-    AstFunctor(AstName(Some(AstLabel(label)), None), None, AstEdges(edges, None))
+    AstFunctor(AstName(Some(AstLabel(label)), None), None, AstEdges(edges, Seq()))
 
   it should "Build expr ast" in {
     implicit val parserContext = ParserContext.default

@@ -16,21 +16,20 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     def concrete(): Unit
 
     def edges: Seq[Edge] = {
-      val othersEdges: Seq[Edge] = ast.edges.others match {
-        case Some(oe) if ! oe.isDeclare => {
+      val othersEdges: Seq[Edge] = ast.edges.others.collect {
+        case oe if ! oe.isDeclare => {
           variables.lookupTyped(oe.binding.expr, LexicalType.OthersVertex) match {
             case foundOVertex: LookupFound[Builder[Vertex]] => {
-              Seq(Edge(this.header, Label.E.others, foundOVertex.primary.header))
+              Edge(this.header, Label.E.others, foundOVertex.primary.header)
             }
             case _ => variables.lookupTyped(oe.binding.expr, LexicalType.Vertex) match {
               case foundVertex: LookupFound[Builder[Vertex]] => {
-                Seq(Edge(this.header, Label.E.include, foundVertex.primary.header))
+                Edge(this.header, Label.E.include, foundVertex.primary.header)
               }
               case _ => throw new Exception(s"Undefined variable: ${oe.binding}(others edges)")
             }
           }
         }
-        case _ => Seq()
       }
       val plainEdges = ast.edges.plains.map(astEdge => {
         val builder = edgeChildMap(astEdge)
@@ -56,8 +55,8 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     case _ =>
   }
 
-  ast.edges.others match {
-    case Some(oe) if oe.isDeclare =>
+  ast.edges.others.foreach {
+    case oe if oe.isDeclare =>
       variables.bind(oe.binding.expr, this, LexicalType.OthersVertex)
     case _ =>
   }

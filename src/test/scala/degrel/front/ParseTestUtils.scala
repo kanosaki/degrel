@@ -14,7 +14,7 @@ object ParseTestUtils {
     val plains = edges.map {
       case (l, v) => AstEdge(AstLabel(l), v)
     }.toSeq
-    AstEdges(plains, None)
+    AstEdges(plains, Seq())
   }
 
   def mkName(label: String = null, capture: String = null) = {

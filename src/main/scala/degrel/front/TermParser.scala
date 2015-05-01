@@ -93,12 +93,16 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
 
 
   def handleEdgeElements(abbrEdges: List[AstEdgeElement]): AstEdges = {
-    if (abbrEdges.isEmpty) return AstEdges(Seq(), None)
+    if (abbrEdges.isEmpty) return AstEdges(Seq(), Seq())
     // 最後の要素がOthersEdgeであるかどうかを確認します
-    val (plainEs, othersE) = abbrEdges.last match {
-      case oe: AstOthersEdges => (abbrEdges.dropRight(1), Some(oe))
-      case _ => (abbrEdges, None)
+    val (plainEs, othersEs) = abbrEdges.span(!_.isInstanceOf[AstOthersEdges])
+
+    // spanの定義より，plainEsの中にothersEsが入っていることはないが
+    // othersEsに通常の接続が混じっている場合はエラー
+    if (othersEs.exists(!_.isInstanceOf[AstOthersEdges])) {
+      throw new SyntaxError("Cannot use plain edge after others edge.")
     }
+
     // 非省略接続の後の省略接続は許可されないので，それを確認します
     plainEs.foldLeft('hasAbbr) {
       case ('hasAbbr, AstAbbrEdge(Some(_), _)) => 'noAbbr
@@ -112,7 +116,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
       case (item: AstAbbrEdge, index) => item.toFullForm(index)
       case (item: AstEdge, index) => item
     }
-    AstEdges(fullPlainEs, othersE)
+    AstEdges(fullPlainEs, othersEs.map(_.asInstanceOf[AstOthersEdges]))
   }
 
   def edgeSep = opt(NLs) ~ "," ~ opt(NLs)
@@ -142,7 +146,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
    */
   def functor: Parser[AstFunctor] = name ~ opt(edges) ^^ {
     case n ~ Some(es) => AstFunctor(n, None, es)
-    case n ~ None => AstFunctor(n, None, AstEdges(Seq(), None))
+    case n ~ None => AstFunctor(n, None, AstEdges(Seq(), Seq()))
   }
 
   def cell: Parser[AstCell] = seek("{") ~> {

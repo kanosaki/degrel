@@ -25,7 +25,7 @@ case class AstFunctor(name: AstName, attributes: Option[Seq[AstAttribute]], edge
   }
 }
 
-case class AstEdges(plains: Seq[AstEdge], others: Option[AstOthersEdges]) extends AstNode
+case class AstEdges(plains: Seq[AstEdge], others: Seq[AstOthersEdges]) extends AstNode
 
 trait AstEdgeElement extends AstNode
 
