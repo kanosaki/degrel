@@ -61,7 +61,8 @@ object Label {
     val rhs = Label(SpecialLabels.E_RHS)
     val lhs = Label(SpecialLabels.E_LHS)
     val ref = Label(SpecialLabels.E_REFERENCE_TARGET)
-    val others = Label(SpecialLabels.E_OTHERS_EDGE)
+    val others = Label(SpecialLabels.E_OTHERS)
+    val include = Label(SpecialLabels.E_INCLUDE)
 
     val cellRule = Label(SpecialLabels.E_CELL_RULE)
     val cellItem = Label(SpecialLabels.E_CELL_ITEM)

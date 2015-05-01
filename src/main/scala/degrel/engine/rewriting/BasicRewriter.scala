@@ -39,16 +39,6 @@ abstract class BasicRewriter extends Rewriter {
     }
   }
 
-  def build(target: Vertex): Option[Vertex] = {
-    val mch = target.matches(rule.lhs)
-    if (mch.success) {
-      val binding = this.pick(mch.pack)
-      Some(molding.mold(rule.rhs, binding, ???))
-    } else {
-      None
-    }
-  }
-
   /**
    * マッチした可能性のうち一つを選択します
    * @param pack すべてのパターンマッチのパターン

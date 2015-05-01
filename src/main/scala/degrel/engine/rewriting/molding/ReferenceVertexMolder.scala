@@ -53,7 +53,7 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
       val h = matchedV.asInstanceOf[VertexHeader]
       this.header.write(h.body)
     } else {
-      val othersEs = this.othersEdges.getOrElse(Seq()).toSet
+      val othersEs = this.importingEdges.toSet
       // 参照
       val matchedEdges = this.referenceTarget
         .edges

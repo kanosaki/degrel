@@ -36,8 +36,9 @@ object SpecialLabels {
   /**
    * OthersEdgeを使用する際の対象となる頂点への接続
    */
-  val E_OTHERS_EDGE = '__others__
+  val E_OTHERS = '__others__
 
+  val E_INCLUDE = '__include__
   /**
    * 二項演算右辺への接続
    */

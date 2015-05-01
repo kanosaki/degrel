@@ -65,6 +65,8 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
 
   def isOthers: Boolean = this.label == Label.E.others
 
+  def isInclude: Boolean = this.label == Label.E.include
+
   def isMeta: Boolean = this.label.isMeta
 
   def shallowCopy(): Edge = {

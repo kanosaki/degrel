@@ -19,10 +19,15 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
       val othersEdges: Seq[Edge] = ast.edges.others match {
         case Some(oe) if ! oe.isDeclare => {
           variables.lookupTyped(oe.binding.expr, LexicalType.OthersVertex) match {
-            case foundVertex: LookupFound[Builder[Vertex]] => {
-              Seq(Edge(this.header, SpecialLabels.E_OTHERS_EDGE, foundVertex.primary.header))
+            case foundOVertex: LookupFound[Builder[Vertex]] => {
+              Seq(Edge(this.header, Label.E.others, foundOVertex.primary.header))
             }
-            case _ => throw new Exception(s"Undefined variable: ${oe.binding}(others edges)")
+            case _ => variables.lookupTyped(oe.binding.expr, LexicalType.Vertex) match {
+              case foundVertex: LookupFound[Builder[Vertex]] => {
+                Seq(Edge(this.header, Label.E.include, foundVertex.primary.header))
+              }
+              case _ => throw new Exception(s"Undefined variable: ${oe.binding}(others edges)")
+            }
           }
         }
         case _ => Seq()

@@ -1,5 +1,5 @@
 
-caption: Spawn cells. 
+caption: Spawn cells.
 description: Child cells must react, but non-child cell must not react.
 version: 1
 seq_spec:

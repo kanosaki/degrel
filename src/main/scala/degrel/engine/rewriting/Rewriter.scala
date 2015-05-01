@@ -27,6 +27,8 @@ trait Rewriter extends Logger with PrettyPrintable {
   def rewrite(target: VertexHeader): RewriteResult = {
     this.rewrite(target, Driver())
   }
+
+  def isMeta: Boolean = false
 }
 
 object Rewriter {

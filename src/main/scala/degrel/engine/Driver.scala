@@ -15,7 +15,7 @@ class Driver(val cell: Cell) extends Reactor {
   private val children: mutable.Buffer[Driver] = mutable.ListBuffer()
   private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
 
-  def rewriters = cell.rules.map(Rewriter(_)) ++ degrel.builtins.rewriter.default
+  def rewriters = cell.rules.map(Rewriter(_)) ++ degrel.primitives.rewriter.default
 
   /**
    * 1回書き換えます
@@ -27,9 +27,13 @@ class Driver(val cell: Cell) extends Reactor {
   def step(): Boolean = {
     val applicativeRewriters = contRewriters ++ this.rewriters
     applicativeRewriters.exists { rw =>
-      this.rewriteTargets.exists { v =>
+      val res = this.rewriteTargets.exists { v =>
         this.execRewrite(rw, v)
       }
+      if (rw.isMeta) {
+        this.execRewrite(rw, this.cell)
+      }
+      res
     }
   }
 

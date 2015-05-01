@@ -33,21 +33,27 @@ trait Molder {
   /**
    * Data vertex.
    */
-  def othersTarget: Option[Vertex] = {
-    this.mold.thru(Label.E.others).toList match {
-      case Nil => None
-      case v :: Nil => Some(v)
-      case _ => throw new RuntimeException("Malformed vertex.")
-    }
+  def othersTargets: Iterable[Vertex] = {
+    this.mold.thru(Label.E.others)
   }
+
+  def includeTargets: Iterable[Vertex] = {
+    this.mold.thru(Label.E.include)
+  }
+
 
   /**
    * Data edges.
    */
-  def othersEdges: Option[Iterable[Edge]] = {
-    this.othersTarget.flatMap { othersV =>
-      Some(this.context.unmatchedEdges(othersV))
+  def importingEdges: Iterable[Edge] = {
+    val othersEdges = this.othersTargets.flatMap { othersV =>
+      this.context.unmatchedEdges(othersV)
     }
+    val includeVertices = this.includeTargets.map(this.context.matchedVertexExact)
+    val includeEdges = includeVertices.flatMap(
+      _.edges
+    )
+    othersEdges ++ includeEdges
   }
 }
 

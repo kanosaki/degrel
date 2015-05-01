@@ -1,5 +1,5 @@
 
-caption: Spawn cells. 
+caption: Spawn cells.
 description: Child cells must react, but non-child cell must not react.
 version: 1
 ignore: true
@@ -17,7 +17,7 @@ seq_spec:
         require(food)
         extends(person)
 
-
+        __cell__(__item__: extends(@Super), _: @Others) -> __cell__(_: Others, _: Super)
       }
   - rewrite
   - assert: >

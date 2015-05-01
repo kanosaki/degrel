@@ -27,9 +27,9 @@ class PlainMolder(val mold: Vertex, val context: MoldingContext) extends Molder 
    * また，マッチしていない場合は新規に頂点を構築します
    */
   private def doMold(): Unit = {
-    if (mold.hasEdge(Label.E.others)) {
-      val plainEdges = mold.edges.filter(!_.isOthers)
-      val builtEdges = othersEdges.getOrElse(Seq()) ++ moldEdges(plainEdges)
+    if (mold.hasEdge(Label.E.others) || mold.hasEdge(Label.E.include)) {
+      val plainEdges = mold.edges.filter(e => !e.isOthers && !e.isInclude)
+      val builtEdges = importingEdges ++ moldEdges(plainEdges)
       val vb = VertexBody(mold.label, mold.attributes, builtEdges.toSeq, ID.autoAssign)
       this.header.write(vb)
     } else {

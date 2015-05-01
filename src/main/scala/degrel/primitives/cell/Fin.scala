@@ -8,6 +8,8 @@ import degrel.utils.PrettyPrintOptions
 class Fin extends Rewriter {
   val finLabel = Label("fin")
 
+  override def isMeta: Boolean = true
+
   override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
     if (target.label == finLabel) {
       val lhs = target.thru(Label.E.lhs).headOption
