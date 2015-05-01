@@ -4,6 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode
 import degrel.dgspec.{NextPiece, SpecContext, SpecFactory, SpecPiece}
 import degrel.utils.TestUtils._
 
+/**
+ * 指定されたデータと現在の`SpecContext`を比較し，
+ * Assertion を実行します
+ */
 class AssertSpecPiece(root: String) extends SpecPiece {
   val expectedCell = degrel.parseVertex(root)
 

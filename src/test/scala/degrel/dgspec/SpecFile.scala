@@ -7,6 +7,13 @@ import degrel.dgspec.specs.VoidSpecPiece
 
 import scala.collection.JavaConversions._
 
+/**
+ * ファイルによる`dgspec`です
+ * @param caption キャプション
+ * @param spec 実行する`SpecPiece`
+ * @param description このspecの説明
+ * @param ignored trueならばテストを`ignore`としてマークします．`false`なら通常通りテストを実行します
+ */
 case class SpecFile(caption: String,
                     spec: SpecPiece,
                     description: Option[String],

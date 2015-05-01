@@ -6,6 +6,10 @@ import org.scalatest.exceptions.TestFailedException
 
 import scala.collection.JavaConversions._
 
+/**
+ * 子となる`SpecPiece`を順次実行します
+ * @param children 実行する`SpecPiece`クラス
+ */
 case class SequentialSpecPiece(children: List[SpecPiece]) extends SpecPiece {
 
   override def evaluate(ctx: SpecContext): NextPiece = {
