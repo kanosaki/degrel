@@ -2,6 +2,7 @@ package degrel.dgspec.specs
 
 import com.fasterxml.jackson.databind.JsonNode
 import degrel.dgspec.{NextPiece, SpecContext, SpecFactory, SpecPiece}
+import org.scalatest.exceptions.TestFailedException
 
 import scala.collection.JavaConversions._
 
@@ -11,10 +12,20 @@ case class SequentialSpecPiece(children: List[SpecPiece]) extends SpecPiece {
     evalSpecs(ctx, children)
   }
 
+  def tryEvalSpec(ctx: SpecContext, specPiece: SpecPiece): NextPiece = {
+    try {
+      specPiece.evaluate(ctx)
+    } catch {
+      case th: Throwable => {
+        fail(s"Error during executing: $specPiece", th)
+      }
+    }
+  }
+
   protected def evalSpecs(ctx: SpecContext, remainSpecs: List[SpecPiece]): NextPiece = {
     remainSpecs match {
       case hd :: tl => {
-        hd.evaluate(ctx) match {
+        tryEvalSpec(ctx, hd) match {
           case NextPiece.Continue => evalSpecs(ctx, tl)
           case other => other
         }
