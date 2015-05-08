@@ -11,9 +11,6 @@ trait Molder {
       .foreach(_.process(ph))
     ph match {
       case MoldPhase.After => {
-        if (this.header.label == Label.V.cell) {
-          this.context.notifyCellSpawn(this.header.asCell)
-        }
       }
       case _ =>
     }

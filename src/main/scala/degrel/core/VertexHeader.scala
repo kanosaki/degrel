@@ -22,8 +22,8 @@ trait VertexHeader extends Vertex {
   val id: ID = ID.autoAssign
 
   override def asCell: Cell = {
-    if (this.isCell) {
-      new CellHeader(this.body.asCellBody)
+    if (this.body.isCell) {
+      this.asInstanceOf[Cell]
     } else {
       super.asCell
     }

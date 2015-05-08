@@ -10,46 +10,15 @@ import scala.collection.mutable
 /**
  * Cellの実行をします
  */
-class Driver(val cell: Cell) extends Reactor {
+class Driver(val header: Vertex) extends Reactor {
   implicit protected val printOption = PrettyPrintOptions(showAllId = true, multiLine = true)
-  private val children: mutable.Buffer[Driver] = mutable.ListBuffer()
+  private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
 
-  def rewriters = cell.rules.map(Rewriter(_)) ++ degrel.primitives.rewriter.default
+  def cell: CellBody = header.unref[CellBody]
 
-  /**
-   * 1回書き換えます
-   *
-   * 1. 探索を実行する規則の選択
-   * 2. 探索の実行
-   * 3. 書き換えの実行
-   */
-  def step(): Boolean = {
-    val applicativeRewriters = contRewriters ++ this.rewriters
-    applicativeRewriters.exists { rw =>
-      val res = this.rewriteTargets.exists { v =>
-        this.execRewrite(rw, v)
-      }
-      if (rw.isMeta) {
-        this.execRewrite(rw, this.cell)
-      }
-      res
-    }
-  }
-
-  def stepRecursive(): Boolean = {
-    this.children.find(_.stepRecursive()) match {
-      case Some(_) => true
-      case None => this.step()
-    }
-  }
-
-  def rewriteTargets: Iterable[Vertex] = {
-    val roots = cell
-      .edges
-      .filter(_.label == Label.E.cellItem)
-      .map(_.dst)
-    roots.flatMap(Traverser(_, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.InnerOnly)))
+  def isActive: Boolean = {
+    header.isCell
   }
 
   def stepUntilStop(limit: Int = -1): Int = {
@@ -65,21 +34,91 @@ class Driver(val cell: Cell) extends Reactor {
     count
   }
 
+  def stepRecursive(): Boolean = {
+    if (!this.isActive) {
+      return false
+    }
+    itemRoots.foreach(r => {
+      Traverser(r, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.WallOnly)).foreach(neighborCell => {
+        if (!children.contains(neighborCell)) {
+          if (!neighborCell.isInstanceOf[Cell]) {
+            println("BREAK")
+          }
+          this.spawn(neighborCell)
+        }
+      })
+    })
+    this.children.values.find(_.stepRecursive()) match {
+      case Some(c) => {
+        if (!c.isActive) {
+          children -= c.header
+        }
+        true
+      }
+      case None => this.step()
+    }
+  }
+
+  /**
+   * 1回書き換えます
+   *
+   * 1. 探索を実行する規則の選択
+   * 2. 探索の実行
+   * 3. 書き換えの実行
+   */
+  def step(): Boolean = {
+    val applicativeRewriters = contRewriters ++ this.rewriters
+    applicativeRewriters.exists { rw =>
+      val res = this.rewriteTargets.exists { v =>
+        this.execRewrite(rw, v)
+      }
+      // only meta rewriters can rewrite self cell
+      if (rw.isMeta) {
+        this.execRewrite(rw, header)
+        if (!this.isActive) {
+          // rewrite cell by fin rule.
+          println(s"FIN: $header")
+        }
+      }
+      res
+    }
+  }
+
+  def rewriters = cell.rules.map(Rewriter(_)) ++ degrel.primitives.rewriter.default
+
+  def itemRoots: Iterable[Vertex] = cell
+    .edges
+    .filter(_.label == Label.E.cellItem)
+    .map(_.dst)
+
+  def rewriteTargets: Iterable[Vertex] = {
+    this.itemRoots.flatMap(Traverser(_, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.InnerOnly)))
+  }
+
   /**
    * Send message vertex underlying cell
    */
   def send(msg: Vertex) = {
+    if (msg.isCell) {
+      this.spawn(msg.asCell)
+    }
     this.cell.addRoot(msg)
   }
 
-  def spawn(cell: Cell): Cell = {
-    this.children += new Driver(cell)
+  def spawn(cell: Vertex): Vertex = {
+    println(s"SPAWN: \n ${cell.pp}")
+    this.children += cell -> new Driver(cell)
     cell
   }
 
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
+    val prev = v.pp
     val res = rw.rewrite(v.asHeader, this)
     if (res.done) {
+      println(s"APPLY: \n${rw.pp}")
+      println(s" PREV: \n${prev}")
+      println(s"   TO: \n${v.pp}")
+      println(s" CMAP: \n${this.children}")
       import degrel.engine.rewriting.Continuation._
       res.continuation match {
         case c@Continue(nextRule, _) => {

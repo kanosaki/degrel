@@ -9,12 +9,6 @@ import scala.collection.mutable
 class MoldingContext(val binding: Binding, val factory: MolderFactory, val driver: Driver) {
   private[this] val molderMapping = mutable.HashMap[Vertex, Molder]()
 
-  def notifyCellSpawn(cell: Cell) = {
-    if (driver != null) {
-      driver.spawn(cell)
-    }
-  }
-
   /**
    * 現在のモールドコンテキストにおける，指定された`Vertex`を扱うための
    * `Molder`を返します．このとき，すでに対応する`Molder`が生成されている場合はキャッシュから返し，

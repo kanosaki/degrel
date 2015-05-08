@@ -247,12 +247,6 @@ class TermParserTest extends FlatSpec {
     assert(graph ===~ expected)
   }
 
-  it should "throw CodeError when multi import with 'as'" in {
-    intercept[SyntaxError] {
-      parser("{import foo, bar as hoge}")
-    }
-  }
-
   it should "parse a cell with import statement" in {
     parser(
       """foo -> {

@@ -161,13 +161,6 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
     case exprs => AstCell(exprs)
   }
 
-  /**
-   * fin文
-   */
-  def cell_fin: Parser[AstFin] = "fin" ~> expr ^^ {
-    case x => AstFin(x)
-  }
-
   // NOTE: 副作用あり(this method has side effects)
   /**
    * 二項演算子定義．定義と同時にParserContextへ定義された演算子を追加します
@@ -193,18 +186,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
       }
     }
 
-  /**
-   * Import文
-   * TODO: TermParserをCellごとに生成して，Moduleレベルでfinが来たらエラーみたいな処理を入れる？
-   */
-  def cell_import: Parser[AstImport] =
-    opt("from" ~> label) ~
-      "import" ~ rep1sep(label, ",") ~
-      opt("as" ~> label) ^^ {
-      case frm ~ _ ~ imports ~ as => AstImport(frm, imports, as)
-    }
-
-  def cellItem: Parser[AstCellItem] = seek(cell_import | cell_defop | cell_fin | expr)
+  def cellItem: Parser[AstCellItem] = seek(cell_defop | expr)
 
   def cellItemList: Parser[Seq[AstCellItem]] = rep(cellItem)
 

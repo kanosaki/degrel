@@ -2,7 +2,8 @@ package degrel.core
 
 import degrel.utils.PrettyPrintOptions
 
-import scala.reflect.runtime.universe.TypeTag
+import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 import degrel.core.utils.PrettyPrinter
 import degrel.engine.rewriting.matching.{Matcher, MatchingContext, VertexMatching}
 
@@ -99,6 +100,20 @@ trait Vertex extends Element with Comparable[Vertex] {
     this.asInstanceOf[VertexHeader]
   }
 
+  def unref[B <: VertexBody : ClassTag]: B = {
+    this match {
+      case vh: VertexHeader if implicitly[ClassTag[B]].runtimeClass.isInstance(vh.body) => {
+        vh.body.asInstanceOf[B]
+      }
+      case vb: B => {
+        vb
+      }
+      case _ => {
+        throw new RuntimeException(s"Cannot unreference $this as ${implicitly[ClassTag[B]].runtimeClass}")
+      }
+    }
+  }
+
   def toGraph: Graph = {
     this match {
       case g: Graph => g
@@ -121,6 +136,14 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def neighbors: Iterable[Vertex] = {
     this.edges.map(_.dst)
+  }
+
+  def next(label: Label): Iterable[Vertex] = {
+    this.neighbors.filter(_.label == label)
+  }
+
+  def next(pred: Vertex => Boolean): Iterable[Vertex] = {
+    this.neighbors.filter(pred)
   }
 }
 

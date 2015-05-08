@@ -1,4 +1,4 @@
-package degrel.primitives.cell
+package degrel.primitives.rewriter.cell
 
 import degrel.engine.Driver
 import degrel.utils.TestUtils._
