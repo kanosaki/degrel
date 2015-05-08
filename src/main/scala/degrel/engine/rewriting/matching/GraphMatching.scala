@@ -5,13 +5,13 @@ import degrel.engine.rewriting._
 // Bridges data graph and rule graph
 
 
-trait MatchedGraph /* extends Iterable[Binding] */ {
+trait GraphMatching /* extends Iterable[Binding] */ {
   def success: Boolean = true
 
   def pack: BindingPack
 }
 
-trait VertexMatching extends MatchedGraph {
+trait VertexMatching extends GraphMatching {
 
 }
 
@@ -39,7 +39,7 @@ case class PolyVertexMatching(matches: Iterable[VertexMatching]) extends VertexM
   }
 }
 
-trait EdgeMatching extends MatchedGraph {
+trait EdgeMatching extends GraphMatching {
   def bridge: EdgeBridge
 }
 
@@ -55,7 +55,7 @@ case class MonoEdgeMatching(eBind: EdgeBridge, vMatch: VertexMatching) extends E
   }
 }
 
-case object NoMatching extends MatchedGraph with VertexMatching with EdgeMatching {
+case object NoMatching extends GraphMatching with VertexMatching with EdgeMatching {
   def iterator: Iterator[BindingPack] = Seq().iterator
 
   override def success: Boolean = false
