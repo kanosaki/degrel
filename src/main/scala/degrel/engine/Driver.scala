@@ -41,9 +41,6 @@ class Driver(val header: Vertex) extends Reactor {
     itemRoots.foreach(r => {
       Traverser(r, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.WallOnly)).foreach(neighborCell => {
         if (!children.contains(neighborCell)) {
-          if (!neighborCell.isInstanceOf[Cell]) {
-            println("BREAK")
-          }
           this.spawn(neighborCell)
         }
       })
@@ -75,10 +72,6 @@ class Driver(val header: Vertex) extends Reactor {
       // only meta rewriters can rewrite self cell
       if (rw.isMeta) {
         this.execRewrite(rw, header)
-        if (!this.isActive) {
-          // rewrite cell by fin rule.
-          println(s"FIN: $header")
-        }
       }
       res
     }
@@ -106,7 +99,6 @@ class Driver(val header: Vertex) extends Reactor {
   }
 
   def spawn(cell: Vertex): Vertex = {
-    println(s"SPAWN: \n ${cell.pp}")
     this.children += cell -> new Driver(cell)
     cell
   }
@@ -115,10 +107,6 @@ class Driver(val header: Vertex) extends Reactor {
     val prev = v.pp
     val res = rw.rewrite(v.asHeader, this)
     if (res.done) {
-      println(s"APPLY: \n${rw.pp}")
-      println(s" PREV: \n${prev}")
-      println(s"   TO: \n${v.pp}")
-      println(s" CMAP: \n${this.children}")
       import degrel.engine.rewriting.Continuation._
       res.continuation match {
         case c@Continue(nextRule, _) => {
