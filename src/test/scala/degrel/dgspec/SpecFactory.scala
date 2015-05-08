@@ -19,5 +19,6 @@ class SpecFactory {
   // String, Int, other primitive types.
   def getValue(v: Any): SpecPiece =  v match {
     case "rewrite" => new RewriteSpecPiece()
+    case "inspect" => new InspectSpecPiece()
   }
 }
