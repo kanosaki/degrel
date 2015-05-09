@@ -15,8 +15,6 @@ class Driver(val header: Vertex) extends Reactor {
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
 
-  def cell: CellBody = header.unref[CellBody]
-
   def isActive: Boolean = {
     header.isCell
   }
@@ -45,13 +43,9 @@ class Driver(val header: Vertex) extends Reactor {
         }
       })
     })
+    this.children = this.children.filter(_._2.isActive)
     this.children.values.find(_.stepRecursive()) match {
-      case Some(c) => {
-        if (!c.isActive) {
-          children -= c.header
-        }
-        true
-      }
+      case Some(_) => true
       case None => this.step()
     }
   }
@@ -70,10 +64,11 @@ class Driver(val header: Vertex) extends Reactor {
         this.execRewrite(rw, v)
       }
       // only meta rewriters can rewrite self cell
-      if (rw.isMeta) {
+      if (!res && rw.isMeta) {
         this.execRewrite(rw, header)
+      } else {
+        res
       }
-      res
     }
   }
 
@@ -98,13 +93,14 @@ class Driver(val header: Vertex) extends Reactor {
     this.cell.addRoot(msg)
   }
 
+  def cell: CellBody = header.unref[CellBody]
+
   def spawn(cell: Vertex): Vertex = {
     this.children += cell -> new Driver(cell)
     cell
   }
 
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
-    val prev = v.pp
     val res = rw.rewrite(v.asHeader, this)
     if (res.done) {
       import degrel.engine.rewriting.Continuation._
