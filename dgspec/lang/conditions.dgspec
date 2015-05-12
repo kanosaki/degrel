@@ -1,0 +1,58 @@
+
+caption: Condition operations (Int)
+description: Comparsions around integer.
+version: 1
+seq_spec:
+  - init: >
+      {
+        eq {
+          1 { 123 == 123 }
+          2 { 123 == 456 }
+        }
+
+        neq {
+          1 { 123 != 123 }
+          2 { 123 != 456 }
+        }
+
+        le {
+          1 { 1 < 2 }
+          2 { 2 < 2 }
+          3 { 2 < 1 }
+        }
+        
+        gt {
+          1 { 1 > 2 }
+          2 { 2 > 2 }
+          3 { 2 > 1 }
+        }
+
+      }
+  - rewrite
+  - assert: >
+      {
+        eq {
+          1 { true }
+          2 { false }
+        }
+
+        neq {
+          1 { false }
+          2 { true }
+        }
+
+        le {
+          1 { true }
+          2 { false }
+          3 { false }
+        }
+
+        gt {
+          1 { false }
+          2 { false }
+          3 { true }
+        }
+
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2
