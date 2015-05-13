@@ -2,6 +2,7 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.core._
+import degrel.engine.resource.Resource
 import degrel.engine.rewriting.Rewriter
 import degrel.utils.PrettyPrintOptions
 
@@ -11,18 +12,20 @@ import scala.collection.mutable
  * Cellの実行をします
  */
 class Driver(val header: Vertex) extends Reactor {
+  val resource: Resource = degrel.engine.resource.default
   implicit protected val printOption = PrettyPrintOptions(showAllId = true, multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
 
   def isActive: Boolean = {
-    header.isCell
+    header.isCell && this.cell.edges.nonEmpty
   }
 
   def stepUntilStop(limit: Int = -1): Int = {
     var count = 0
     while (true) {
       val rewrote = this.stepRecursive()
+      this.cleanup()
       count += 1
       if (!rewrote) return count
       if (limit > 0 && count > limit) {
@@ -43,7 +46,6 @@ class Driver(val header: Vertex) extends Reactor {
         }
       })
     })
-    this.children = this.children.filter(_._2.isActive)
     this.children.values.find(_.stepRecursive()) match {
       case Some(_) => true
       case None => this.step()
@@ -60,14 +62,17 @@ class Driver(val header: Vertex) extends Reactor {
   def step(): Boolean = {
     val applicativeRewriters = contRewriters ++ this.rewriters
     applicativeRewriters.exists { rw =>
-      val res = this.rewriteTargets.exists { v =>
+      val targets =
+        (if (rw.isPartial)
+          this.rewriteTargets
+        else
+          this.itemRoots) ++
+          (if (rw.isMeta)
+            Seq(header)
+          else
+            Seq())
+      targets.exists { v =>
         this.execRewrite(rw, v)
-      }
-      // only meta rewriters can rewrite self cell
-      if (!res && rw.isMeta) {
-        this.execRewrite(rw, header)
-      } else {
-        res
       }
     }
   }
@@ -98,6 +103,17 @@ class Driver(val header: Vertex) extends Reactor {
   def spawn(cell: Vertex): Vertex = {
     this.children += cell -> new Driver(cell)
     cell
+  }
+
+  def cleanup(): Unit = {
+    if (this.isActive) {
+      this.children = this.children.filter(_._2.isActive)
+      this.cell.roots.filter(v => {
+        v.isCell && v.edges.isEmpty
+      }).foreach { v =>
+        this.cell.removeRoot(v)
+      }
+    }
   }
 
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {

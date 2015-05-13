@@ -29,6 +29,8 @@ trait Rewriter extends Logger with PrettyPrintable {
   }
 
   def isMeta: Boolean = false
+
+  def isPartial: Boolean = true
 }
 
 object Rewriter {

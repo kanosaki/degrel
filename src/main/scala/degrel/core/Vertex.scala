@@ -109,7 +109,7 @@ trait Vertex extends Element with Comparable[Vertex] {
         vb
       }
       case _ => {
-        throw new RuntimeException(s"Cannot unreference $this as ${implicitly[ClassTag[B]].runtimeClass}")
+        throw new RuntimeException(s"Cannot unreference $this(${this.getClass}}) as ${implicitly[ClassTag[B]].runtimeClass}")
       }
     }
   }
@@ -174,4 +174,14 @@ object Vertex {
     vh.write(body)
     vh
   }
+
+  def fromBoolean(b: Boolean): Vertex = b match {
+    case true => vTrue
+    case false => vFalse
+  }
+
+  // Special vertices
+  val vTrue = Vertex("true", Seq())
+  val vFalse = Vertex("false", Seq())
+  val vNil = Cell()
 }
