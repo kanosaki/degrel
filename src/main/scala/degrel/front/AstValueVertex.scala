@@ -33,6 +33,8 @@ case class AstFloatVertex(expr: String) extends AstValueVertex[Double] {
  */
 case class AstStringVertex(expr: String) extends AstValueVertex[String] {
   override def toVertex: ValueVertex[String] = {
-    ValueVertex(expr)
+    // `stringLiteral`はexprとしてダブルクオーテーションで囲った物を返してくるので
+    // 取り除きます
+    ValueVertex(expr.substring(1, expr.length - 1))
   }
 }
