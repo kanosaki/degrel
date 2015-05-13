@@ -42,7 +42,7 @@ case class AstStringVertex(expr: String, trimQuotes: Boolean) extends AstValueVe
 
       ValueVertex(expr.substring(1, expr.length - 1))
     } else {
-
+      ValueVertex(expr)
     }
   }
 }
