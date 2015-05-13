@@ -30,11 +30,19 @@ case class AstFloatVertex(expr: String) extends AstValueVertex[Double] {
 
 /**
  * 文字列を保持する`ValueVertex`のためのASTです
+ * `stringLiteral`はexprとしてダブルクオーテーションで囲った物を返してくるので
+ * 取り除きます
  */
-case class AstStringVertex(expr: String) extends AstValueVertex[String] {
+case class AstStringVertex(expr: String, trimQuotes: Boolean) extends AstValueVertex[String] {
   override def toVertex: ValueVertex[String] = {
-    // `stringLiteral`はexprとしてダブルクオーテーションで囲った物を返してくるので
-    // 取り除きます
-    ValueVertex(expr.substring(1, expr.length - 1))
+    if (trimQuotes) {
+      // check
+      require(expr.charAt(0) == '"')
+      require(expr.charAt(expr.length) == '"')
+
+      ValueVertex(expr.substring(1, expr.length - 1))
+    } else {
+
+    }
   }
 }
