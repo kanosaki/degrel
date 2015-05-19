@@ -236,7 +236,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   }
 
   def parseCell(str: String): AstCell = {
-    parseAll(cell, str.trim()) match {
+    parseAll(cellBody, str.trim()) match {
       case Success(gr, _) => gr
       case fail: NoSuccess => {
         throw new SyntaxError(s"${fail.toString} \nat line ${fail.next.pos.line} col ${fail.next.pos.column}")
