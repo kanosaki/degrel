@@ -11,6 +11,7 @@ class SpecFactory {
       case "seq_spec" => SequentialSpecPiece.decode(content)
       case "init" => SetValueSpecPiece.decode(content)
       case "assert" => AssertSpecPiece.decode(content)
+      case "run" => ScriptRunSpecPiece.decode(content)
       case "program" => ProgramSpecPiece.decode(content)
       case other => throw new Exception(s"Unsupported type: $other")
     }

@@ -1,28 +1,20 @@
 package degrel.control
 
-import akka.pattern.ask
+import java.io.File
+
 import akka.util.Timeout
-import degrel.core.{Rule, Vertex}
-import degrel.front.ParserUtils
+import degrel.engine.Chassis
+import org.apache.commons.io.FileUtils
 
-import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.io.Source
 
-class Interpreter(source: Source) {
+class Interpreter(mainFile: File) {
   implicit val rewriteTimeout = Timeout(10.seconds)
-  private[this] val termParser = ParserUtils
 
   def start() = {
-  }
-
-  def parse(s: String): Vertex = {
-    degrel.parseVertex(s)
-  }
-
-  def rewriteMulti() = {
-    //val worker = RewriteScheduler(reserve)
-    //val future = worker ? RewriteScheduler.Run
-    //Await.result(future, rewriteTimeout.duration)
+    val src = FileUtils.readFileToString(mainFile)
+    val main = degrel.parseCell(src)
+    val chassis = Chassis.create(main)
+    chassis.main.stepUntilStop(1000)
   }
 }

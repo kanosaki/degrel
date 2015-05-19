@@ -1,16 +1,17 @@
 
-caption: Spawn cells.
+caption: Spawn class cells.
 description: Child cells must react, but non-child cell must not react.
 version: 1
 ignore: true
 seq_spec:
   - program: >
-      food {
-        meal(curry)
-      }
+      {
+        animal {
+        }
 
-      person {
-        eat(meal(@F)) -> filled(with: F)
+        person(name: @Name) -> {
+
+        }
       }
   - init: >
       {

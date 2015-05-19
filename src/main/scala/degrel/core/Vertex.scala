@@ -145,6 +145,10 @@ trait Vertex extends Element with Comparable[Vertex] {
   def next(pred: Vertex => Boolean): Iterable[Vertex] = {
     this.neighbors.filter(pred)
   }
+
+  def hash: VertexHash = {
+    VertexHash(this)
+  }
 }
 
 object Vertex {

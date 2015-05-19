@@ -11,7 +11,7 @@ trait ConfigBase extends Serializable {
    * @return
    */
   def resolve(key: Symbol) = {
-    CLIArguments.get(key) ++ parent.resolveTree(key)
+    parent.resolveTree(key)
   }
 
   protected def resolveTree(key: Symbol): List[Any] = {

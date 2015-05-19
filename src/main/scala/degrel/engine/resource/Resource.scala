@@ -5,6 +5,7 @@ package degrel.engine.resource
  */
 trait Resource {
   def console: Console
+  def sys: Sys
 }
 
 class DefaultResource extends Resource {

@@ -31,7 +31,17 @@ class Chassis(_repo: Repository) {
 }
 
 object Chassis {
-  def create(initRepo: Repository = null): Chassis = {
+  def create(): Chassis = {
+    this.create(Cell())
+  }
+
+  def create(main: Cell): Chassis = {
+    val repo = new Repository()
+    repo.register(Label.N.main, new Driver(main))
+    new Chassis(repo)
+  }
+
+  def create(initRepo: Repository): Chassis = {
     val repo = if (initRepo == null) {
       new Repository()
     } else {

@@ -1,0 +1,30 @@
+
+
+current 0
+
+map_num(N) -> {
+  if (
+    N % 15 == 0,
+    then: fin "FizzBuzz"
+  )
+  if (
+    N % 5 == 0,
+    then: fin "Buzz"
+  )
+  if (
+    N % 3 == 0,
+    then: fin "Fizz"
+  )
+
+  if(true, then: X, else: Y) -> X
+  if(false, then: X, else: Y) -> Y
+  if(true, then: X) -> X
+
+  fin N
+}
+
+current(N) -> {
+  println(map_num(N))
+  N <= 15 -> fin current(N + 1)
+  fin
+}

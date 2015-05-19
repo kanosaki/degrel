@@ -11,6 +11,13 @@ import degrel.utils.PrettyPrintable
  * 書き換えを実行します
  * 基本的にグラフの規則を元に書き換えを実行しますが，一部規則は
  * ネイティブ実装されます．
+ *
+ * 書き換えの`target`としては，通常`Cell`の要素の根が渡されます．
+ * すなわち，`cell.thru(__item__)`です
+ *
+ * ただし，`isPartial`が`true`だと，さらにその子孫要素を`Travrese`し
+ * 次の`cell`等この`Cell`の管理外になるまで`target`を渡します
+ * また，`isMeta`が`true`だと，この`cell`自身も`target`として渡されます
  */
 trait Rewriter extends Logger with PrettyPrintable {
   self =>
@@ -28,8 +35,14 @@ trait Rewriter extends Logger with PrettyPrintable {
     this.rewrite(target, Driver())
   }
 
+  /**
+   * 書き換え対象として，この規則を含むCellも有効になります
+   */
   def isMeta: Boolean = false
 
+  /**
+   * 書き換え対象として，Cellのitemsを再帰的に辿って渡されます
+   */
   def isPartial: Boolean = true
 }
 

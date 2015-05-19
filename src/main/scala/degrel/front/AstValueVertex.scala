@@ -38,7 +38,7 @@ case class AstStringVertex(expr: String, trimQuotes: Boolean) extends AstValueVe
     if (trimQuotes) {
       // check
       require(expr.charAt(0) == '"')
-      require(expr.charAt(expr.length) == '"')
+      require(expr.charAt(expr.length - 1) == '"')
 
       ValueVertex(expr.substring(1, expr.length - 1))
     } else {
