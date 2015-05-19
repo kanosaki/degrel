@@ -40,11 +40,17 @@ class Driver(val header: Vertex) extends Reactor {
       return false
     }
     itemRoots.foreach(r => {
-      Traverser(r, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.WallOnly)).foreach(neighborCell => {
-        if (!children.contains(neighborCell)) {
-          this.spawn(neighborCell)
+      if (r.isCell) {
+        if (!children.contains(r)) {
+          this.spawn(r)
         }
-      })
+      } else {
+        r.thru(0).filter(_.isCell).foreach { c =>
+          if (!children.contains(c)) {
+            this.spawn(c)
+          }
+        }
+      }
     })
     this.children.values.find(_.stepRecursive()) match {
       case Some(_) => true
