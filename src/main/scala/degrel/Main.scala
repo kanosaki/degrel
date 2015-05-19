@@ -2,21 +2,31 @@ package degrel
 
 import java.io.File
 
-import degrel.control.Interpreter
+import degrel.control.{CLIArguments, Interpreter}
 import degrel.control.console.ConsoleHandle
 import degrel.engine.Chassis
+import sun.security.pkcs11.Secmod.TrustType
 
 import scala.io.Source
 
 
 object Main {
   def main(args: Array[String]): Unit = {
-    if (args.length == 1) {
-      val interpreter = new Interpreter(new File(args(0)))
-      interpreter.start()
-    } else {
-      val console = new ConsoleHandle(Chassis.createWithMain())
-      console.start()
+    val optParser = CLIArguments.parser()
+    optParser.parse(args, CLIArguments()) match {
+      case Some(cliArgs) => {
+        cliArgs.script match {
+          case Some(scriptFile) => {
+            val interpreter = new Interpreter(scriptFile)
+            interpreter.start()
+          }
+          case None => {
+            val console = new ConsoleHandle(Chassis.createWithMain())
+            console.start()
+          }
+        }
+      }
+      case None =>
     }
   }
 }

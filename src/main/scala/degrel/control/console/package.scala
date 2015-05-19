@@ -9,6 +9,9 @@ package degrel.control
  * :set NAME VALUE
  * :verbose <on/off>
  */
+/**
+ * degrel REPL module
+ */
 package object console {
 
 }
