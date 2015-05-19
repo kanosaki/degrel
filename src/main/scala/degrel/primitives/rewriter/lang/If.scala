@@ -1,6 +1,6 @@
 package degrel.primitives.rewriter.lang
 
-import degrel.core.{Label, VertexHeader}
+import degrel.core.{Cell, Label, VertexHeader}
 import degrel.engine.Driver
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
 import degrel.utils.PrettyPrintOptions
@@ -28,7 +28,7 @@ class If extends Rewriter {
         target.write(thn)
         RewriteResult(done = true)
       }
-      case `elseLabel`  => {
+      case `falseLabel`  => {
         target.write(els)
         RewriteResult(done = true)
       }
@@ -42,6 +42,10 @@ class If extends Rewriter {
     }  yield pred.label match {
       case `trueLabel` => {
         target.write(thn)
+        RewriteResult(done = true)
+      }
+      case `falseLabel`  => {
+        target.write(Cell())
         RewriteResult(done = true)
       }
       case _ => RewriteResult.NOP
