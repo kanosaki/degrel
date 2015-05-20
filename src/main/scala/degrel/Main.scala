@@ -17,7 +17,9 @@ object Main {
       case Some(cliArgs) => {
         cliArgs.script match {
           case Some(scriptFile) => {
-            val interpreter = new Interpreter(scriptFile)
+            val interpreter = new Interpreter(
+              mainFile = scriptFile,
+              reportStatistics = cliArgs.reportStatistics)
             interpreter.start()
           }
           case None => {
