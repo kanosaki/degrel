@@ -11,8 +11,10 @@ project/
 !project/assembly.sbt
 !project/plugins.sbt
 
+*.pyc
+__pycache__/
 .ropeproject/
 
 # Benchmark files
-Benchmark/scripts/*
-Benchmark/result.json
+benchmark/*
+!benchmark/benchmark.py
