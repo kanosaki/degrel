@@ -42,6 +42,6 @@ class Result(object):
 if __name__ == '__main__':
     result = load()
     result.plot_rps()
-    plt.savefig("rps.png")
+    plt.savefig("rps.eps")
     result.plot_size()
-    plt.savefig("size.png")
+    plt.savefig("size.eps")
