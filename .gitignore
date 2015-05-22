@@ -10,3 +10,9 @@ lib_managed/
 project/
 !project/assembly.sbt
 !project/plugins.sbt
+
+.ropeproject/
+
+# Benchmark files
+Benchmark/scripts/*
+Benchmark/result.json

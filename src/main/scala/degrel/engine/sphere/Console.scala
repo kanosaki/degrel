@@ -1,6 +1,8 @@
-package degrel.engine.resource
+package degrel.engine.sphere
 
-import java.io.{InputStream, OutputStream, PrintStream}
+import java.io.{InputStream, PrintStream}
+
+import org.apache.commons.io.output.NullOutputStream
 
 trait Console {
   def stdout: PrintStream
@@ -16,4 +18,8 @@ class DefaultConsole extends Console {
   override def stdin: InputStream = System.in
 
   override def stderr: PrintStream = System.err
+}
+
+class QuietConsole extends DefaultConsole {
+  override val stdout: PrintStream = new PrintStream(new NullOutputStream())
 }

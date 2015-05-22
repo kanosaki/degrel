@@ -2,17 +2,33 @@ package degrel.control
 
 import java.io.File
 
-case class CLIArguments(script: Option[File] = None, reportStatistics: Boolean = false)
+case class CLIArguments(script: Option[File] = None,
+                        verbose: Boolean = false,
+                        cmd: CLICommand = CLICommand.Plain)
 
 object CLIArguments {
   def parser() = {
     new scopt.OptionParser[CLIArguments]("degrel") {
-      opt[Unit]("report").optional().action { (_, c) =>
-        c.copy(reportStatistics = true)
+      opt[Unit]("verbose").abbr("v").optional().action { (_, c) =>
+        c.copy(verbose = true)
       }
       arg[File]("<file>").optional().action { (x, c) =>
         c.copy(script = Some(x))
       }.text("Input script")
+      cmd("bench").text("Benchmark subcommand").children({
+        opt[String]("report").abbr("o").optional().action { (path, c) =>
+          c.cmd match {
+            case cb: CLICommand.Benchmark => c.copy(cmd = cb.copy(outputJson = Some(path)))
+            case _ => c.copy(cmd = CLICommand.Benchmark(outputJson = Some(path)))
+          }
+        }
+        arg[String]("<targets ..>").unbounded().optional().action { (x, c) =>
+          c.cmd match {
+            case cb: CLICommand.Benchmark => c.copy(cmd = cb.copy(targets = cb.targets :+ x))
+            case _ => c.copy(cmd = CLICommand.Benchmark(Seq(x)))
+          }
+        }
+      })
     }
   }
 }

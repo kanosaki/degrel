@@ -50,7 +50,8 @@ libraryDependencies ++= {
     "org.scala-lang.modules" %% "scala-xml" % "1.0.3",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.5.1",
     "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0",
-    "org.parboiled" %% "parboiled" % "2.1.0"
+    "org.parboiled" %% "parboiled" % "2.1.0",
+    "com.opencsv" % "opencsv" % "3.3"
   )
 }
 
@@ -67,6 +68,10 @@ mainClass in assembly := Some("degrel.Main")
 mainClass in Compile := Some("degrel.Main")
 
 test in assembly := {}
+
+import com.typesafe.sbt.SbtStartScript
+
+seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 // scala.tools.jline関連のライブラリがassembly時にコンフリクトを起こすので
 // 時前で競合解消

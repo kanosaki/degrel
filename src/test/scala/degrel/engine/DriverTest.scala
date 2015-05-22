@@ -12,7 +12,7 @@ class DriverTest extends FlatSpec {
 
   it should "Do nothing for empty cell" in {
     val cell = toCell("{}")
-    val cd = new Driver(cell)
+    val cd = Driver(cell)
     assert(!cd.step())
   }
 
@@ -106,7 +106,7 @@ class DriverTest extends FlatSpec {
       it should description in {
         val beforeCell = toCell(before)
         val afterCell = toCell(after)
-        val cd = new Driver(beforeCell)
+        val cd = Driver(beforeCell)
         cd.stepUntilStop(MAX_STEP)
         assert(cd.cell ===~ afterCell)
       }

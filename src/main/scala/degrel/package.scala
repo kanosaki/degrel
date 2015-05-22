@@ -4,6 +4,7 @@ import degrel.core.Cell
  * 命名規則:
  */
 package object degrel {
+  val version = "1.0.0"
 
   def parseVertex(s: String): core.Vertex = {
     val ast = front.Parser.vertex(s)

@@ -387,5 +387,23 @@ class TermParserTest extends FlatSpec {
     val expected = parser("foo(bar, baz)").toGraph
     assert(graph ===~ expected)
   }
+
+  it should "parse multi argument rule" in {
+    val graph = parser(
+      """
+        |greet(@N, @Max) -> {
+        |  fin if((N < Max),
+        |    then: {
+        |      println("HELLO", N)
+        |      fin greet((N + 1), Max)
+        |    },
+        |    else: {
+        |      println("DONE", N)
+        |    })
+        |}
+      """.stripMargin).toGraph
+//    val expected = parser("f").toGraph
+//    assert(graph ===~ expected)
+  }
 }
 

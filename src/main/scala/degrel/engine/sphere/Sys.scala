@@ -1,4 +1,4 @@
-package degrel.engine.resource
+package degrel.engine.sphere
 
 
 trait Sys {

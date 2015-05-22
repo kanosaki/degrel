@@ -11,7 +11,7 @@ case class RewriteSpecPiece() extends SpecPiece {
   override def evaluate(ctx: SpecContext): NextPiece = {
     ctx.root match {
       case ctxCell: Cell => {
-        val pra = new Driver(ctxCell)
+        val pra = Driver(ctxCell)
         pra.stepUntilStop(RewriteSpecPiece.DEFAULT_MAX_REWRITE_COUNT)
         NextPiece.Continue
       }

@@ -2,7 +2,7 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.core._
-import degrel.engine.resource.Resource
+import degrel.engine.sphere.Sphere
 import degrel.engine.rewriting.Rewriter
 import degrel.utils.PrettyPrintOptions
 
@@ -11,14 +11,19 @@ import scala.collection.mutable
 /**
  * Cellの実行をします
  */
-class Driver(val header: Vertex) extends Reactor {
-  val resource: Resource = degrel.engine.resource.default
+class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
   implicit protected val printOption = PrettyPrintOptions(showAllId = true, multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
 
   def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
+  }
+
+  def resource: Sphere = if (chassis == null) {
+    degrel.engine.sphere.default
+  } else {
+    chassis.getResourceFor(this)
   }
 
   def stepUntilStop(limit: Int = -1): Int = {
@@ -107,7 +112,7 @@ class Driver(val header: Vertex) extends Reactor {
   def cell: CellBody = header.unref[CellBody]
 
   def spawn(cell: Vertex): Vertex = {
-    this.children += cell -> new Driver(cell)
+    this.children += cell -> new Driver(cell, chassis)
     cell
   }
 
@@ -144,6 +149,6 @@ object Driver {
   }
 
   def apply(cell: Cell): Driver = {
-    new Driver(cell)
+    new Driver(cell, Chassis.create())
   }
 }
