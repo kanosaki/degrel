@@ -53,6 +53,8 @@ object Label {
     val reference = Label(SpecialLabels.V_REFERENCE)
     val cell = Label(SpecialLabels.V_CELL)
     val rule = Label(SpecialLabels.V_RULE)
+    val vTrue = Label("true")
+    val vFalse = Label("false")
   }
 
   val Vertex = V

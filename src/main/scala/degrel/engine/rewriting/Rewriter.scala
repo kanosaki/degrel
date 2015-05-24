@@ -53,4 +53,9 @@ object Rewriter {
       case None => new NakedRewriter(v.asRule)
     }
   }
+
+  def parse(expr: String): Rewriter = {
+    val v = degrel.parseVertex(expr)
+    new NakedRewriter(v.asRule)
+  }
 }

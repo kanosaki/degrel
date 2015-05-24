@@ -12,8 +12,6 @@ import degrel.utils.PrettyPrintOptions
  */
 class If extends Rewriter {
   val ifLabel = Label("if")
-  val trueLabel = Label("true")
-  val falseLabel = Label("false")
   val thenLabel = Label("then")
   val elseLabel = Label("else")
 
@@ -24,11 +22,11 @@ class If extends Rewriter {
       thn <- target.thru(thenLabel).headOption
       els <- target.thru(elseLabel).headOption
     } yield pred.label match {
-      case `trueLabel` => {
+      case Label.V.vTrue => {
         target.write(thn)
         RewriteResult(done = true)
       }
-      case `falseLabel`  => {
+      case Label.V.vFalse  => {
         target.write(els)
         RewriteResult(done = true)
       }
@@ -40,11 +38,11 @@ class If extends Rewriter {
       pred <- target.thru(0).headOption
       thn <- target.thru(thenLabel).headOption
     }  yield pred.label match {
-      case `trueLabel` => {
+      case Label.V.vTrue => {
         target.write(thn)
         RewriteResult(done = true)
       }
-      case `falseLabel`  => {
+      case Label.V.vFalse => {
         target.write(Cell())
         RewriteResult(done = true)
       }
