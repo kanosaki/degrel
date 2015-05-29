@@ -15,6 +15,9 @@ object CLIArguments {
       arg[File]("<file>").optional().action { (x, c) =>
         c.copy(script = Some(x))
       }.text("Input script")
+      cmd("parse").text("AST Parse").action((_, c) => {
+        c.copy(cmd = CLICommand.Parse)
+      })
       cmd("bench").text("Benchmark subcommand").children({
         opt[String]("report").abbr("o").optional().action { (path, c) =>
           c.cmd match {

@@ -13,7 +13,7 @@ trait AstValueVertex[T] extends AstVertex {
 /**
  * 整数値を保持する`ValueVertex`のためのASTです
  */
-case class AstIntegerVertex(expr: String) extends AstValueVertex[Int] {
+case class AstIntegerVertex(expr: String, radix: Int = 10) extends AstValueVertex[Int] {
   override def toVertex: ValueVertex[Int] = {
     ValueVertex(expr.toInt)
   }

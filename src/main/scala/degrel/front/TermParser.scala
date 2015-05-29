@@ -25,7 +25,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   val PAT_ATTR_KEY = """[^:]+""".r
   val PAT_BINOP = """[\-\.!#$%^&*+=|:<>/?]+""".r
   val PAT_FULL_LABEL = """[_\-\.!#$%^&*+=|:<>/?A-Za-z0-9]+""".r
-  val PAT_BINDING = """[A-Z0-9][a-zA-Z0-9_]*""".r
+  val PAT_BINDING = """[A-Z][a-zA-Z0-9_]*""".r
 
   /**
    * End of Line
@@ -192,7 +192,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
 
   def value: Parser[AstVertex] =
     stringLiteral ^^ { expr => AstStringVertex(expr, trimQuotes = true) } |
-      wholeNumber ^^ AstIntegerVertex |
+      wholeNumber ^^ { expr => AstIntegerVertex(expr, radix = 10) } |
       floatingPointNumber ^^ AstFloatVertex
 
   /**
