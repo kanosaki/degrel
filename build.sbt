@@ -1,6 +1,10 @@
 
 import AssemblyKeys._
 
+import com.typesafe.sbt.SbtStartScript
+
+seq(SbtStartScript.startScriptForClassesSettings: _*)
+
 name := "degrel"
 
 scalaVersion := "2.11.6"
@@ -69,9 +73,6 @@ mainClass in Compile := Some("degrel.Main")
 
 test in assembly := {}
 
-import com.typesafe.sbt.SbtStartScript
-
-seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 // scala.tools.jline関連のライブラリがassembly時にコンフリクトを起こすので
 // 時前で競合解消
