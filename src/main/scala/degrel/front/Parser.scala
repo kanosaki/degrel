@@ -30,7 +30,7 @@ object Parser {
 
   object Parboiled extends ParserImpl {
     def handleError[T](parser: ParboiledParser, res: Try[T]): T = res match {
-      case Success(res) => res
+      case Success(r) => r
       case Failure(th) => {
         th match {
           case pe: ParseError => {
