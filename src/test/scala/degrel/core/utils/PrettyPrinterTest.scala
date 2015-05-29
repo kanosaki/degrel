@@ -1,10 +1,12 @@
 package degrel.core.utils
 
 import degrel.front.Parser
+import degrel.utils.PrettyPrintOptions
 import org.scalatest.FlatSpec
 
 class PrettyPrinterTest extends FlatSpec {
   val parse = degrel.parseVertex _
+  implicit val ppOption = PrettyPrintOptions(showAllId = false, multiLine = false)
 
   def removeWs(src: String) = src.replaceAll("\\s", "")
 
@@ -93,7 +95,7 @@ class PrettyPrinterTest extends FlatSpec {
   it should "Print a functor with reference" in {
     val v = parse("a(b: c@X, d: X)")
     val actual = pp(v)
-    val expected = "a\\(b:c\\[\\w+\\],d:<c\\[\\w+\\]>\\)"
+    val expected = "a\\(b:c@X\\[\\w+\\],d:<c@X\\[\\w+\\]>\\)"
     assert(removeWs(actual).matches(expected), s"${removeWs(actual)} not matches $expected")
   }
 }

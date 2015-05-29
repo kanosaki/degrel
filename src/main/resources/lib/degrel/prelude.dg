@@ -1,0 +1,10 @@
+
+nil -> {}
+
+__cell__(__stem__: X) -> X
+
+# if rule
+if(true, then: X, else: Y) -> X
+if(false, then: X, else: Y) -> Y
+if(true, then: X) -> X
+if(false, then: X) -> {}

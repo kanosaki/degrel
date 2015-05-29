@@ -2,11 +2,16 @@ package degrel.graphbuilder
 
 import degrel.core.Vertex
 
+/**
+ * スコープを作ります．`variables`以外の要素をすべて`parent`へプロキシし
+ * `variables`のみはここで新規に`ScopeVariables`を挟みます
+ * @param parent 親となる`Builder`
+ */
 class Scope(val parent: Primitive) extends Primitive {
   /**
    * このグラフ要素における環境
    */
-  override val variables: LexicalVariables = new ScopeVariables(parent.variables)
+  override val variables: LexicalSymbolTable = new ScopeSymbolTable(parent.variables)
 
   /**
    * 自分の子の{@code Builder[T]}

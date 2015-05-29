@@ -37,6 +37,9 @@ case class BinOp(expr: String,
 }
 
 object BinOp {
+  val DEFAULT_PRECEDANCE = 0
+  val APPLICATION_PRECEDANCE = 100
+
   // デフォルトの演算子優先順位．ほぼJavaに準拠
   // 上ほど優先のもので，下ほど優先度が低い
   val DOT = BinOp(".", 5)

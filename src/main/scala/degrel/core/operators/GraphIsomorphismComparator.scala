@@ -90,8 +90,8 @@ class GraphIsomorphismComparator(self: Graph, that: Graph) {
     // ソート用にグラフの全長点を走査してvertex_tableに追加してゆきます
     val vertex_table = new mutable.HashMap[VOrdKey, mutable.Set[Vertex]]() with mutable.MultiMap[VOrdKey, Vertex]
     for (v <- g.vertices) {
-      val incomes: Seq[Label] = g.find_edges(dst = v).map(_.label).toSeq.sorted
-      val outgoes: Seq[Label] = g.find_edges(src = v).map(_.label).toSeq.sorted
+      val incomes: Seq[Label] = g.findEdges(dst = v).map(_.label).toSeq.sorted
+      val outgoes: Seq[Label] = g.findEdges(src = v).map(_.label).toSeq.sorted
       vertex_table.addBinding((v.label, incomes, outgoes), v)
     }
 

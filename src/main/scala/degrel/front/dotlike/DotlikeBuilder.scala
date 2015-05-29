@@ -1,13 +1,13 @@
 package degrel.front.dotlike
 
 import degrel.core.{Label, Edge, Vertex}
-import degrel.graphbuilder.LexicalVariables
+import degrel.graphbuilder.{LexicalSymbolTable}
 import degrel.utils.collection.mutable.BiHashMap
 
 import scala.collection.mutable
 import scalaz._
 
-class DotlikeBuilder(ast: AstDigraph)(context: LexicalVariables) {
+class DotlikeBuilder(ast: AstDigraph)(context: LexicalSymbolTable) {
 
   val rootIdentifier = tagI("")
   val vertices = new mutable.HashMap[String @@ I, Vertex]

@@ -10,14 +10,15 @@ object ParseTestUtils {
     AstFunctor(AstName(Some(AstLabel(lbl)), None), attrs, mkEdges(edges))
   }
 
-  def mkEdges(edges: Iterable[(String, AstFunctor)]): Seq[AstEdge] = {
-    edges.map {
+  def mkEdges(edges: Iterable[(String, AstFunctor)]): AstEdges = {
+    val plains = edges.map {
       case (l, v) => AstEdge(AstLabel(l), v)
     }.toSeq
+    AstEdges(plains, Seq())
   }
 
   def mkName(label: String = null, capture: String = null) = {
-    AstName(wrapIfNotNull(label, AstLabel), wrapIfNotNull(capture, AstVertexBinding))
+    AstName(wrapIfNotNull(label, AstLabel), wrapIfNotNull(capture, AstBinding))
   }
 
   def wrapIfNotNull[X, Y](v: X, wrapper: X => Y): Option[Y] = {

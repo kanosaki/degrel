@@ -1,0 +1,35 @@
+
+caption: Fin rule.
+description: When fin rule apears in roots of cell, the cell will be rewrite with it.
+version: 1
+seq_spec:
+  - init: >
+      {
+        a
+        a -> {fin b}
+      }
+  - rewrite
+  - assert: >
+      {
+        b
+        a -> {fin b}
+      }
+  - init: >
+      {
+        plus(@N, @M) -> {
+          fin (N + M)
+        }
+        plus(1, 1)
+        plus(3, 3)
+      }
+  - rewrite
+  - assert: >
+      {
+        2
+        6
+        plus(@N, @M) -> {
+          fin (N + M)
+        }
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

@@ -5,8 +5,6 @@ import degrel.front._
 
 /**
  * AstFunctorからFunctorを構築するGraphBuilder
- * @param parent
- * @param ast
  */
 class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder[Vertex] {
   self =>
@@ -18,10 +16,26 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     def concrete(): Unit
 
     def edges: Seq[Edge] = {
-      ast.edges.map(astEdge => {
+      val othersEdges: Seq[Edge] = ast.edges.others.collect {
+        case oe if ! oe.isDeclare => {
+          variables.lookupTyped(oe.binding.expr, LexicalType.OthersVertex) match {
+            case foundOVertex: LookupFound[Builder[Vertex]] => {
+              Edge(this.header, Label.E.others, foundOVertex.primary.header)
+            }
+            case _ => variables.lookupTyped(oe.binding.expr, LexicalType.Vertex) match {
+              case foundVertex: LookupFound[Builder[Vertex]] => {
+                Edge(this.header, Label.E.include, foundVertex.primary.header)
+              }
+              case _ => throw new Exception(s"Undefined variable: ${oe.binding}(others edges)")
+            }
+          }
+        }
+      }
+      val plainEdges = ast.edges.plains.map(astEdge => {
         val builder = edgeChildMap(astEdge)
         Edge(this.header, astEdge.label.expr, builder.header)
       })
+      plainEdges ++ othersEdges
     }
   }
 
@@ -32,16 +46,22 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
   /**
    * @inheritdoc
    */
-  override val variables: LexicalVariables = parent.variables
+  override val variables: LexicalSymbolTable = parent.variables
 
   // もし変数宣言の場合は変数に自分の名前を登録
   ast.name match {
     case AstName(Some(_), Some(cap)) =>
-      variables.bindSymbol(cap.expr, this)
+      variables.bind(cap.expr, this, LexicalType.Vertex)
     case _ =>
   }
 
-  val edgeChildMap = ast.edges.
+  ast.edges.others.foreach {
+    case oe if oe.isDeclare =>
+      variables.bind(oe.binding.expr, this, LexicalType.OthersVertex)
+    case _ =>
+  }
+
+  val edgeChildMap = ast.edges.plains.
     map(astEdge => astEdge -> factory.get[Vertex](this, astEdge.dst)).
     toMap
 
@@ -61,7 +81,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    * @return
    */
   def concreteReferenceVertex(targetName: String): Unit = {
-    val vs = variables.resolveGrouped(targetName)
+    val vs = variables.resolveTyped(targetName, LexicalType.Vertex)
     vs match {
       case List(target) :: _ =>
         builder = new MirrorFunctor(target)
@@ -103,7 +123,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    */
   def mkAttributesMap: Map[Label, String] = {
     val srcattrs = ast.attributes match {
-      case Some(attrs) => attrs.map(a => (a.key, a.value))
+      case Some(attrs) => attrs.map(a => (Label(a.key), a.value))
       case None => Map()
     }
     Label.convertAttrMap(srcattrs ++ this.mkSystemAttributes)
@@ -112,19 +132,23 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
   /**
    * 構文解析器によって自動的に付与されるメタ属性を返します
    */
-  def mkSystemAttributes: Iterable[(String, String)] = {
+  def mkSystemAttributes: Iterable[(Label, String)] = {
     ast.name match {
-      case AstName(_, Some(AstVertexBinding(e))) => Seq("__captured_as__" -> e)
+      case AstName(_, Some(AstBinding(e))) => Seq(Label.A.capturedAs -> e)
       case _ => Seq()
     }
   }
 
+  /**
+   * 通常の頂点を作成します
+   * @param labelExpr 頂点のラベル
+   */
   class PlainVertex(labelExpr: String) extends FBuilder {
-    val header = new VertexHeader(null)
+    val header = VertexHeader(null)
 
     override def concrete(): Unit = {
       this.header.write(
-        new VertexBody(
+        VertexBody(
           Label(labelExpr),
           self.mkAttributesMap,
           this.edges,
@@ -133,9 +157,13 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
     }
   }
 
+  /**
+   * DEGRELにおける参照頂点を作成します
+   * @param target 参照先の`Builder`
+   */
   class ReferenceVertex(target: Primitive) extends FBuilder {
     val label = SpecialLabels.V_REFERENCE
-    val header = new VertexHeader(null)
+    val header = VertexHeader(null)
 
     def concrete() = {
       val refEdge = Edge(
@@ -146,13 +174,22 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
       val vb = new ReferenceVertexBody(
         Label(label),
         self.mkAttributesMap,
-        Stream(refEdge) ++ this.edges,
-        ID.NA
+        Stream(refEdge) ++ this.edges
       )
       this.header.write(vb)
     }
   }
 
+  /**
+   * ミラー頂点を構成します
+   *
+   * ミラー頂点は，同一スコープ内の変数参照で
+   * pat@X -> foo(bar: @Y, baz: Y, hoge: X)
+   * というような規則があった場合，`X`は別のレベル(書き換え規則の右辺左辺)であるので
+   * 通常の参照頂点となりますが，`Y`は同一レベルであるのでミラー頂点です．
+   * 参照頂点は"参照頂点"という特別な頂点をグラフ上に表現しますが，ミラー頂点は
+   * 変数宣言で生成された頂点と同じ参照を返します．
+   */
   class MirrorFunctor(target: Primitive) extends FBuilder {
     override def header: Vertex = target.header
 

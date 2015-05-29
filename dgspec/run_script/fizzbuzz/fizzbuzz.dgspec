@@ -1,0 +1,26 @@
+caption: FizzBuzz
+description: FizzBuzz
+version: 1
+ignore: true
+seq_spec:
+  - run: run_script/fizzbuzz/fizzbuzz.dg
+  - assert: 
+      type: stdout
+      text: >
+        1
+        2
+        Fizz
+        4
+        Buzz
+        Fizz
+        7
+        8
+        Fizz
+        Buzz
+        11
+        Fizz
+        13
+        14
+        FizzBuzz
+
+# vim: ft=yaml sw=2 ts=2 sts=2

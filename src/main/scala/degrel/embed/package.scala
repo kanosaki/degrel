@@ -19,5 +19,5 @@ package object embed {
   /**
    * DEGREL名前空間にCellFactoryを登録します
    */
-  def register(ns: Namespace, factory: CellFactory) = ???
+  //def register(ns: Namespace, factory: CellFactory) = ???
 }

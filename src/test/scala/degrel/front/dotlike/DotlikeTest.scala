@@ -81,7 +81,7 @@ class DotlikeTest extends FlatSpec {
     val ast = DigraphParser(expr)
     val graph = ast.toGraph()
     assert(graph.label === Label("root"))
-    assert(graph.edges().size === 0)
+    assert(graph.edges.size === 0)
     assert(graph.attributes === Map())
   }
 
@@ -96,11 +96,11 @@ class DotlikeTest extends FlatSpec {
     val ast = DigraphParser(expr)
     val graph = ast.toGraph()
     val a = graph.path("a").exact.asInstanceOf[Vertex]
-    assert(a.edges().size === 1)
+    assert(a.edges.size === 1)
     val b = graph.path("a/b").exact.asInstanceOf[Vertex]
-    assert(b.edges().size === 1)
+    assert(b.edges.size === 1)
     val c = graph.path("a/b/c").exact.asInstanceOf[Vertex]
-    assert(c.edges().size === 1)
+    assert(c.edges.size === 1)
     assert(graph.path("a/b/c/a").exact === graph.path("a").exact)
     // (root -> a -> b -> c ->) a
     assert(graph.path(":e/:e/:e/:e").nextV().exact === graph.path("a").exact)
@@ -121,11 +121,11 @@ class DotlikeTest extends FlatSpec {
     val ast = DigraphParser(expr)
     val graph = ast.toGraph()
     val a = graph.path("a").exact.asInstanceOf[Vertex]
-    assert(a.edges().size === 2)
+    assert(a.edges.size === 2)
     val b = graph.path("a/b").exact.asInstanceOf[Vertex]
-    assert(b.edges().size === 2)
+    assert(b.edges.size === 2)
     val c = graph.path("a/c").exact.asInstanceOf[Vertex]
-    assert(c.edges().size === 1)
+    assert(c.edges.size === 1)
   }
 
   it should "build graph with identifier" in {

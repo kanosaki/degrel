@@ -10,3 +10,11 @@ lib_managed/
 project/
 !project/assembly.sbt
 !project/plugins.sbt
+
+*.pyc
+__pycache__/
+.ropeproject/
+
+# Benchmark files
+benchmark/*
+!benchmark/benchmark.py

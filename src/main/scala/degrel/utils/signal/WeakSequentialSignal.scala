@@ -6,8 +6,8 @@ import scala.collection.mutable
 import scala.ref.WeakReference
 
 class WeakSequentialSignal[T] extends Signal[T] {
-  private val handlers = new mutable.ListBuffer[WeakReference[Handler]]
-  private val guard = new ReadWriteGuard()
+  private[this] val handlers = new mutable.ListBuffer[WeakReference[Handler]]
+  private[this] val guard = new ReadWriteGuard()
 
   override def register(handler: Handler): Unit = guard.write(
   {

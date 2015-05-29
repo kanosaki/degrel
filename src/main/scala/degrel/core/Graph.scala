@@ -1,5 +1,7 @@
 package degrel.core
 
+import degrel.utils.PrettyPrintOptions
+
 
 object Graph {
   def getVertexBody(v: Vertex): VertexBody = v match {
@@ -17,7 +19,7 @@ trait Graph extends Element {
 
   def edges: Seq[Edge]
 
-  def find_edges(src: Vertex = null, dst: Vertex = null): Iterable[Edge] = {
+  def findEdges(src: Vertex = null, dst: Vertex = null): Iterable[Edge] = {
     val src_filtered = if (src != null) {
       this.edges.filter(_.src == src)
     } else {
@@ -46,15 +48,17 @@ class RawRootedGraph(_root: Vertex) extends RootedGraph {
   }
 
   def edges: Seq[Edge] = {
-    Traverser(root).flatMap(_.edges()).toSeq
+    Traverser(root).flatMap(_.edges).toSeq
   }
 
-  override def reprRecursive(history: Trajectory): String = root.reprRecursive(history)
-
-  override def repr: String = root.repr
+  override def pp(implicit opt: PrettyPrintOptions = PrettyPrintOptions.default): String = {
+    s"Graph(root=${root.pp()})"
+  }
 }
 
-trait UnrootedGraph extends Graph {
+class FrozenRootedGraph(val root: Vertex, val vertices: Seq[Vertex]) {
+  assert(vertices.contains(root))
 
+  val edges = vertices.flatMap(_.edges)
 }
 

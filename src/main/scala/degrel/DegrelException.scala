@@ -1,9 +1,19 @@
 package degrel
 
-class DegrelException(msg: String, cause: Throwable) extends Exception(msg, cause) {
-  def this(msg: String) = this(msg, null)
+trait DegrelException extends Throwable {
+  def msg: String
+  def cause: Throwable
 
-  def this(cause: Throwable) = this(null, cause)
+  override def getMessage: String = this.msg
 
-  def this() = this(null, null)
+  override def getCause: Throwable = this.cause
+}
+
+class DefaultDegrelException(val msg: String, val cause: Throwable) extends Exception with DegrelException {
+}
+
+object DegrelException {
+  def apply(msg: String, cause: Throwable = null): DegrelException = {
+    new DefaultDegrelException(msg, cause)
+  }
 }

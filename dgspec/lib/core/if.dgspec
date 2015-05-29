@@ -1,0 +1,18 @@
+
+caption: If vertex.
+description: if
+version: 1
+seq_spec:
+  - init: >
+      {
+        if(true,
+          then: foo,
+          else: bar)
+      }
+  - rewrite
+  - assert: >
+      {
+        foo
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

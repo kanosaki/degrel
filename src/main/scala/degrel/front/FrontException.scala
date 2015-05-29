@@ -1,8 +1,8 @@
 package degrel.front
 
-import degrel.DegrelException
+import degrel.DefaultDegrelException
 
-class FrontException(val msg: String) extends DegrelException(msg) {
+class FrontException(msg: String, cause: Throwable = null) extends DefaultDegrelException(msg, null) {
 
 }
 

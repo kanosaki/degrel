@@ -4,7 +4,7 @@ import degrel.core
 import degrel.utils.collection.mutable.WeakMultiMap
 
 class VertexTable {
-  private val map = new WeakMultiMap[core.Label, core.Vertex]()
+  private[this] val map = new WeakMultiMap[core.Label, core.Vertex]()
 
   def get(label: core.Label): Option[Set[core.Vertex]] = {
     map.get(label) match {

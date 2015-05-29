@@ -23,6 +23,7 @@ class Trajectory {
 
 
 trait TrajectoryStamp
+
 case class Visited(trj: Trajectory) extends TrajectoryStamp {
 
 }

@@ -1,8 +1,0 @@
-description: Hello world!
-
-[input]
-io.print("Hello world")
-
-[assert stdout]
-Hello world!
-

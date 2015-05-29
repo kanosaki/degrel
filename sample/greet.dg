@@ -1,0 +1,12 @@
+greet(@N, @Max) -> {
+  fin if((N < Max), 
+    then: {
+      println("HELLO", N)
+      fin greet((N + 1), Max)
+    },
+    else: {
+      println("DONE", N)
+    })
+}
+
+greet(0, 10)

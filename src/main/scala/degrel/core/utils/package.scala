@@ -1,12 +1,11 @@
 package degrel.core
 
+import degrel.utils.PrettyPrintOptions
+
 package object utils {
-  def pp(v: Vertex, multiLine: Boolean = false): String = {
+  def pp(v: Vertex)(implicit opts: PrettyPrintOptions = PrettyPrintOptions.default): String = {
     val printer = new PrettyPrinter(v)
-    multiLine match {
-      case true => printer.multiLine
-      case false => printer.singleLine
-    }
+    printer()
   }
 
   def prettyPrint = pp _

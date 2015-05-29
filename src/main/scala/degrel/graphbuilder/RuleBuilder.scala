@@ -9,7 +9,7 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   /**
    * このグラフ要素における環境
    */
-  override val variables: LexicalVariables = parent.variables
+  override val variables: LexicalSymbolTable = parent.variables
 
   val lhsScope = new Scope(this)
   val rhsScope = new Scope(lhsScope)
@@ -21,7 +21,7 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   /**
    * このグラフ要素への参照用のヘッダ
    */
-  override val header: Rule = new RuleVertexHeader(null, null, ID.NA)
+  override val header: Rule = new RuleVertexHeader(null, null)
 
   /**
    * このグラフ要素を直接内包するCell
@@ -35,7 +35,7 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   override def doBuildPhase(phase: BuildPhase): Unit = phase match {
     case FinalizePhase => {
       val h = this.header.asInstanceOf[RuleVertexHeader]
-      h.write(new RuleVertexBody(lhsFactory.header, rhsFactory.header, ID.NA))
+      h.write(new RuleVertexBody(lhsFactory.header, rhsFactory.header))
     }
     case _ =>
   }

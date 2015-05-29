@@ -27,7 +27,7 @@ trait Label extends Ordered[Label] {
 
   def symbol: Symbol = Symbol(this.expr)
 
-  def isMeta: Boolean = this.expr.startsWith("_")
+  def isMeta: Boolean = this.expr.startsWith("__")
 }
 
 object Label {
@@ -53,6 +53,8 @@ object Label {
     val reference = Label(SpecialLabels.V_REFERENCE)
     val cell = Label(SpecialLabels.V_CELL)
     val rule = Label(SpecialLabels.V_RULE)
+    val vTrue = Label("true")
+    val vFalse = Label("false")
   }
 
   val Vertex = V
@@ -61,22 +63,32 @@ object Label {
     val rhs = Label(SpecialLabels.E_RHS)
     val lhs = Label(SpecialLabels.E_LHS)
     val ref = Label(SpecialLabels.E_REFERENCE_TARGET)
+    val others = Label(SpecialLabels.E_OTHERS)
+    val include = Label(SpecialLabels.E_INCLUDE)
 
     val cellRule = Label(SpecialLabels.E_CELL_RULE)
     val cellItem = Label(SpecialLabels.E_CELL_ITEM)
+    val cellBase = Label(SpecialLabels.E_CELL_BASE)
   }
 
   val Edge = E
 
   object A {
-    val capturedAs = Label('__captured_as__)
+    val capturedAs = Label(SpecialLabels.A_CAPTURED_AS)
   }
 
   val Attributes = A
 
-  def convertAttrMap(origin: Iterable[(String, String)]): Map[Label, String] = {
+  // name :: List[Symbol]
+  object N {
+    val main = List(SpecialLabels.N_MAIN)
+  }
+
+  val Name = N
+
+  def convertAttrMap(origin: Iterable[(Label, String)]): Map[Label, String] = {
     origin.map {
-      case (k, v) => Label(k) -> v
+      case (k, v) => k -> v
     }.toMap
   }
 }

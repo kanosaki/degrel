@@ -1,10 +1,10 @@
 package degrel.front.dotlike
 
-import degrel.graphbuilder.LexicalVariables
+import degrel.graphbuilder.LexicalSymbolTable
 
 case class AstDigraph(label: String, body: AstDigraphBody) {
 
-  def toGraph(context: LexicalVariables = LexicalVariables.empty) = {
+  def toGraph(context: LexicalSymbolTable = LexicalSymbolTable.empty) = {
     val builder = new DotlikeBuilder(this)(context)
     builder.root
   }

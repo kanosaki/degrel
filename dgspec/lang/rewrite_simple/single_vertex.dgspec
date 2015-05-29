@@ -1,9 +1,17 @@
-description: Rewrites single vertex.
 
-[input]
-a
-a -> b
+caption: Rewrite simple vertex in one step.
+version: 1
+seq_spec:
+  - init: >
+      {
+        a
+        a -> b
+      }
+  - rewrite
+  - assert: >
+      {
+        b
+        a -> b
+      }
 
-[assert roots]
-b
-
+# vim: ft=yaml sw=2 ts=2 sts=2
