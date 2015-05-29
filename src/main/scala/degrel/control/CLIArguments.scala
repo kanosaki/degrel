@@ -6,6 +6,9 @@ case class CLIArguments(script: Option[File] = None,
                         verbose: Boolean = false,
                         cmd: CLICommand = CLICommand.Plain)
 
+/**
+ * 引数解析
+ */
 object CLIArguments {
   def parser() = {
     new scopt.OptionParser[CLIArguments]("degrel") {

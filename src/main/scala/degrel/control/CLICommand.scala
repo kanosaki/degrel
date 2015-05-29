@@ -12,8 +12,16 @@ sealed trait CLICommand {
   def start(arg: CLIArguments): Unit
 }
 
+/**
+ * サブコマンド一覧
+ */
 object CLICommand {
 
+  /**
+   * ベンチマークを実行します
+   * @param targets ベンチマークを実行するファイル一覧
+   * @param outputJson 結果を出力するファイル
+   */
   case class Benchmark(targets: Seq[String] = Seq(), outputJson: Option[String] = None) extends CLICommand {
     override def start(arg: CLIArguments): Unit = {
       val bench = new FilesBenchmark(targets.map(Paths.get(_)), outputJson.map(Paths.get(_)))
@@ -21,6 +29,9 @@ object CLICommand {
     }
   }
 
+  /**
+   * 入力を構文解析してASTを表示するだけのREPL
+   */
   case object Parse extends CLICommand {
     override def start(arg: CLIArguments): Unit = {
       val console = new ConsoleReader()
@@ -43,6 +54,10 @@ object CLICommand {
     }
   }
 
+  /**
+   * サブコマンドが指定されない場合
+   * ファイルが引数に存在する場合はインタプリタ，しない場合はREPLを起動します
+   */
   case object Plain extends CLICommand {
     override def start(arg: CLIArguments): Unit = {
       arg.script match {

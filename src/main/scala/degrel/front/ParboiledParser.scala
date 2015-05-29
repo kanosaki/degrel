@@ -34,14 +34,17 @@ class ParboiledParser(val input: ParserInput) extends Parser {
 
   val ALPHANUM = CharPredicate.AlphaNum
 
-  val KEYCHAR = CharPredicate(":;=#@\u21d2\u2190")
-  val KEYCHAR2 = CharPredicate("-:%")
-
-
+  /**
+   * 16進数リテラル
+   * TODO: 負の数ってどうするの
+   */
   def hexNum: Rule1[String] = rule {
     atomic("0x" ~ capture(HEXDIGIT.+))
   }
 
+  /**
+   * 10進数整数
+   */
   def decNum: Rule1[String] = rule {
     atomic(capture('-'.? ~ DIGIT.+))
   }
@@ -56,7 +59,7 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     ALPHANUM | GeneralAlphaNum
   }
 
-  def lowerAlphaNum = rule(atomic(LOWER | test(this.cursorChar.isLower | this.cursorChar.isDigit) ~ ANY))
+  def lowerAlphaNum = rule(atomic(LOWER | DIGIT | test(this.cursorChar.isLower | this.cursorChar.isDigit) ~ ANY))
 
   def lowerAlpha = rule(atomic(LOWER | test(this.cursorChar.isLower) ~ ANY))
 
@@ -90,11 +93,17 @@ class ParboiledParser(val input: ParserInput) extends Parser {
 
   def oneNLMax: Rule0 = rule(quiet(ws ~ newline.? ~ commentLine.* ~ notNewline))
 
+  /**
+   * 整数
+   */
   def integer: Rule1[AstIntegerVertex] = rule {
     hexNum ~> (AstIntegerVertex(_: String, 16)) |
       decNum ~> (AstIntegerVertex(_: String, 10))
   }
 
+  /**
+   * 浮動小数点
+   */
   def float: Rule1[AstFloatVertex] = {
     val Exp = rule(`Ee` ~ `+-`.? ~ DIGIT.+)
     val Decimals = rule('.' ~ DIGIT.+ ~ Exp.? ~ `FfDd`.?)
@@ -112,6 +121,9 @@ class ParboiledParser(val input: ParserInput) extends Parser {
   }
 
   // TODO: use StringBuilding here
+  /**
+   * 文字列リテラル
+   */
   def string: Rule1[AstStringVertex] = {
     def stringToken: Rule1[Char] = rule {
       '\\' ~ capture(ESCAPE) ~> (mapEscapeChar(_: String)) |
@@ -133,22 +145,39 @@ class ParboiledParser(val input: ParserInput) extends Parser {
       block != null && block != Character.UnicodeBlock.SPECIALS
     }
 
+  /**
+   * 変数参照
+   */
   def variable = rule {
     capture(upperAlpha ~ ('_' | alphaNum).*) ~ ws ~> AstBinding
   }
 
+  /**
+   * 変数宣言
+   */
   def binding = rule {
-    '@' ~ ws ~ variable ~ ws
+    '@' ~ ws ~ variable
   }
 
+  /**
+   * ラベル
+   */
   def label = rule {
     capture((lowerAlphaNum | '_') ~ (alphaNum | '.' | '_').*) ~ ws ~> AstLabel
   }
 
+  /**
+   * クオートラベル
+   * 任意の文字をラベルとして使える
+   */
   def quotedLabel = rule {
     ''' ~ capture((!''' ~ ANY).*) ~ ''' ~ ws ~> AstLabel
   }
 
+  /**
+   * 頂点のHEAD部．
+   * @note データの`VertexHeader`とは別物で，構文上でのHEAD部
+   */
   def vertexHead = {
     val labels = rule(quotedLabel | label)
     rule {
@@ -158,41 +187,76 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     }
   }
 
+  /**
+   * 二項演算子
+   */
   def binop: Rule1[AstBinOp] = rule {
     capture(opChar.+) ~> (AstBinOp(_: String))
   }
 
+  /**
+   * 連続した二項演算子を構文解析するときの
+   * 二項演算子とそれに続く部分
+   */
   def binopRight: Rule1[(AstBinOp, AstVertex)] = rule {
     binop ~ wl ~ element ~> ((b: AstBinOp, v: AstVertex) => (b, v))
   }
 
+  /**
+   * 式
+   */
   def expression: Rule1[AstVertex] = rule {
     element ~ binopRight.* ~> {
       AstLinerExpr(_: AstVertex, _: Seq[(AstBinOp, AstVertex)]).toTree
     }
   }
 
+  /**
+   * 通常の接続
+   */
   def normalEdge: Rule1[AstAbbrEdge] = rule {
     label ~ wl ~ ':' ~ wl ~ expression ~> ((l, v) => AstAbbrEdge(Some(l), v)) |
       (label ~ wl ~ ':' ~ wl).? ~ element ~> AstAbbrEdge
   }
 
+  /**
+   * Others接続
+   */
   def othersEdge: Rule1[AstOthersEdges] = rule {
     '_' ~ wl ~ ':' ~ wl ~ (
       binding ~> (AstOthersEdges(_: AstBinding, isDeclare = true)) |
         variable ~> (AstOthersEdges(_: AstBinding, isDeclare = false)))
   }
 
+  /**
+   * エッジの区切り．現在 行末コロンのみ可能です．
+   */
   def edgeSeparator: Rule0 = rule {
     ws ~ ',' ~ wl
   }
 
+  /**
+   * 接続のパーサー
+   * MEMO:
+   * `othersEdge`は`normalEdge`としても有効なので，`othersEdge`を優先します
+   */
   def edge: Rule1[AstEdgeElement] = rule(othersEdge | normalEdge)
 
+  /**
+   * 接続のリスト
+   */
   def edgesList: Rule1[Seq[AstEdgeElement]] = rule {
     edge.*(edgeSeparator)
   }
 
+  /**
+   * 接続は属性を省略可能であるため，省略の方法が正規であるか確認し，
+   * 正規である場合は省略された部分を復元します．
+   *
+   * 具体的には`OthersEdge`は最後に固めておかなければならず，省略接続は
+   * 非省略接続の後ろに現れることが出来ません．つまり接続は
+   * `AbbreviatedEdge.* ~ NormalEdge.* ~ OthersEdge.*`の形をしている必要があります
+   */
   def verifyEdgeElements(abbrEdges: Seq[AstEdgeElement]): AstEdges = {
     if (abbrEdges.isEmpty) return AstEdges(Seq(), Seq())
     // 最後の要素がOthersEdgeであるかどうかを確認します
@@ -231,26 +295,41 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     })
   }
 
+  /**
+   * 二項演算子の項
+   */
   def element: Rule1[AstVertex] = rule {
     ws ~ ('(' ~ expression ~ ')' | cell | valueVertex | functor) ~ ws
   }
 
+  /**
+   * Cellの要素
+   */
   def cellItem: Rule1[AstCellItem] = rule {
     wl ~ expression ~ semis ~ wl
   }
 
   def cell: Rule1[AstCell] = rule {
-    '{' ~ wl ~ cellItem.*  ~ '}' ~ wl ~> AstCell
+    '{' ~ wl ~ cellItem.* ~ '}' ~ wl ~> AstCell
   }
 
+  /**
+   * リテラル頂点(`ValueVertex`)
+   */
   def valueVertex: Rule1[AstVertex] = rule {
     string | float | integer
   }
 
+  /**
+   * 入力すべてを`expression`として扱います
+   */
   def allAsExpression = rule {
-    wl ~ expression ~ wl~ EOI
+    wl ~ expression ~ wl ~ EOI
   }
 
+  /**
+   * 入力すべてを`cell`として扱います
+   */
   def allAsCell = rule {
     wl ~ cell ~ wl ~ EOI
   }

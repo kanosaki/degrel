@@ -13,6 +13,13 @@ import org.json4s.native.JsonMethods
 import scala.collection.JavaConversions._
 import scala.language.implicitConversions
 
+/**
+ * ターゲットに含まれるすべてのスクリプトを実行し，その実行時間を計測し
+ * レポートにまとめます
+ * @param targets 実行するスクリプト，またはそれを含むディレクトリ．`*.dg`の拡張子を持つ通常のファイルが対象になります
+ * @param resultJson 結果を書き出すパス．JSONで書き出されます
+ * @param quiet これを`true`の時，スクリプトの標準出力を無効にします．
+ */
 class FilesBenchmark(targets: Seq[Path], resultJson: Option[Path], quiet: Boolean = true) {
   val outputEncoding = "utf-8"
   val out = System.out
