@@ -11,6 +11,10 @@ class RewriterTest extends FlatSpec {
   def rewriter(s: String) = Rewriter(vertex(s).asRule)
 
   Seq(
+    ("Spawn cell with loop",
+      "foo",
+      "foo -> {hoge@X(fuga: X)}",
+      "{hoge@X(fuga: X)}"),
     ("Build a simple vertex",
       "a",
       "a -> b",

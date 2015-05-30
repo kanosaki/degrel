@@ -10,14 +10,11 @@ import degrel.core._
 class PlainMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
   override val header: VertexHeader = context.getHeader(mold)
 
-  override def process(ph: MoldPhase): Unit = {
-    ph match {
-      case MoldPhase.Mold => {
-        this.doMold()
-      }
-      case _ =>
+  override def onPhase(ph: MoldPhase): Unit = ph match {
+    case MoldPhase.Mold => {
+      this.doMold()
     }
-    super.process(ph)
+    case _ =>
   }
 
   // Perform as RhsVertex
