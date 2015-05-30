@@ -17,4 +17,5 @@ __pycache__/
 
 # Benchmark files
 benchmark/*
-!benchmark/benchmark.py
+!benchmark/report.py
+!benchmark/gen_script.py
