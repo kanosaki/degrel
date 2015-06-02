@@ -9,4 +9,4 @@ greet(@N, @Max) -> {
     })
 }
 
-greet(0, 10)
+greet(0, 1000)

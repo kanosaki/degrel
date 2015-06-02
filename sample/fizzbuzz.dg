@@ -12,4 +12,4 @@ fizzbuzz(@N, @Max) -> {
   if ((N % 3 != 0 && N % 5 != 0), then: msg(N))
 }
 
-fizzbuzz(0, 1000)
+fizzbuzz(0, 2000)
