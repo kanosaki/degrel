@@ -92,11 +92,12 @@ class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
 
   def itemRoots: Iterable[Vertex] = cell
     .edges
+    .toStream
     .filter(_.label == Label.E.cellItem)
     .map(_.dst)
 
   def rewriteTargets: Iterable[Vertex] = {
-    this.itemRoots.flatMap(Traverser(_, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.InnerOnly)))
+    CellTraverser(this.cell)
   }
 
   /**
