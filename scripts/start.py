@@ -34,7 +34,7 @@ def dependency_classpath():
     else:
         print('Regenerating classpath....', file=sys.stderr)
         try:
-            sbt_result = system('sbt', 'export compile:dependency-classpath')
+            sbt_result = system(*SBT_EXPORT_DEPS_COMMAND)
             classpath = sbt_result.strip().split('\n')[-1].strip()
         except:
             print('Cannot parse CLASSPATH from sbt', file=sys.stderr)

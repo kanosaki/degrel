@@ -2,7 +2,9 @@ from __future__ import print_function
 import sys
 import os
 from datetime import datetime
+import tempfile
 import json
+import shutil
 
 import jinja2
 
@@ -16,25 +18,34 @@ class Bench(object):
         # Cahce, prevent from getting twice
         self.timestamp = datetime.now()
         self.timestamp_str = self.timestamp.strftime('%Y%m%d-%H%M%S')
-        self.entries = list(self.mk_entries())
 
     def start(self):
+        self.temp_output = utils.app_relative('benchmark', 'working')
+        if os.path.exists(self.temp_output):
+            shutil.rmtree(self.temp_output)
+        os.makedirs(self.temp_output)
+
+        self.entries = list(self.mk_entries())
+
         for entry in self.entries:
             entry.prepare()
 
         tasks = [(e, t)
-                 for e in self.entries
-                 for t in enumerate(e.tasks)]
+                for e in self.entries
+                for t in enumerate(e.tasks)]
 
         for (index, (entry, (index_of_entry, task))) in enumerate(tasks):
             print("Runing: %s (Try: %d/%d) (All: %d/%d)"
-                  % (entry.name,
-                     index_of_entry, len(entry.tasks),
-                     index, len(tasks)),
-                  file=sys.stderr)
+                % (entry.name,
+                    index_of_entry, len(entry.tasks),
+                    index, len(tasks)),
+                file=sys.stderr)
             task.start()
 
         self.write_param_json()
+        if self.temp_output and os.path.exists(self.temp_output):
+            shutil.copytree(self.temp_output, self.real_bench_dir())
+
 
     def write_param_json(self):
         path = os.path.join(self.bench_dir, 'param.json')
@@ -58,9 +69,15 @@ class Bench(object):
     def template_dir(self):
         return utils.app_relative('benchmark', 'templates')
 
+    def real_bench_dir(self):
+            return os.path.join(self.result_dir, self.timestamp_str)
+
     @property
     def bench_dir(self):
-        return os.path.join(self.result_dir, self.timestamp_str)
+        if self.temp_output:
+            return self.temp_output
+        else:
+            return self.real_bench_dir()
 
     def mk_entries(self):
         for config in self.bench_list:

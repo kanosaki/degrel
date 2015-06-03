@@ -48,6 +48,7 @@ class FilesBenchmark(targets: Seq[Path], resultJson: Option[Path], quiet: Boolea
       case Some(resultPath) => {
         val reportJsonObjs = reports.map(_.toJson)
         val json = mkOutputJson(reportJsonObjs)
+        resultPath.toFile.getParentFile.mkdirs()
         Files.write(resultPath, json.getBytes(outputEncoding))
       }
       case _ =>
