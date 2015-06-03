@@ -27,7 +27,11 @@ def system(*cmd):
     out, err = proc.communicate()
     if proc.returncode != 0:
         raise RuntimeError("Command failed")
-    return out
+    try:
+        # for py3k
+        return out.decode('utf-8')
+    except AttributeError:
+        return out
 
 
 def run(*args):
