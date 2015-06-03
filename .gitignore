@@ -1,3 +1,6 @@
+# classpath cache used by scripts/start.py
+.sbt-classpath
+
 # Intellij Environment specific files
 .idea
 *.iws

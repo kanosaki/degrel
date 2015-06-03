@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-from __future__ import print_function
 
-from utils import app_path, system
-import utils
+import sys
+import os
 
-START_SCRIPT = app_path('target', 'start')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 
-system('{script} {args}', script=START_SCRIPT, args=utils.args())
+import start
+
+start.run_degrel()
