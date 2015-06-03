@@ -73,6 +73,8 @@ mainClass in Compile := Some("degrel.Main")
 
 test in assembly := {}
 
+// for windows
+javacOptions in compile ++= Seq("-encoding", "UTF-8")
 
 // scala.tools.jline関連のライブラリがassembly時にコンフリクトを起こすので
 // 時前で競合解消

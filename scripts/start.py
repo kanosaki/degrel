@@ -6,12 +6,20 @@ import glob
 import os
 from utils import app_path, run, system, quote
 import utils
+import platform
 
 CLASSPATH_CACHE = app_path('.sbt-classpath')
 
 MAIN_CLASS = 'degrel.Main'
 
 BUILD_SBT = app_path('build.sbt')
+
+if platform.system() == 'Windows':
+    PATH_ITEM_SEP = ';'
+    SBT_EXPORT_DEPS_COMMAND = ['sbt', 'export compile:dependency-classpath']
+else:
+    PATH_ITEM_SEP = ':'
+    SBT_EXPORT_DEPS_COMMAND = ['sbt "export compile:dependency-classpath"']
 
 
 def dependency_classpath():
@@ -26,8 +34,8 @@ def dependency_classpath():
     else:
         print('Regenerating classpath....', file=sys.stderr)
         try:
-            sbt_result = system('sbt "export compile:dependency-classpath"')
-            classpath = sbt_result.split('\n')[-2].strip()
+            sbt_result = system('sbt', 'export compile:dependency-classpath')
+            classpath = sbt_result.strip().split('\n')[-1].strip()
         except:
             print('Cannot parse CLASSPATH from sbt', file=sys.stderr)
             sys.exit(-1)
@@ -46,7 +54,7 @@ def run_degrel(*args):
         print('Project classes not found in targets/scala-*/classes',
               file=sys.stderr)
         sys.exit(-1)
-    classpath = project_classes + ':' + dependency_classpath()
+    classpath = project_classes + PATH_ITEM_SEP + dependency_classpath()
     return run('java',
         '-cp',
         quote(classpath),
