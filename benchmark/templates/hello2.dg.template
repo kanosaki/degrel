@@ -1,0 +1,25 @@
+greet(@N, @Max) -> {
+  index_shift(@X) -> plus_one -> X + 10
+  index_shift(N)
+  {{ noise(index) }}
+  fin if((plus_one < Max), 
+    then: {
+      msg@Y(
+        foo: bar(a, b, c, d), 
+        foo: bar(x, y),
+        hoge: fuga(e, f, g(h(i))), 
+        num: N,
+        self: Y)
+      {{ noise(index) }}
+      msg(foo: bar(a, b), num: @X) -> if ((X % 2 == 0), 
+        then: print_msg("HELLO"),
+        else: print_msg("WORLD"))
+      print_msg(@Msg) -> println(Msg, N)
+      fin greet((N + 1), Max)
+    },
+    else: {
+      println("DONE", N)
+    })
+}
+
+greet(0, 1000)

@@ -19,6 +19,4 @@ __pycache__/
 .ropeproject/
 
 # Benchmark files
-benchmark/*
-!benchmark/report.py
-!benchmark/gen_script.py
+benchmark/results/*
