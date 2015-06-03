@@ -1,6 +1,7 @@
 package degrel.engine
 
-import degrel.core.{Label, Cell, Vertex}
+import degrel.core.{Cell, Vertex}
+
 import scala.collection.mutable
 
 /**
@@ -20,7 +21,7 @@ class CellTraverser(target: Cell) extends Iterable[Vertex] {
       val next = nextItems.dequeue()
       next.edges.foreach { e =>
         val dst = e.dst
-        if (dst.label != Label.V.cell && !visited.contains(dst)) {
+        if (!dst.isCell && !visited.contains(dst)) {
           nextItems.enqueue(dst)
           visited += dst
         }
