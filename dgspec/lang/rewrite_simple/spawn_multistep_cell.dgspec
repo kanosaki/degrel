@@ -1,0 +1,27 @@
+
+caption: Cell spawn rule works for multi step.
+version: 1
+seq_spec:
+  - init: >
+      {
+        foo(bar: baz)
+        foo(bar: piyopiyo)
+        foo(bar: _@X) -> {
+          hoge(fuga: X)
+        }
+      }
+  - rewrite
+  - assert: >
+      {
+        {
+          hoge(fuga: baz)
+        }
+        {
+          hoge(fuga: piyopiyo)
+        }
+        foo(bar: _@X) -> {
+          hoge(fuga: X)
+        }
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

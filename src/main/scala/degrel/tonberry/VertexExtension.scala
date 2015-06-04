@@ -10,7 +10,7 @@ class VertexExtension(v: core.Vertex) {
   }
 
   def nextE(expr: String = Query.any): EdgeQuery = {
-    new EdgeQuery(v.edges(), expr)
+    new EdgeQuery(v.edges, expr)
   }
 
   def path(expr: String): Query[core.Element] = {

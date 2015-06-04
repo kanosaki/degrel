@@ -1,0 +1,17 @@
+
+caption: Include edge and Others edge.
+version: 1
+seq_spec:
+  - init: > 
+      {
+        root(other(a, b, c), inc(d, e, f))
+        root(other(a, _:@Others), inc@Inc(d, e)) -> result(x: y, _: Others, _: Inc)
+      }
+  - rewrite
+  - assert: >
+      {
+        result(x: y, 1: b, 2: c, 0: d, 1: e, 2: f)
+        root(other(a, _:@Others), inc@Inc(d, e)) -> result(x: y, _: Others, _: Inc)
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

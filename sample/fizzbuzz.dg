@@ -1,0 +1,15 @@
+
+fizzbuzz(@N, @Max) -> {
+  msg(@X) -> fin {
+    println(N, X)
+    fin if ((N < Max), then: {
+      fin fizzbuzz((N + 1), Max)
+    })
+  }
+  if ((N % 3 == 0 && N % 5 == 0), then: msg("FizzBuzz"))
+  if ((N % 3 == 0 && N % 5 != 0), then: msg("Fizz"))
+  if ((N % 3 != 0 && N % 5 == 0), then: msg("Buzz"))
+  if ((N % 3 != 0 && N % 5 != 0), then: msg(N))
+}
+
+fizzbuzz(0, 2000)

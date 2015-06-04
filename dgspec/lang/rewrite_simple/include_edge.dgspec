@@ -1,0 +1,17 @@
+
+caption: Include edge.
+version: 1
+seq_spec:
+  - init: > 
+      {
+        a(b:c, d: e, f: g)
+        a@A(b: c) -> foo(x: y, _: A)
+      }
+  - rewrite
+  - assert: >
+      {
+        foo(x: y, b: c, d: e, f: g)
+        a@A(b: c) -> foo(x: y, _: A)
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

@@ -5,13 +5,20 @@ import degrel.utils.concurrent.ReadWriteGuard
 import scala.collection.mutable.{PriorityQueue => MutablePriorityQueue}
 import scala.util.Random
 
+/**
+ * イテレータをシャッフルします．シャッフルは擬似的な物で，
+ * イテレータから{@code bufferSize}の要素を取り出し，シャッフルしてからバッファリングします．
+ * バッファが空になると，また元のイテレータから{@code bufferSize}の取り出しを行います
+ * @param inner 元となるIterator[T]
+ * @param bufferSize シャッフルのためにバッファリングするサイズ
+ * @tparam A Iterator[T]の要素の型
+ */
 class ShuffledIterator[A](inner: Iterator[A], val bufferSize: Int) extends Iterator[A] {
+  type E = ItemWrapper
 
-  type E = ItemWrapper[A]
-
-  private val buffer = new MutablePriorityQueue[E]()(ItemComparator)
-  private val bufferLock = new ReadWriteGuard()
-  private val random = new Random()
+  private[this] val buffer = new MutablePriorityQueue[E]()
+  private[this] val bufferLock = new ReadWriteGuard()
+  private[this] val random = new Random()
 
   this.fillBuffer()
 
@@ -19,10 +26,15 @@ class ShuffledIterator[A](inner: Iterator[A], val bufferSize: Int) extends Itera
     val ret = bufferLock.write {
       buffer.dequeue().item
     }
-    this.fillBuffer()
+    if (buffer.isEmpty) {
+      this.fillBuffer()
+    }
     ret
   }
 
+  /**
+   * バッファを満タンまで満たします
+   */
   def fillBuffer() = {
     bufferLock.write {
       while (buffer.size < bufferSize && inner.hasNext) {
@@ -39,17 +51,19 @@ class ShuffledIterator[A](inner: Iterator[A], val bufferSize: Int) extends Itera
 
   override def hasNext: Boolean = {
     bufferLock.read {
-      !buffer.isEmpty
+      buffer.nonEmpty
     }
   }
 
-  class ItemWrapper[A](val item: A) {
+  /**
+   * PriorityQueueへランダムな優先順位を提供するためのラッパー
+   * @param item
+   */
+  class ItemWrapper(val item: A) extends Ordered[E] {
     val rand: Float = random.nextFloat()
-  }
 
-  object ItemComparator extends Ordering[E] {
-    override def compare(x: E, y: E): Int = {
-      x.rand.compare(y.rand)
+    override def compare(that: E): Int = {
+      this.rand.compareTo(that.rand)
     }
   }
 

@@ -1,7 +1,7 @@
 package degrel.front.dotlike
 
 import degrel.Query._
-import degrel.core.{BasicLabel, Traverser, Vertex}
+import degrel.core.{Label, BasicLabel, Traverser, Vertex}
 import org.scalatest.FlatSpec
 
 class DotlikeTest extends FlatSpec {
@@ -18,6 +18,13 @@ class DotlikeTest extends FlatSpec {
   it should "parse root only digraph" in {
     val expr = "@an_root{}"
     val expected = AstDigraph("an_root", AstDigraphBody(Seq()))
+    val actual = DigraphParser(expr)
+    assert(expected === actual)
+  }
+
+  it should "parse quoted label" in {
+    val expr = "@'+=+'{}"
+    val expected = AstDigraph("+=+", AstDigraphBody(Seq()))
     val actual = DigraphParser(expr)
     assert(expected === actual)
   }
@@ -73,8 +80,8 @@ class DotlikeTest extends FlatSpec {
     val expr = "@root{}"
     val ast = DigraphParser(expr)
     val graph = ast.toGraph()
-    assert(graph.label === BasicLabel("root"))
-    assert(graph.edges().size === 0)
+    assert(graph.label === Label("root"))
+    assert(graph.edges.size === 0)
     assert(graph.attributes === Map())
   }
 
@@ -89,11 +96,11 @@ class DotlikeTest extends FlatSpec {
     val ast = DigraphParser(expr)
     val graph = ast.toGraph()
     val a = graph.path("a").exact.asInstanceOf[Vertex]
-    assert(a.edges().size === 1)
+    assert(a.edges.size === 1)
     val b = graph.path("a/b").exact.asInstanceOf[Vertex]
-    assert(b.edges().size === 1)
+    assert(b.edges.size === 1)
     val c = graph.path("a/b/c").exact.asInstanceOf[Vertex]
-    assert(c.edges().size === 1)
+    assert(c.edges.size === 1)
     assert(graph.path("a/b/c/a").exact === graph.path("a").exact)
     // (root -> a -> b -> c ->) a
     assert(graph.path(":e/:e/:e/:e").nextV().exact === graph.path("a").exact)
@@ -114,11 +121,11 @@ class DotlikeTest extends FlatSpec {
     val ast = DigraphParser(expr)
     val graph = ast.toGraph()
     val a = graph.path("a").exact.asInstanceOf[Vertex]
-    assert(a.edges().size === 2)
+    assert(a.edges.size === 2)
     val b = graph.path("a/b").exact.asInstanceOf[Vertex]
-    assert(b.edges().size === 2)
+    assert(b.edges.size === 2)
     val c = graph.path("a/c").exact.asInstanceOf[Vertex]
-    assert(c.edges().size === 1)
+    assert(c.edges.size === 1)
   }
 
   it should "build graph with identifier" in {

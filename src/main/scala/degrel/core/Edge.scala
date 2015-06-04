@@ -1,6 +1,9 @@
 package degrel.core
 
-import degrel.rewriting.{EdgeBridge, _}
+import degrel.engine.rewriting.matching._
+import degrel.engine.rewriting.molding.MoldingContext
+import degrel.engine.rewriting.{EdgeBridge, _}
+import degrel.utils.PrettyPrintOptions
 
 object Edge {
   def apply(src: Vertex, label: Label, dst: Vertex): Edge = {
@@ -39,14 +42,6 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
     result
   }
 
-  def repr: String = {
-    s"${label.expr}:"
-  }
-
-  def reprRecursive(history: Trajectory) = {
-    s"${label.expr}:${dst.reprRecursive(history)}"
-  }
-
   def matches(pattern: Edge, context: MatchingContext): EdgeMatching = {
     if (this.label.matches(pattern.label))
       dst.matches(pattern.dst, context) match {
@@ -59,10 +54,6 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
 
   def label = _label
 
-  def build(context: BuildingContext): Edge = {
-    Edge(this.src, this.label, dst.build(context))
-  }
-
   def src_=(v: Vertex) = {
     if (v == null) {
       throw new NullPointerException("Argument cannot be null")
@@ -70,13 +61,23 @@ class Edge(private var _src: Vertex, _label: Label, _dst: Vertex)
     _src = v
   }
 
-  def isReference: Boolean = this.label.expr == "_ref"
+  def isReference: Boolean = this.label == Label.E.ref
 
-  def duplicate(): Edge = {
-    Edge(null, this.label, this.dst)
+  def isOthers: Boolean = this.label == Label.E.others
+
+  def isInclude: Boolean = this.label == Label.E.include
+
+  def isMeta: Boolean = this.label.isMeta
+
+  def shallowCopy(): Edge = {
+    Edge(this.src, this.label, this.dst)
   }
 
   override def compareTo(o: Edge): Int = {
     this.label.compareTo(o.label)
+  }
+
+  override def pp(implicit opt: PrettyPrintOptions = PrettyPrintOptions.default): String = {
+    s"${label.expr}: ${utils.pp(dst)}"
   }
 }

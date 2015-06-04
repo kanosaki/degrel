@@ -2,22 +2,19 @@ package degrel.engine
 
 import akka.actor.ActorSystem
 
-class Engine(val name: String) {
-  // From http://doc.akka.io/docs/akka/snapshot/java/dispatchers.html (2.3-SNAPSHOT)
-  private var actorSystem: ActorSystem = null
+class Engine(val chassis: Chassis, val name: String) {
 
-  def boot() = {
-    actorSystem = ActorSystem.create(name)
-  }
+  val akka = new AkkaController(name)
 
-  def shutdown() = {
-    actorSystem match {
-      case null => throw new IllegalStateException("You cannot shutdown not booted engine.")
-      case _ => actorSystem.shutdown()
-    }
-  }
+  def boot(): Unit = akka.boot()
 
-  def system = {
-    actorSystem
+  def system: ActorSystem = akka.system
+}
+
+object Engine {
+  val DEFAULT_ENGINE_NAME = "degrel"
+  def apply() = {
+    new Engine(Chassis.createWithMain(), DEFAULT_ENGINE_NAME)
   }
 }
+

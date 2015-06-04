@@ -1,0 +1,17 @@
+
+caption: Handle circulated pattern
+version: 1
+seq_spec:
+  - init: >
+      {
+        a@A(to: b(to: c(to: A)))
+        c@C(to: _(to: _(to: c))) -> ok
+      }
+  - rewrite
+  - assert: >
+      {
+        a@A(to: b(to: ok))
+        c@C(to: _(to: _(to: c))) -> ok
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

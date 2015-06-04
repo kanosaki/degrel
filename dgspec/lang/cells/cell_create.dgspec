@@ -1,0 +1,32 @@
+
+caption: Spawn cells.
+description: Child cells must react, but non-child cell must not react.
+version: 1
+seq_spec:
+  - init: >
+      {
+        foo(bar: piyo)
+        foo(bar: hogefuga)
+        foo(bar: @X) -> {
+          hoge(fuga: X)
+          hoge(fuga: @Y) -> piyopiyo(Y)
+        }
+      }
+  - rewrite
+  - assert: >
+      {
+        {
+          piyopiyo(piyo)
+          hoge(fuga: @Y) -> piyopiyo(Y)
+        }
+        {
+          piyopiyo(hogefuga)
+          hoge(fuga: @Y) -> piyopiyo(Y)
+        }
+        foo(bar: @X) -> {
+          hoge(fuga: X)
+          hoge(fuga: @Y) -> piyopiyo(Y)
+        }
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

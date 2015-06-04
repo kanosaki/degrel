@@ -5,12 +5,12 @@ import scala.collection.mutable
 class Trajectory {
   protected val trajectory = new mutable.HashSet[Vertex]()
 
-  def walk[E](v: Vertex)(f: PartialFunction[Either[this.type, this.type], E]): E = {
+  def walk[E](v: Vertex)(f: PartialFunction[TrajectoryStamp, E]): E = {
     if (!this.isStamped(v)) {
       this.push(v)
-      f(Right(this))
+      f(Unvisited(this))
     } else {
-      f(Left(this))
+      f(Visited(this))
     }
   }
 
@@ -21,3 +21,13 @@ class Trajectory {
   def isStamped(v: Vertex): Boolean = trajectory.contains(v)
 }
 
+
+trait TrajectoryStamp
+
+case class Visited(trj: Trajectory) extends TrajectoryStamp {
+
+}
+
+case class Unvisited(trj: Trajectory) extends TrajectoryStamp {
+
+}

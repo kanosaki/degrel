@@ -1,7 +1,7 @@
 package degrel.visualize.viewmodel.grapharranger
 
 import degrel.core.Vertex
-import degrel.visualize.Vec
+import degrel.ui.Vec
 
 trait ArrangerVertexInfo {
   def location: Vec

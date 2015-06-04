@@ -1,0 +1,17 @@
+
+caption: Capture others edge and construct vertex using others edge.
+version: 1
+seq_spec:
+  - init: > 
+      {
+        a(b:c, d: e, f: g)
+        a(b: c, _:@Others) -> foo(x: y, _: Others)
+      }
+  - rewrite
+  - assert: >
+      {
+        foo(x: y, d: e, f: g)
+        a(b: c, _:@Others) -> foo(x: y, _: Others)
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

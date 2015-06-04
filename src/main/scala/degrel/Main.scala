@@ -1,31 +1,16 @@
 package degrel
 
-import degrel.control.Interpreter
-import degrel.rewriting.LocalReserve
-
-import scala.io.Source
+import degrel.control.CLIArguments
 
 
 object Main {
-  def main(args: Array[String]) = {
-    if (args.length == 1) {
-      this.startInterpreter(args(0))
-    } else {
-      this.startConsole()
+  def main(args: Array[String]): Unit = {
+    val optParser = CLIArguments.parser()
+    optParser.parse(args, CLIArguments()) match {
+      case Some(cliArgs) => {
+        cliArgs.cmd.start(cliArgs)
+      }
+      case None =>
     }
-    degrel.engine.system.shutdown()
-  }
-
-  def startInterpreter(file: String) = {
-    val src = Source.fromFile(file)
-    val interpreter = new Interpreter(src)
-    interpreter.start()
-    src.close()
-  }
-
-  def startConsole() = {
-    val reserve = new LocalReserve()
-    val console = new degrel.control.Console(reserve)
-    console.start()
   }
 }

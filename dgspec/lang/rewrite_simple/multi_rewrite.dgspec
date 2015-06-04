@@ -1,0 +1,17 @@
+
+caption: Apply single rule on a functotr
+version: 1
+seq_spec:
+  - init: >
+      {
+        foo(a, a, a)
+        a -> b
+      }
+  - rewrite
+  - assert: >
+      {
+        foo(b, b, b)
+        a -> b
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

@@ -1,0 +1,19 @@
+
+caption: Basic curried rule.
+version: 1
+seq_spec:
+  - init: >
+      {
+        a(bar: baz)
+        b(hoge: fuga, piyo: foobar)
+        c(homu)
+        a(bar: @A) -> b(hoge: @Fuga, piyo: @Foobar) -> c(@Homu) -> d(A, Fuga, Foobar, Homu)
+      }
+  - rewrite
+  - assert: >
+      {
+        d(baz, fuga, foobar, homu)
+        a(bar: @A) -> b(hoge: @Fuga, piyo: @Foobar) -> c(@Homu) -> d(A, Fuga, Foobar, Homu)
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

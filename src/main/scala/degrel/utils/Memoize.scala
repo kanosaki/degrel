@@ -9,9 +9,13 @@ class Memoize[-T, +R](f: T => R) extends (T => R) {
   def apply(x: T): R = vals getOrElseUpdate(x, f(x))
 }
 
-object memoize {
+object Memoize {
   def apply[T, R](f: T => R) = {
     new Memoize(f)
+  }
+
+  def weak[T, R](f: T => R) = {
+    new WeakMemoize(f)
   }
 }
 

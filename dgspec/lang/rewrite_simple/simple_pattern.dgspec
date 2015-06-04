@@ -1,0 +1,17 @@
+
+caption: Rewrite simple vertex in one step.
+version: 1
+seq_spec:
+  - init: > 
+      {
+        hoge(fuga: bar)
+        hoge(fuga: _@X) -> piyo(foo: X)
+      }
+  - rewrite
+  - assert: >
+      {
+        piyo(foo: bar)
+        hoge(fuga: _@X) -> piyo(foo: X)
+      }
+
+# vim: ft=yaml sw=2 ts=2 sts=2

@@ -1,0 +1,19 @@
+
+/**
+ * Cell variables
+ */
+
+defop = -20 right
+`=`(__rhs__: @R, __lhs__: @L) 
+    -> (R@V -> L(__val__: V))
+
+
+    
+/**
+ * Message sending / receiving.
+ */
+defop ! -7 right
+`!`(__rhs__: __cell__@R(_: @RCellItems), __lhs__: @L) -> 
+    __cell__(__item__: @L, @RCellItems)
+
+defop ? -7 right

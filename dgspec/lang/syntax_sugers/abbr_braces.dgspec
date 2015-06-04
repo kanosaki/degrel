@@ -1,0 +1,25 @@
+
+caption: Abbreviated edge should have numbered edge.
+version: 1
+seq_spec:
+  - init: >
+      foo bar baz
+  - assert: >
+      foo(bar(baz))
+  - init: >
+      foo bar + baz
+  - assert: >
+      '+'(__lhs__: foo(0: bar), __rhs__: baz)
+  - assert: >
+      foo(bar) + baz
+  - init: >
+      var hoge = fuga
+  - assert: >
+      '='(__lhs__: var(0: hoge), __rhs__: fuga)
+  - init: >
+      public static void main(int argc, char argv)
+  - assert: >
+      public(0: static(0: void(0: main(0: int(0: argc, 1: char(0: argv))))))
+      
+
+# vim: ft=yaml sw=2 ts=2 sts=2

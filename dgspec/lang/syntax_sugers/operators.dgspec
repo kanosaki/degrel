@@ -1,0 +1,36 @@
+
+caption: Operators definition and handling
+version: 1
+seq_spec:
+  # Rule operator
+  - init: >
+      foo -> bar
+  - assert: >
+      '->'(__lhs__: foo, __rhs__: bar)
+
+  # Plus operator
+  - init: >
+      foo + bar
+  - assert: >
+      '+'(__lhs__: foo, __rhs__: bar)
+
+  # Chained operators
+  - init: >
+      foo -> bar -> baz >> hoge
+  - assert: >
+      '->'(__lhs__: foo, 
+           __rhs__: '->'(__lhs__: bar, 
+                         __rhs__: '>>'(__lhs__: baz, __rhs__: hoge)))
+
+  # Use binop as functor
+  - init: >
+      foo -> bar -> baz >> hoge
+  - assert: >
+      '->'(__lhs__: foo, 
+           __rhs__: '->'(__lhs__: bar, 
+                         __rhs__: baz >> hoge))
+
+
+
+
+# vim: ft=yaml sw=2 ts=2 sts=2

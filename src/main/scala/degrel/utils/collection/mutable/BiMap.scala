@@ -24,8 +24,8 @@ object BiMap {
 }
 
 class BiHashMap[K, V] extends BiMap[K, V] {
-  private val _primary = new MutableHashMap[K, V]()
-  private val _reverse = new MutableHashMap[V, K]()
+  private[this] val _primary = new MutableHashMap[K, V]()
+  private[this] val _reverse = new MutableHashMap[V, K]()
 
   override def keys: Iterable[K] = _primary.keys
 

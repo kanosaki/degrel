@@ -1,0 +1,10 @@
+
+caption: Abbreviated edge should have numbered edge.
+version: 1
+seq_spec:
+  - init: >
+      foo(bar: @Baz)
+  - assert: >
+      foo(bar: _@Baz)
+
+# vim: ft=yaml sw=2 ts=2 sts=2
