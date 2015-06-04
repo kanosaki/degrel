@@ -55,11 +55,17 @@ def quote(s):
 
 
 def version_hash():
-    return system('git rev-parse HEAD').strip()
+    try:
+        return system('git rev-parse HEAD').strip()
+    except:
+        return None
 
 
 def version():
-    return system('git describe --tag').strip()
+    try:
+        return system('git describe --tag').strip()
+    except:
+        return None
 
 
 def fix(x):
