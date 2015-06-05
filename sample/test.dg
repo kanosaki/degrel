@@ -1,12 +1,14 @@
 greet(@N, @Max) -> {
+  a@X(a: X)
   fin if((N < Max), 
     then: {
-      println("HELLO", N)
+      println("LOOP", N)
       fin greet((N + 1), Max)
     },
     else: {
-      println("DONE", N)
+      println("DONE")
     })
 }
 
-greet(0, 1000)
+
+greet(0, 10)

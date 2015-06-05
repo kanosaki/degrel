@@ -7,14 +7,7 @@ import numpy as np
 
 RESULT_FILE = "result.json"
 result = None
-JVM_WARM = 5
-
-def run_benchmark():
-    os.system("../run bench -o result.json scripts")
-
-
-def load():
-    return Result(RESULT_FILE)
+JVM_WARM = 10
 
 
 class Result(object):
@@ -30,17 +23,18 @@ class Result(object):
         y = self.initial_sizes
         plt.title("Graph size")
         plt.vlines([JVM_WARM], 0, max(y), linestyles="dashed")
-        plt.plot(self.x, y)
+        plt.plot(self.x, y, label='size')
 
     def plot_rps(self):
         plt.clf()
         y = self.rps
         plt.title("Rewrite per second")
         plt.vlines([JVM_WARM], 0, max(y), linestyles="dashed")
-        plt.plot(self.x, y)
+        plt.plot(self.x, y, label='rps')
+
 
 if __name__ == '__main__':
-    result = load()
+    result = Result(RESULT_FILE)
     result.plot_rps()
     plt.savefig("rps.eps")
     result.plot_size()

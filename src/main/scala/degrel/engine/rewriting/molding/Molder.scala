@@ -4,17 +4,18 @@ import degrel.core.{Edge, Label, Vertex, VertexHeader}
 
 trait Molder {
   val header: VertexHeader
+  var finishedPhase: MoldPhase = MoldPhase.Initial
 
   def process(ph: MoldPhase): Unit = {
+    if (ph <= finishedPhase) return
+    this.onPhase(ph)
+    finishedPhase = ph
     mold.edges
       .map(e => context.getMolder(e.dst))
       .foreach(_.process(ph))
-    ph match {
-      case MoldPhase.After => {
-      }
-      case _ =>
-    }
   }
+
+  def onPhase(ph: MoldPhase): Unit = {}
 
   def mold: Vertex
 

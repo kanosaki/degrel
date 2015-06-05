@@ -29,14 +29,11 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
 
   override val header: VertexHeader = new LocalVertexHeader(null)
 
-  override def process(ph: MoldPhase): Unit = {
-    ph match {
-      case MoldPhase.Mold => {
-        this.doMold()
-      }
-      case _ =>
+  override def onPhase(ph: MoldPhase): Unit = ph match {
+    case MoldPhase.Mold => {
+      this.doMold()
     }
-    super.process(ph)
+    case _ =>
   }
 
   /**

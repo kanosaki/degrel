@@ -309,8 +309,12 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     wl ~ expression ~ semis ~ wl
   }
 
+  def cellBody: Rule1[AstCell] = rule {
+    wl ~ cellItem.* ~> AstCell
+  }
+
   def cell: Rule1[AstCell] = rule {
-    '{' ~ wl ~ cellItem.* ~ '}' ~ wl ~> AstCell
+    '{' ~ cellBody ~ '}' ~ wl
   }
 
   /**
@@ -331,7 +335,7 @@ class ParboiledParser(val input: ParserInput) extends Parser {
    * 入力すべてを`cell`として扱います
    */
   def allAsCell = rule {
-    wl ~ cell ~ wl ~ EOI
+    wl ~ cellBody ~ wl ~ EOI
   }
 }
 

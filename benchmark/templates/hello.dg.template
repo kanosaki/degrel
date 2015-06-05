@@ -1,6 +1,10 @@
 greet(@N, @Max) -> {
+  {{ noise(index) }}
+  original(@X) -> transoformed(plus_one(X + 1), plus_two(X + 2))
+
   fin if((N < Max), 
     then: {
+      {{ noise(index) }}
       println("HELLO", N)
       fin greet((N + 1), Max)
     },
@@ -9,4 +13,4 @@ greet(@N, @Max) -> {
     })
 }
 
-greet(0, 10)
+greet(0, 5000)
