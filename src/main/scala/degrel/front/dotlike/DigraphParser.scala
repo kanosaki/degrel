@@ -21,7 +21,7 @@ object DigraphParser extends JavaTokenParsers {
   val PAT_ATTR_KEY = """[^:]+""".r
   val IDENTIFIER_SEP = "$"
 
-  def eol = sys.props("line.separator")
+  def eol = "\\r\\n?".r
 
   def eoi = """\z""".r // End of Input
 
