@@ -30,7 +30,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   /**
    * End of Line
    */
-  def eol = sys.props("line.separator")
+  def eol = """\r?\n""".r
 
   /**
    * End Of Statement (statement separator)
