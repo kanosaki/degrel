@@ -1,8 +1,8 @@
 package degrel.front.dotlike
 
-import degrel.front.{TermParser, SyntaxError}
+import degrel.front.SyntaxError
 
-import scala.util.parsing.combinator.{JavaTokenParsers, RegexParsers}
+import scala.util.parsing.combinator.JavaTokenParsers
 
 /**
  * DOT言語ライクな記法で一つの根付きグラフを記述します．
@@ -21,7 +21,7 @@ object DigraphParser extends JavaTokenParsers {
   val PAT_ATTR_KEY = """[^:]+""".r
   val IDENTIFIER_SEP = "$"
 
-  def eol = sys.props("line.separator")
+  def eol = "\\r?\\n".r
 
   def eoi = """\z""".r // End of Input
 
@@ -56,7 +56,7 @@ object DigraphParser extends JavaTokenParsers {
 
   def elemSep = token(";" | eol)
 
-  def diElems: Parser[Seq[AstDigraphElement]] = repsep(diElem, rep1(elemSep)).map(_.filter(_ != AstDigraphEmptyLine))
+  def diElems: Parser[Seq[AstDigraphElement]] = opt(elemSep) ~> repsep(diElem, rep1(elemSep)).map(_.filter(_ != AstDigraphEmptyLine))
 
   def diElem: Parser[AstDigraphElement] = opt(edge | attr) ^^ {
     case Some(e) => e
