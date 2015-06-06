@@ -1,7 +1,6 @@
-package degrel
+package degrel.front
 
-import degrel.core.{Cell, Vertex}
-import degrel.front.{Ast, AstVertex, AstGraph}
+import degrel.core.Vertex
 
 /**
  * ASTからグラフ(degrel.core)による表現に変形を行います

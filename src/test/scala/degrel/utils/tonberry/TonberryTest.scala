@@ -1,16 +1,16 @@
-package degrel.tonberry
+package degrel.utils.tonberry
 
 import degrel.Query._
-import degrel.{degrel.front.graphbuilder, core, front}
-import degrel.front.{Parser, TermParser}
+import degrel.front.Parser
 import degrel.utils.TestUtils._
+import degrel.{core, front}
 import org.scalatest.FlatSpec
 
 class TonberryTest extends FlatSpec {
 
   def parse(expr: String): core.Vertex = {
     val ast = Parser.vertex(expr)
-    graphbuilder.build(ast)
+    front.graphbuilder.build(ast)
   }
 
   def V(expr: String) = {

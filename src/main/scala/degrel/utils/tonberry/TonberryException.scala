@@ -1,4 +1,4 @@
-package degrel.tonberry
+package degrel.utils.tonberry
 
 import degrel.DefaultDegrelException
 
