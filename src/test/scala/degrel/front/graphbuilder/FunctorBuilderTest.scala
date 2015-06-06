@@ -1,8 +1,8 @@
-package degrel.graphbuilder
+package degrel.front.graphbuilder
 
 import degrel.front.Parser
 import org.scalatest.FlatSpec
-import degrel.graphbuilder
+import degrel.front.graphbuilder
 
 class FunctorBuilderTest extends FlatSpec {
 

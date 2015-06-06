@@ -1,6 +1,6 @@
 package degrel.front
 
-import degrel.graphbuilder
+import degrel.front.graphbuilder
 import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
 

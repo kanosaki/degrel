@@ -4,7 +4,7 @@ import degrel.front.Parser
 import degrel.utils.FlyWrite._
 import degrel.utils.TestUtils._
 import degrel.utils.VertexExtensions._
-import degrel.{core, graphbuilder}
+import degrel.{core, degrel.front.graphbuilder}
 import org.scalatest.FlatSpec
 
 /**

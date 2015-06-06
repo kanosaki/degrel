@@ -1,4 +1,4 @@
-package degrel.graphbuilder
+package degrel.front.graphbuilder
 
 trait LookupResult[T] {
 

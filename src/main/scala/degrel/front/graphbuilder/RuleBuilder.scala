@@ -1,4 +1,4 @@
-package degrel.graphbuilder
+package degrel.front.graphbuilder
 
 import degrel.core._
 import degrel.front.{AstBinExpr, BinOp}

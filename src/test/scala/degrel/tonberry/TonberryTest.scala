@@ -1,7 +1,7 @@
 package degrel.tonberry
 
 import degrel.Query._
-import degrel.{graphbuilder, core, front}
+import degrel.{degrel.front.graphbuilder, core, front}
 import degrel.front.{Parser, TermParser}
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
