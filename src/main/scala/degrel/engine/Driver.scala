@@ -135,9 +135,15 @@ class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
       res.continuation match {
         case c@Continue(nextRule, _) => {
           contRewriters += Rewriter(nextRule, Some(c))
-          cell.removeRoot(v)
         }
         case Empty => contRewriters -= rw
+      }
+      if (chassis.verbose) {
+        System.err.print(Console.GREEN)
+        System.err.println(rw.pp)
+        System.err.print(Console.BLUE)
+        System.err.print(this.cell.pp)
+        System.err.println(Console.RESET)
       }
     }
     res.done

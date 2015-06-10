@@ -28,15 +28,24 @@ abstract class BasicRewriter extends Rewriter {
       val binding = this.getBinding(mch.pack)
       if (rule.rhs.isRule) {
         val cont = Continuation.Continue(rule.rhs.asRule, binding)
+        parent.cell.removeRoot(target)
         RewriteResult(done = true, cont)
       } else {
         val builtGraph = molding.mold(rule.rhs, binding, parent)
-        target.write(builtGraph)
+        applyResult(target, parent, builtGraph)
         RewriteResult(done = true)
       }
     } else {
       RewriteResult.NOP
     }
+  }
+
+  /**
+   * 書き換え結果を反映します．基本的にはVertexHeader.writeを呼びますが
+   * ContinueRewriterではCellへ新規に追加とtargetの削除を行います．
+   */
+  def applyResult(target: VertexHeader, parent: Driver, builtGraph: Vertex) = {
+    target.write(builtGraph)
   }
 
   /**

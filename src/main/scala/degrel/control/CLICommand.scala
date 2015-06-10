@@ -64,10 +64,12 @@ object CLICommand {
         case Some(scriptFile) => {
           val interpreter = new Interpreter(
             mainFile = scriptFile)
+          interpreter.chassis.verbose = arg.verbose
           interpreter.start()
         }
         case None => {
           val console = new ConsoleHandle(Chassis.createWithMain())
+          console.chassis.verbose = arg.verbose
           console.start()
         }
       }

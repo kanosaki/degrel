@@ -11,6 +11,7 @@ import degrel.engine.sphere.Sphere
  */
 class Chassis(_repo: Repository) {
   var sphere: Sphere = degrel.engine.sphere.default
+  var verbose = false
 
   def getResourceFor(driver: Driver): Sphere = sphere
 
