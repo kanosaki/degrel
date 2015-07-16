@@ -1,6 +1,6 @@
 package degrel.front.graphbuilder
 
-import degrel.core.Vertex
+import degrel.core.{Label, Vertex}
 
 /**
  * スコープを作ります．`variables`以外の要素をすべて`parent`へプロキシし
@@ -18,6 +18,8 @@ class Scope(val parent: Primitive) extends Primitive {
    * @return
    */
   override def children: Iterable[Primitive] = parent.children
+
+  override def typeLabel: Option[Label] = parent.typeLabel
 
   /**
    * このメソッドが呼ばれると，ボディ部を作成します．

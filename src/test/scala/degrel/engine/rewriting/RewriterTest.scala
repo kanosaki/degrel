@@ -11,10 +11,14 @@ class RewriterTest extends FlatSpec {
   def rewriter(s: String) = Rewriter(vertex(s).asRule)
 
   Seq(
+    ("Spawn cell within a functor",
+      "foo(bar: baz)",
+      "foo(bar: @X) -> child({foobar(X)})",
+      "child({__base__: {foobar(__ref__(__to__: _))}; foobar(baz)})"),
     ("Spawn cell with loop",
       "foo",
       "foo -> {hoge@X(fuga: X)}",
-      "{hoge@X(fuga: X)}"),
+      "{__base__: {hoge@Y(fuga: Y)}; hoge@X(fuga: X)}"),
     ("Build a simple vertex",
       "a",
       "a -> b",
@@ -71,14 +75,10 @@ class RewriterTest extends FlatSpec {
       "a(b: b, x: y)",
       "a@A(b: b) -> c(c: c, _:A)",
       "c(b: b, c: c, x: y)"),
-    ("Spawn cell within a functor",
-      "foo(bar: baz)",
-      "foo(bar: @X) -> child({foobar(X)})",
-      "child({foobar(baz)})"),
     ("Build a vertex within a cell",
       "{a}",
-      "{a} -> {b}",
-      "{b}")
+      "{a} -> {b; c -> d}",
+      "{__base__: {b; c -> d}; b}")
   ).foreach({
     case (description, target, rule, expected) => {
       it should description in {

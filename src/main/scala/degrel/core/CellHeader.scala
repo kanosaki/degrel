@@ -17,4 +17,17 @@ class CellHeader(bdy: CellBody) extends LocalVertexHeader(bdy) with Cell {
   }
 
   override def asCell: Cell = this
+
+  /**
+   * このCellを直接内包するCell
+   */
+  override def parent: Cell = ???
+
+  /**
+   * この`Cell`の元になるCell．
+   * 規則を継承します
+   */
+  override def bases: Seq[Cell] = ???
+
+  override def otherEdges: Seq[Edge] = this.bodyAsCell.otherEdges
 }

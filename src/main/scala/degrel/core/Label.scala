@@ -55,6 +55,7 @@ object Label {
     val rule = Label(SpecialLabels.V_RULE)
     val vTrue = Label("true")
     val vFalse = Label("false")
+    val value = Label(SpecialLabels.V_VALUE)
   }
 
   val Vertex = V

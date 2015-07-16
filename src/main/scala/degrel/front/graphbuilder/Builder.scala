@@ -1,6 +1,6 @@
 package degrel.front.graphbuilder
 
-import degrel.core.{Vertex, VertexHeader}
+import degrel.core.{Label, Vertex, VertexHeader}
 
 /**
  * グラフは巡回するデータ構造のため，ヘッダ部とボディ部に分かれています．
@@ -34,6 +34,8 @@ trait Builder[+T <: Vertex] {
    * このグラフ要素への参照用のヘッダ
    */
   def header: T
+
+  def typeLabel: Option[Label]
 
   /**
    * このメソッドが呼ばれると，ボディ部を作成します．
@@ -98,4 +100,6 @@ class BuilderRoot extends Primitive {
   override def factory: BuilderFactory = defaultFactory
 
   override def doBuildPhase(phase: BuildPhase): Unit = {}
+
+  override def typeLabel: Option[Label] = None
 }

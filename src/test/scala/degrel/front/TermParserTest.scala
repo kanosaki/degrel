@@ -1,6 +1,5 @@
 package degrel.front
 
-import degrel.front.graphbuilder
 import degrel.utils.PrettyPrintOptions
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
@@ -91,8 +90,8 @@ class TermParserTest extends FlatSpec {
   }
 
   val parsers = Seq(
-    "CombinatorParser" -> combinatorParser,
-    "ParboiledParser" -> parboiledParser)
+    "ParboiledParser" -> parboiledParser,
+    "CombinatorParser" -> combinatorParser)
 
   for ((name, parser) <- parsers) {
 
@@ -511,6 +510,47 @@ class TermParserTest extends FlatSpec {
         """.
           stripMargin).toGraph
     }
+  }
+
+  // Parboiled only syntaxes
+
+  "ParboiledParser (only)" should "parse a cell edge" in {
+    val ast = parboiledParser(
+      """{
+        |   an_edge : hogefuga
+        |}
+      """.
+        stripMargin)
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> hogefuga : an_edge
+        |}
+      """.
+        stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "parse a cell edge and reference" in {
+    val ast = parboiledParser(
+      """{
+        |   hoge@X
+        |   {
+        |     __piyo__: X
+        |   }
+        |}
+      """.
+        stripMargin)
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> hoge : __item__
+        |  -> __cell__$2 : __item__
+        |  __cell__$2 -> __ref__ : __piyo__
+        |  __ref__ -> hoge : __to__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
   }
 }
 

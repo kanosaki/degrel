@@ -1,6 +1,6 @@
 package degrel.front.graphbuilder
 
-import degrel.core.{Vertex, VertexHeader}
+import degrel.core.{Label, Vertex, VertexHeader}
 import degrel.front.AstValueVertex
 
 class ValueVertexBuilder(val parent: Primitive, val ast: AstValueVertex[_]) extends Builder[Vertex] {
@@ -13,4 +13,6 @@ class ValueVertexBuilder(val parent: Primitive, val ast: AstValueVertex[_]) exte
   override def outerCell: CellBuilder = parent.outerCell
 
   override def header: Vertex = VertexHeader(ast.toVertex)
+
+  override def typeLabel: Option[Label] = Some(Label.V.value)
 }

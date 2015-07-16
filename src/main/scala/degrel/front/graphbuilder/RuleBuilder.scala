@@ -6,6 +6,8 @@ import degrel.front.{AstBinExpr, BinOp}
 class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] {
   assert(ast.op == BinOp.RULE)
 
+  override def typeLabel: Option[Label] = Some(Label.V.rule)
+
   /**
    * このグラフ要素における環境
    */

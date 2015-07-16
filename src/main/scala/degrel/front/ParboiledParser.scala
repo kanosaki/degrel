@@ -174,18 +174,17 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     ''' ~ capture((!''' ~ ANY).*) ~ ''' ~ ws ~> AstLabel
   }
 
+  def labels = rule(quotedLabel | label)
+
   /**
    * 頂点のHEAD部．
    * @note データの`VertexHeader`とは別物で，構文上でのHEAD部
    */
-  def vertexHead = {
-    val labels = rule(quotedLabel | label)
-    rule {
+  def vertexHead = rule {
       labels ~ binding.? ~> ((l, bind) => AstName(Some(l), bind)) |
         binding ~> (bind => AstName(Some(AstLabel("_")), Some(bind))) |
         variable ~> (v => AstName(None, Some(v)))
     }
-  }
 
   /**
    * 二項演算子
@@ -302,11 +301,15 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     ws ~ ('(' ~ expression ~ ')' | cell | valueVertex | functor) ~ ws
   }
 
+  def cellEdge: Rule1[AstCellEdge] = rule {
+    labels ~ ':' ~ expression ~> AstCellEdge
+  }
+
   /**
    * Cellの要素
    */
   def cellItem: Rule1[AstCellItem] = rule {
-    wl ~ expression ~ semis ~ wl
+    wl ~ (cellEdge | expression) ~ semis ~ wl
   }
 
   def cellBody: Rule1[AstCell] = rule {

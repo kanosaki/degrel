@@ -43,6 +43,8 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
 
   def header: Vertex = builder.header
 
+  override def typeLabel: Option[Label] = ast.name.labelExpr.flatMap(l => Some(Label(l)))
+
   /**
    * @inheritdoc
    */

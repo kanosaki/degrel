@@ -5,11 +5,7 @@ version: 1
 seq_spec:
   - init: >
       {
-        foo(bar: baz)
-        foo(bar: piyo)
-
-        foo(bar: @X) -> before({
-          hoge(fuga: @Y) -> piyo(X, Y)
+        before({
         })
 
         before(@C) -> after(C ! hoge(fuga: foobar))
@@ -18,17 +14,7 @@ seq_spec:
   - assert: >
       {
         after({
-          piyo(baz, foobar)
-          hoge(fuga: @Y) -> piyo(baz, Y)
-        })
-
-        after({
-          piyo(piyo, foobar)
-          hoge(fuga: @Y) -> piyo(piyo, Y)
-        })
-
-        foo(bar: @X) -> before({
-          hoge(fuga: @Y) -> piyo(X, Y)
+          hoge(fuga:foobar)
         })
 
         before(@C) -> after(C ! hoge(fuga: foobar))

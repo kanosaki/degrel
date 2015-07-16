@@ -7,7 +7,7 @@ seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 name := "degrel"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.11.7"
 
 //resolvers += "Twitter Repository" at "http://maven.twitter.com"
 
@@ -16,8 +16,8 @@ scalaVersion := "2.11.6"
 resolvers += Resolver.sonatypeRepo("public")
 
 libraryDependencies ++= { 
-  val scalazVersion = "7.1.2"
-  val akkaVersion = "2.3.9"
+  val scalazVersion = "7.1.3"
+  val akkaVersion = "2.3.12"
   val sprayVersion = "1.3.3"
   val graphStreamVersion = "1.2"
   Seq(

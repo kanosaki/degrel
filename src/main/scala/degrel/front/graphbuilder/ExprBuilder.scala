@@ -28,6 +28,8 @@ class ExprBuilder(val parent: Primitive, val ast: AstBinExpr) extends Builder[Ve
    */
   override val header: Vertex = VertexHeader(null)
 
+  override def typeLabel: Option[Label] = Some(ast.op.toLabel)
+
   /**
    * このグラフ要素における環境
    */

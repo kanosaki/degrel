@@ -1,5 +1,6 @@
 package degrel.core
 
+import degrel.DegrelException
 import degrel.utils.PrettyPrintOptions
 
 import scala.reflect.ClassTag
@@ -92,7 +93,7 @@ trait Vertex extends Element with Comparable[Vertex] {
   }
 
   def asCell: Cell = {
-    require(this.label == Label.V.cell)
+    require(this.label == Label.V.cell, s"${this.label.expr} is not cell")
     Cell(this.edges)
   }
 
@@ -100,7 +101,7 @@ trait Vertex extends Element with Comparable[Vertex] {
     this.asInstanceOf[VertexHeader]
   }
 
-  def unref[B <: VertexBody : ClassTag]: B = {
+  def unhead[B <: VertexBody : ClassTag]: B = {
     this match {
       case vh: VertexHeader if implicitly[ClassTag[B]].runtimeClass.isInstance(vh.body) => {
         vh.body.asInstanceOf[B]
@@ -110,6 +111,26 @@ trait Vertex extends Element with Comparable[Vertex] {
       }
       case _ => {
         throw new RuntimeException(s"Cannot unreference $this(${this.getClass}}) as ${implicitly[ClassTag[B]].runtimeClass}")
+      }
+    }
+  }
+
+  /**
+   * 自分が`ReferenceVertex`の時は，参照を辿って`B`のインスタンスを返します
+   *
+   * @tparam B
+   * @return
+   */
+  def unref[B <: Vertex : ClassTag]: B = {
+    if (!this.isReference) {
+      this.asInstanceOf[B]
+    } else {
+      val neighbors = this.thru(Label.E.ref)
+        .filter(implicitly[ClassTag[B]].runtimeClass.isInstance).toList
+      if (neighbors.length == 1) {
+        neighbors.head.asInstanceOf[B]
+      } else {
+        throw DegrelException(s"Malformed Reference Vertex! $this")
       }
     }
   }

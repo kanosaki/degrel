@@ -88,7 +88,9 @@ class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
     }
   }
 
-  def rewriters = cell.rules.map(Rewriter(_)) ++ degrel.primitives.rewriter.default
+  def baseRewriters: Seq[Rewriter] = cell.bases.flatMap(_.rules.map(Rewriter(_)))
+
+  def rewriters: Seq[Rewriter] = cell.rules.map(Rewriter(_)) ++ baseRewriters ++ degrel.primitives.rewriter.default
 
   def itemRoots: Iterable[Vertex] = cell
     .edges
@@ -110,7 +112,7 @@ class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
     this.cell.addRoot(msg)
   }
 
-  def cell: CellBody = header.unref[CellBody]
+  def cell: CellBody = header.unhead[CellBody]
 
   def spawn(cell: Vertex): Vertex = {
     this.children += cell -> new Driver(cell, chassis)

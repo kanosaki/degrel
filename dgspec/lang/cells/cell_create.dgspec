@@ -15,17 +15,17 @@ seq_spec:
   - rewrite
   - assert: >
       {
-        {
-          piyopiyo(piyo)
-          hoge(fuga: @Y) -> piyopiyo(Y)
-        }
-        {
-          piyopiyo(hogefuga)
-          hoge(fuga: @Y) -> piyopiyo(Y)
-        }
         foo(bar: @X) -> {
           hoge(fuga: X)
           hoge(fuga: @Y) -> piyopiyo(Y)
+        }@Base
+        {
+          __base__: Base
+          piyopiyo(piyo)
+        }
+        {
+          __base__: Base
+          piyopiyo(hogefuga)
         }
       }
 

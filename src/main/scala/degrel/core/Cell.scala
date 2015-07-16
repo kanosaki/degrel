@@ -4,6 +4,19 @@ trait Cell extends Vertex {
   def rules: Seq[Rule]
   def roots: Seq[Vertex]
 
+  def otherEdges: Seq[Edge]
+
+  /**
+   * このCellを直接内包するCell
+   */
+  def parent: Cell
+
+  /**
+   * この`Cell`の元になるCell．
+   * 規則を継承します
+   */
+  def bases: Seq[Cell]
+
   def removeRoot(v: Vertex)
   def addRoot(v: Vertex)
 }
