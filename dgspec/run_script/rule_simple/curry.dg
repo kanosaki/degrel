@@ -1,0 +1,11 @@
+
+
+foo("hoge")
+bar("fuga")
+baz("piyo")
+
+foo(@X) -> bar(@Y) -> baz(@Z) -> msg(X, Y, Z)
+
+msg(@X, @Y, @Z) -> {
+  println(X, Y, Z)
+}

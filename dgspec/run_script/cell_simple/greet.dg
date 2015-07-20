@@ -1,0 +1,7 @@
+
+
+greet(@Name) -> {
+  println("Hello", Name)
+}
+
+greet("world!")
