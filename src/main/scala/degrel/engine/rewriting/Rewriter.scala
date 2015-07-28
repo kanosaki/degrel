@@ -2,8 +2,7 @@ package degrel.engine.rewriting
 
 import degrel.Logger
 import degrel.core._
-import degrel.engine.Driver
-import degrel.engine.rewriting.molding.MoldingContext
+import degrel.engine.{ContinueRule, Driver}
 import degrel.utils.PrettyPrintable
 
 
@@ -48,9 +47,16 @@ trait Rewriter extends Logger with PrettyPrintable {
 
 object Rewriter {
   def apply(v: Vertex, contOpt: Option[Continuation] = None): Rewriter = {
-    contOpt match {
-      case Some(cont) => new ContinueRewriter(v.asRule, cont)
-      case None => new NakedRewriter(v.asRule)
+    v match {
+      case cr: ContinueRule => {
+        println("====================HERE=======================")
+        new ContinueRewriter(cr, Continuation.Continue(cr, cr.binding))
+      }
+      case _ =>
+        contOpt match {
+          case Some(cont) => new ContinueRewriter(v.asRule, cont)
+          case None => new NakedRewriter(v.asRule)
+        }
     }
   }
 

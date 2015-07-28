@@ -17,6 +17,7 @@ trait MolderFactory {
         }
       }
       case Label.V.cell => new CellMolder(mold, ctx)
+      case Label.V.rule => new RuleMolder(mold, ctx)
       case _ => new PlainMolder(mold, ctx)
     }
   }

@@ -29,5 +29,5 @@ abstract class BinOpRewriter[T <: Vertex] extends Rewriter {
     }
   }
 
-  override def pp(implicit opt: PrettyPrintOptions): String = ???
+  override def pp(implicit opt: PrettyPrintOptions): String = s"<operator '${label.expr}>"
 }

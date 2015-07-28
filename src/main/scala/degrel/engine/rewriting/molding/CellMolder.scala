@@ -1,6 +1,7 @@
 package degrel.engine.rewriting.molding
 
 import degrel.core.{Label, CellBody, VertexHeader, Vertex}
+import degrel.engine.rewriting.Binding
 
 class CellMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
   override val header: VertexHeader = context.getHeader(mold)
@@ -19,7 +20,12 @@ class CellMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
    * また，マッチしていない場合は新規に頂点を構築します
    */
   private def doMold(): Unit = {
-    val cb = new CellBody(this.children.map(_.header), Seq(), Seq(mold.asCell), mold.asCell.otherEdges)
+    val moldCell = mold.asCell
+    val cb = new CellBody(this.children.map(_.header),
+                          Seq(),
+                          Seq(mold.asCell),
+                          moldCell.otherEdges,
+                          Binding.chain(context.binding, moldCell.binding))
     this.header.write(cb)
   }
 

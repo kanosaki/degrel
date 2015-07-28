@@ -1,5 +1,7 @@
 package degrel.core
 
+import degrel.engine.rewriting.Binding
+
 class CellHeader(bdy: CellBody) extends LocalVertexHeader(bdy) with Cell {
 
   private def bodyAsCell: CellBody = {
@@ -30,4 +32,6 @@ class CellHeader(bdy: CellBody) extends LocalVertexHeader(bdy) with Cell {
   override def bases: Seq[Cell] = ???
 
   override def otherEdges: Seq[Edge] = this.bodyAsCell.otherEdges
+
+  override def binding: Binding = this.bodyAsCell.binding
 }

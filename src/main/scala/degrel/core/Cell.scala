@@ -1,5 +1,7 @@
 package degrel.core
 
+import degrel.engine.rewriting.Binding
+
 trait Cell extends Vertex {
   def rules: Seq[Rule]
   def roots: Seq[Vertex]
@@ -19,6 +21,8 @@ trait Cell extends Vertex {
 
   def removeRoot(v: Vertex)
   def addRoot(v: Vertex)
+
+  def binding: Binding = Binding.empty()
 }
 
 object Cell {

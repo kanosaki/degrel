@@ -1,11 +1,14 @@
 package degrel.core
 
+import degrel.engine.rewriting.Binding
+
 import scala.collection.mutable
 
 class CellBody(initRoots: Iterable[Vertex],
                initRules: Iterable[Vertex],
                initBases: Iterable[Vertex],
-               val otherEdges: Seq[Edge]) extends VertexBody with Cell {
+               val otherEdges: Seq[Edge],
+               override val binding: Binding = Binding.empty()) extends VertexBody with Cell {
   private lazy val _rules = mutable.ListBuffer(initRules.map(_.asRule).toSeq: _*)
   private lazy val _roots = mutable.ListBuffer(initRoots.toSeq: _*)
 

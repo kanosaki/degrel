@@ -10,7 +10,7 @@ import degrel.utils.PrettyPrintOptions
 abstract class BasicRewriter extends Rewriter {
   self =>
   def rule: Rule
-  protected def getBinding(pack: BindingPack): Binding
+  protected def getBinding(pack: BindingPack, cellBinding: Binding): Binding
 
   lazy val isSpawnsCells = Traverser(rule.rhs).exists(_.isCell)
 
@@ -25,7 +25,7 @@ abstract class BasicRewriter extends Rewriter {
   def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
-      val binding = this.getBinding(mch.pack)
+      val binding = this.getBinding(mch.pack, parent.binding)
       if (rule.rhs.isRule) {
         val cont = Continuation.Continue(rule.rhs.asRule, binding)
         parent.cell.removeRoot(target)
