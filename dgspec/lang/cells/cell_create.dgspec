@@ -2,6 +2,7 @@
 caption: Spawn cells.
 description: Child cells must react, but non-child cell must not react.
 version: 1
+ignore: true
 seq_spec:
   - init: >
       {
@@ -18,13 +19,11 @@ seq_spec:
         foo(bar: @X) -> {
           hoge(fuga: X)
           hoge(fuga: @Y) -> piyopiyo(Y)
-        }@Base
+        }
         {
-          __base__: Base
           piyopiyo(piyo)
         }
         {
-          __base__: Base
           piyopiyo(hogefuga)
         }
       }
