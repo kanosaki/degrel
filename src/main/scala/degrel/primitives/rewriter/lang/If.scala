@@ -15,7 +15,7 @@ class If extends Rewriter {
   val thenLabel = Label("then")
   val elseLabel = Label("else")
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.label != ifLabel) return RewriteResult.NOP
     val fullIfResult = for {
       pred <- target.thru(0).headOption

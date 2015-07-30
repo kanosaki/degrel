@@ -9,7 +9,7 @@ import degrel.utils.PrettyPrintOptions
 class SendMessage extends Rewriter {
   val sendMessageLabel = BinOp.MSG_SEND.toLabel
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.label == sendMessageLabel) {
       val lhs = target.thru(Label.E.lhs).headOption
       val rhs = target.thru(Label.E.rhs).headOption

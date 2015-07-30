@@ -22,17 +22,17 @@ abstract class BasicRewriter extends Rewriter {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
-      val binding = this.getBinding(mch.pack, parent.binding)
+      val binding = this.getBinding(mch.pack, self.binding)
       if (rule.rhs.isRule) {
         val cont = Continuation.Continue(rule.rhs.asRule, binding)
-        parent.cell.removeRoot(target)
+        self.cell.removeRoot(target)
         RewriteResult(done = true, cont)
       } else {
-        val builtGraph = molding.mold(rule.rhs, binding, parent)
-        applyResult(target, parent, builtGraph)
+        val builtGraph = molding.mold(rule.rhs, binding, self)
+        applyResult(target, self, builtGraph)
         RewriteResult(done = true)
       }
     } else {

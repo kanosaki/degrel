@@ -10,7 +10,7 @@ class Fin extends Rewriter {
 
   override def isMeta: Boolean = true
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.isCell) {
       target.thru(Label.E.cellItem).find(_.label == finLabel) match {
         case Some(finV) => {

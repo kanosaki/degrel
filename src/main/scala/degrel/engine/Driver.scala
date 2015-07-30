@@ -142,7 +142,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   }
 
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
-    val res = rw.rewrite(v.asHeader, this)
+    val res = rw.rewrite(this, v.asHeader)
     if (res.done) {
       import degrel.engine.rewriting.Continuation._
       res.continuation match {

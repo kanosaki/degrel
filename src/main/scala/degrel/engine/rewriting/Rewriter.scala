@@ -28,10 +28,10 @@ trait Rewriter extends Logger with PrettyPrintable {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: VertexHeader, parent: Driver): RewriteResult
+  def rewrite(self: Driver, target: VertexHeader): RewriteResult
 
   def rewrite(target: VertexHeader): RewriteResult = {
-    this.rewrite(target, Driver())
+    this.rewrite(Driver(), target)
   }
 
   /**

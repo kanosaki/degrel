@@ -16,6 +16,7 @@ object RewriteResult {
   /**
    * Nothing performed
    */
-  val NOP = new RewriteResult(false)
+  val NOP = RewriteResult(false)
+  val DONE = RewriteResult(true)
 }
 
