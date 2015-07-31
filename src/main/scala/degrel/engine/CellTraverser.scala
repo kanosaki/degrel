@@ -13,7 +13,7 @@ class CellTraverser(target: Cell) extends Iterable[Vertex] {
     val nextItems = mutable.Queue[Vertex]()
     val visited = mutable.HashSet[Vertex]()
 
-    nextItems ++= target.roots
+    nextItems ++= target.roots.filter(v => !v.isRule)
 
     override def hasNext: Boolean = nextItems.nonEmpty
 

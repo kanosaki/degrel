@@ -19,13 +19,12 @@ abstract class BinOpRewriter[T <: Vertex] extends Rewriter {
       } yield calcRes
       result match {
         case Some(resVal) => {
-          target.write(resVal)
-          RewriteResult(done = true)
+          RewriteResult.write(target, resVal)
         }
-        case _ => RewriteResult.NOP
+        case _ => RewriteResult.Nop
       }
     } else {
-      RewriteResult.NOP
+      RewriteResult.Nop
     }
   }
 

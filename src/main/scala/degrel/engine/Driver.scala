@@ -2,7 +2,7 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.core._
-import degrel.engine.rewriting.{Binding, Rewriter}
+import degrel.engine.rewriting.{Binding, ContinueRewriter, Rewriter}
 import degrel.engine.sphere.Sphere
 import degrel.utils.PrettyPrintOptions
 
@@ -14,7 +14,7 @@ import scala.collection.mutable
 class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null) extends Reactor {
   implicit protected val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
-  private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
+  private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
 
   def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
@@ -82,20 +82,30 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
    * 3. 書き換えの実行
    */
   def step(): Boolean = {
-    val applicativeRewriters = contRewriters ++ this.rewriters
-    applicativeRewriters.exists { rw =>
-      val targets =
-        (if (rw.isPartial)
-          this.rewriteTargets
-        else
-          this.itemRoots) ++
-          (if (rw.isMeta)
-            Seq(header)
-          else
-            Seq())
-      targets.exists { v =>
-        this.execRewrite(rw, v)
+    contRewriters.find(this.stepFor) match {
+      case Some(rw) => {
+        this.cell.removeRoot(rw.tempVertex)
+        contRewriters -= rw
+        true
       }
+      case None => {
+        this.rewriters.exists(this.stepFor)
+      }
+    }
+  }
+
+  def stepFor(rw: Rewriter): Boolean = {
+    val targets =
+      (if (rw.isPartial)
+        this.rewriteTargets
+      else
+        this.itemRoots) ++
+        (if (rw.isMeta)
+          Seq(header)
+        else
+          Seq())
+    targets.exists { v =>
+      this.execRewrite(rw, v)
     }
   }
 
@@ -105,7 +115,6 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
 
   def itemRoots: Iterable[Vertex] = cell
     .edges
-    .toStream
     .filter(_.label == Label.E.cellItem)
     .map(_.dst)
 
@@ -144,13 +153,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
     val res = rw.rewrite(this, v.asHeader)
     if (res.done) {
-      import degrel.engine.rewriting.Continuation._
-      res.continuation match {
-        case c@Continue(nextRule, _) => {
-          contRewriters += Rewriter(nextRule, Some(c))
-        }
-        case Empty => contRewriters -= rw
-      }
+      res.exec(this)
       if (chassis.verbose) {
         System.err.print(Console.GREEN)
         System.err.println("--- Apply ---")
@@ -162,6 +165,10 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
       }
     }
     res.done
+  }
+
+  def addContinueRewriter(rw: ContinueRewriter) = {
+    contRewriters += rw
   }
 
   def binding: Binding = {

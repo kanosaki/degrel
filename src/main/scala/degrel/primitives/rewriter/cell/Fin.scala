@@ -1,6 +1,6 @@
 package degrel.primitives.rewriter.cell
 
-import degrel.core.{Cell, Label, Vertex, VertexHeader}
+import degrel.core.{Cell, Label, VertexHeader}
 import degrel.engine.Driver
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
 import degrel.utils.PrettyPrintOptions
@@ -16,12 +16,12 @@ class Fin extends Rewriter {
         case Some(finV) => {
           val finValue = finV.thru(0).headOption.getOrElse(Cell())
           target.write(finValue)
-          RewriteResult(done = true)
+          RewriteResult.write(target, finValue)
         }
-        case None => RewriteResult.NOP
+        case None => RewriteResult.Nop
       }
     } else {
-      RewriteResult.NOP
+      RewriteResult.Nop
     }
   }
 

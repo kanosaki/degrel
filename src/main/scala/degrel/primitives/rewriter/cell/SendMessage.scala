@@ -18,12 +18,12 @@ class SendMessage extends Rewriter {
           val targetCell = l.unhead[CellBody]
           targetCell.addRoot(r)
           target.write(targetCell)
-          RewriteResult(done = true)
+          RewriteResult.write(target, targetCell)
         }
-        case _ => RewriteResult.NOP
+        case _ => RewriteResult.Nop
       }
     } else {
-      RewriteResult.NOP
+      RewriteResult.Nop
     }
   }
 

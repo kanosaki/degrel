@@ -27,16 +27,13 @@ abstract class BasicRewriter extends Rewriter {
     if (mch.success) {
       val binding = this.getBinding(mch.pack, self.binding)
       if (rule.rhs.isRule) {
-        val cont = Continuation.Continue(rule.rhs.asRule, binding)
-        self.cell.removeRoot(target)
-        RewriteResult(done = true, cont)
+        RewriteResult.Continue(target, rule.rhs.asRule, binding)
       } else {
         val builtGraph = molding.mold(rule.rhs, binding, self)
-        applyResult(target, self, builtGraph)
-        RewriteResult(done = true)
+        RewriteResult.write(target, builtGraph)
       }
     } else {
-      RewriteResult.NOP
+      RewriteResult.Nop
     }
   }
 
