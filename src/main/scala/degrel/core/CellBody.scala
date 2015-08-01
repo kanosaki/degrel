@@ -59,7 +59,7 @@ class CellBody(initRoots: Iterable[Vertex],
 object CellBody {
   def apply(edges: Iterable[Edge]) = {
     val roots = edges.filter(_.label == Label.E.cellItem).map(_.dst)
-    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst)
+    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst.toRule)
     val bases = edges.filter(_.label == Label.E.cellBase).map(_.dst).toSeq
     val others = edges.filter(l => l.label != Label.E.cellItem && l.label != Label.E.cellRule && l.label != Label.E.cellBase).toSeq
     new CellBody(roots, rules, bases, others)

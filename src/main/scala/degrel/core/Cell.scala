@@ -23,6 +23,8 @@ trait Cell extends Vertex {
   def addRoot(v: Vertex)
 
   def binding: Binding = Binding.empty()
+
+  override def toCell: Cell = this
 }
 
 object Cell {

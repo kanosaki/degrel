@@ -1,12 +1,12 @@
 package degrel.core
 
 import degrel.DegrelException
+import degrel.core.utils.PrettyPrinter
+import degrel.engine.rewriting.matching.{Matcher, MatchingContext, VertexMatching}
 import degrel.utils.PrettyPrintOptions
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
-import degrel.core.utils.PrettyPrinter
-import degrel.engine.rewriting.matching.{Matcher, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
   def edges: Iterable[Edge]
@@ -86,16 +86,22 @@ trait Vertex extends Element with Comparable[Vertex] {
     this.edges.filter(pred).map(_.dst)
   }
 
-  def asRule: Rule = {
-    val rhs = this.thruSingle(SpecialLabels.E_RHS)
-    val lhs = this.thruSingle(SpecialLabels.E_LHS)
+  def toRule: Rule = {
+    val rhs = this.thruSingle(Label.E.rhs)
+    val lhs = this.thruSingle(Label.E.lhs)
     Rule(lhs, rhs)
   }
 
-  def asCell: Cell = {
-    require(this.label == Label.V.cell, s"${this.label.expr} is not cell")
+  def asRule: Rule = {
+    this.asInstanceOf[Rule]
+  }
+
+  def toCell: Cell = {
+    require(this.isCell, s"${this.label.expr} is not cell")
     Cell(this.edges)
   }
+
+  def asCell: Cell = this.asInstanceOf[Cell]
 
   def asHeader: VertexHeader = {
     this.asInstanceOf[VertexHeader]

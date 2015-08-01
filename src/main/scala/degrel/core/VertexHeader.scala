@@ -20,14 +20,6 @@ trait VertexHeader extends Vertex {
   override def getValue[T: TypeTag]: Option[T] = body.getValue[T]
 
   val id: ID = ID.autoAssign
-
-  override def asCell: Cell = {
-    if (this.body.isCell) {
-      this.asInstanceOf[Cell]
-    } else {
-      super.asCell
-    }
-  }
 }
 
 object VertexHeader {
