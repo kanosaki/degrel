@@ -21,7 +21,7 @@ libraryDependencies ++= {
   val sprayVersion = "1.3.3"
   val graphStreamVersion = "1.2"
   Seq(
-    "org.scalatest" % "scalatest_2.11" % "2.2.3" % "test",
+    "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
     "org.scalamock" %% "scalamock-scalatest-support" % "3.2.1" % "test",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
     "ch.qos.logback" % "logback-classic" % "1.1.2",
