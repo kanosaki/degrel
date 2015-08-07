@@ -57,7 +57,7 @@ class Bench(object):
             del bl['noise']
         task_entries = []
         for (index, (entry, (index_of_entry, task))) in enumerate(tasks):
-            task_entries.append(task.to_dict())
+            task_entries.append(task.export_dict(self.bench_dir))
 
         params = dict(
             bench_list=bench_list,
@@ -132,6 +132,8 @@ class BenchEntry(object):
                     self.output_dir,
                     '%s-%s.json' % (param_index_str, count_index_str))
                 yield BenchRun(
+                    param_index,
+                    count_index,
                     self.config,
                     param,
                     result_path,
@@ -156,21 +158,31 @@ class BenchEntry(object):
 
 
 class BenchRun(object):
-    def __init__(self, config, params, output_path, scripts_dir):
+    def __init__(self,
+                 param_id,
+                 sample_id,
+                 config,
+                 params,
+                 output_path,
+                 scripts_dir):
         """
         params :: [('param1': 1), ('param2': 'abc'), ...]
         """
+        self.param_id = param_id
+        self.sample_id = sample_id
         self.params = params
         self.scripts_dir = scripts_dir
         self.output_path = output_path
         self.template_name = config['template']
         self.name = config['name']
 
-    def to_dict(self):
+    def export_dict(self, bench_dir):
         return {
             'name': self.name,
             'options': dict(self.params),
-            'output': self.output_path,
+            'param_id': self.param_id,
+            'sample_id': self.sample_id,
+            'output': os.path.relpath(self.output_path, bench_dir),
         }
 
     def format_params(self):
