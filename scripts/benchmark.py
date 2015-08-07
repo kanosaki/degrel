@@ -46,20 +46,24 @@ class Bench(object):
                   file=sys.stderr)
             task.start()
 
-        self.write_param_json()
+        self.write_param_json(tasks)
         if self.temp_output and os.path.exists(self.temp_output):
             shutil.copytree(self.temp_output, self.real_bench_dir())
 
-    def write_param_json(self):
+    def write_param_json(self, tasks):
         path = os.path.join(self.bench_dir, 'param.json')
         bench_list = list(self.bench_list)
         for bl in bench_list:
             del bl['noise']
+        task_entries = []
+        for (index, (entry, (index_of_entry, task))) in enumerate(tasks):
+            task_entries.append(task.to_dict())
 
         params = dict(
             bench_list=bench_list,
             options=self.config['options'],
             timestamp=self.timestamp.isoformat(),
+            tasks=task_entries,
             version=utils.version(),
             version_hash=utils.version_hash()
         )
@@ -126,7 +130,7 @@ class BenchEntry(object):
                 param_index_str = str(param_index).rjust(params_padsize, '0')
                 result_path = os.path.join(
                     self.output_dir,
-                    '%s-%s.json' % (count_index_str, param_index_str))
+                    '%s-%s.json' % (param_index_str, count_index_str))
                 yield BenchRun(
                     self.config,
                     param,
@@ -161,6 +165,13 @@ class BenchRun(object):
         self.output_path = output_path
         self.template_name = config['template']
         self.name = config['name']
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'options': dict(self.params),
+            'output': self.output_path,
+        }
 
     def format_params(self):
         def join_pair(kv):
