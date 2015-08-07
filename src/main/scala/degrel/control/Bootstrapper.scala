@@ -12,6 +12,17 @@ import org.apache.commons.io.FileUtils
  * Chassisをアプリケーション引数などから初期化します
  */
 class Bootstrapper(val args: CLIArguments) {
+
+  val driverFactory: DriverFactory = {
+    args.options.get("rewriteeset") match {
+      case Some("root_hash") => new RootHashDriverFactory()
+      case o => {
+        DriverFactory.default
+      }
+
+    }
+  }
+
   protected def loadMain(mainFile: File): Cell = {
     val src = FileUtils.readFileToString(mainFile)
     degrel.parseCell(src)
@@ -37,12 +48,6 @@ class Bootstrapper(val args: CLIArguments) {
     chassis.registerCell(Label.N.main, main)
     this.initChassis(chassis)
     chassis
-  }
-
-  def driverFactory: DriverFactory = args.options.get("rewriteeset") match {
-    case Some("root_hash") => new RootHashDriverFactory()
-    case _ => DriverFactory.default
-
   }
 
   protected def initChassis(chassis: Chassis): Unit = {
