@@ -25,4 +25,10 @@ class LabelTest extends FlatSpec {
     assert(!Label("_foobar").isMeta)
     assert(!Label("foobar").isMeta)
   }
+
+  it should "extracts string and symbols" in {
+    val l = Label("foobar")
+    assert(l.symbol === 'foobar)
+    assert(l.expr === "foobar")
+  }
 }

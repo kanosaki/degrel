@@ -43,6 +43,6 @@ trait VertexBody extends Vertex {
     CellBody(this.edges)
   }
 
-  override def id: ID = new LocalID(-1)
+  override val id: ID = ID.autoAssign
 }
 

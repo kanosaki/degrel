@@ -9,21 +9,21 @@ import degrel.utils.PrettyPrintOptions
 class SendMessage extends Rewriter {
   val sendMessageLabel = BinOp.MSG_SEND.toLabel
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.label == sendMessageLabel) {
       val lhs = target.thru(Label.E.lhs).headOption
       val rhs = target.thru(Label.E.rhs).headOption
       (lhs, rhs) match {
         case ((Some(l), Some(r))) if l.isCell => {
-          val targetCell = l.unref[CellBody]
+          val targetCell = l.unhead[CellBody]
           targetCell.addRoot(r)
           target.write(targetCell)
-          RewriteResult(done = true)
+          RewriteResult.write(target, targetCell)
         }
-        case _ => RewriteResult.NOP
+        case _ => RewriteResult.Nop
       }
     } else {
-      RewriteResult.NOP
+      RewriteResult.Nop
     }
   }
 

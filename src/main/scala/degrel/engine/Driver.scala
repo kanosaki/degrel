@@ -2,8 +2,8 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.core._
+import degrel.engine.rewriting.{Binding, ContinueRewriter, Rewriter}
 import degrel.engine.sphere.Sphere
-import degrel.engine.rewriting.Rewriter
 import degrel.utils.PrettyPrintOptions
 
 import scala.collection.mutable
@@ -11,16 +11,17 @@ import scala.collection.mutable
 /**
  * Cellの実行をします
  */
-class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
-  implicit protected val printOption = PrettyPrintOptions(showAllId = true, multiLine = true)
+class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null) extends Reactor {
+  implicit protected val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
-  private var contRewriters: mutable.Buffer[Rewriter] = mutable.ListBuffer()
+  private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
+  var rewritee: RewriteeSet = new PlainRewriteeSet(this)
 
   def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
   }
 
-  def resource: Sphere = if (chassis == null) {
+  val resource: Sphere = if (chassis == null) {
     degrel.engine.sphere.default
   } else {
     chassis.getResourceFor(this)
@@ -29,6 +30,17 @@ class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
   def stepUntilStop(limit: Int = -1): Int = {
     var count = 0
     while (true) {
+      if (chassis.verbose) {
+        System.err.print(Console.RED)
+        System.err.println("--- Graph ---")
+        System.err.println(this.header.pp)
+        System.err.print(Console.YELLOW)
+        System.err.println("--- Continuations ---")
+        this.contRewriters.foreach(rw => {
+          System.err.println(rw.pp)
+        })
+        System.err.println(Console.RESET)
+      }
       val rewrote = this.stepRecursive()
       this.cleanup()
       count += 1
@@ -71,28 +83,39 @@ class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
    * 3. 書き換えの実行
    */
   def step(): Boolean = {
-    val applicativeRewriters = contRewriters ++ this.rewriters
-    applicativeRewriters.exists { rw =>
-      val targets =
-        (if (rw.isPartial)
-          this.rewriteTargets
-        else
-          this.itemRoots) ++
-          (if (rw.isMeta)
-            Seq(header)
-          else
-            Seq())
-      targets.exists { v =>
-        this.execRewrite(rw, v)
+    contRewriters.find(this.stepFor) match {
+      case Some(rw) => {
+        this.cell.removeRoot(rw.tempVertex)
+        contRewriters -= rw
+        true
+      }
+      case None => {
+        this.rewriters.exists(this.stepFor)
       }
     }
   }
 
-  def rewriters = cell.rules.map(Rewriter(_)) ++ degrel.primitives.rewriter.default
+  def stepFor(rw: Rewriter): Boolean = {
+    val targets =
+      (if (rw.isPartial)
+        this.rewriteTargets
+      else
+        this.itemRoots) ++
+        (if (rw.isMeta)
+          Seq(header)
+        else
+          Seq())
+    targets.exists { v =>
+      this.execRewrite(rw, v)
+    }
+  }
+
+  def baseRewriters: Seq[Rewriter] = cell.bases.flatMap(_.rules.map(Rewriter(_)))
+
+  def rewriters: Seq[Rewriter] = cell.rules.map(Rewriter(_)) ++ baseRewriters ++ degrel.primitives.rewriter.default
 
   def itemRoots: Iterable[Vertex] = cell
     .edges
-    .toStream
     .filter(_.label == Label.E.cellItem)
     .map(_.dst)
 
@@ -110,10 +133,10 @@ class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
     this.cell.addRoot(msg)
   }
 
-  def cell: CellBody = header.unref[CellBody]
+  def cell: CellBody = header.unhead[CellBody]
 
   def spawn(cell: Vertex): Vertex = {
-    this.children += cell -> new Driver(cell, chassis)
+    this.children += cell -> new Driver(cell, chassis, null)
     cell
   }
 
@@ -129,18 +152,39 @@ class Driver(val header: Vertex, val chassis: Chassis) extends Reactor {
   }
 
   private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
-    val res = rw.rewrite(v.asHeader, this)
+    val res = rw.rewrite(this, v.asHeader)
     if (res.done) {
-      import degrel.engine.rewriting.Continuation._
-      res.continuation match {
-        case c@Continue(nextRule, _) => {
-          contRewriters += Rewriter(nextRule, Some(c))
-          cell.removeRoot(v)
-        }
-        case Empty => contRewriters -= rw
+      res.exec(this)
+      if (chassis.verbose) {
+        System.err.print(Console.GREEN)
+        System.err.println("--- Apply ---")
+        System.err.println(rw.pp)
+        System.err.print(Console.BLUE)
+        System.err.println("--- Result ---")
+        System.err.println(this.header.pp)
+        System.err.println(Console.RESET)
       }
     }
     res.done
+  }
+
+  def addContinueRewriter(rw: ContinueRewriter) = {
+    this.rewritee.onContinue(rw)
+    contRewriters += rw
+  }
+
+  def writeVertex(target: VertexHeader, value: Vertex) = {
+    this.rewritee.onWriteVertex(target, value)
+    target.write(value)
+  }
+
+  def binding: Binding = {
+    if (this.header.isCell) {
+      this.cell.binding
+    } else {
+      Binding.empty()
+    }
+
   }
 }
 

@@ -13,7 +13,7 @@ class CellTest extends FlatSpec {
     val targetV = vertex("{} ! foo")
     val expectedV = vertex("{foo}")
     val rw = new SendMessage()
-    assert(rw.rewrite(targetV, Driver()).done)
+    assert(rw.rewrite(Driver(), targetV).done)
     assert(targetV ===~ expectedV)
   }
 }

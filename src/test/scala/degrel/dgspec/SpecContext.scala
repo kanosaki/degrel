@@ -4,8 +4,9 @@ import degrel.core.Vertex
 import degrel.engine.Chassis
 
 
-class SpecContext(val chassis: Chassis) {
+class SpecContext(var chassis: Chassis) {
   var root: Vertex = null
+  var lastOutput: String = null
 }
 
 object SpecContext {

@@ -10,7 +10,7 @@ abstract class BinOpRewriter[T <: Vertex] extends Rewriter {
 
   def calc(lhs: Vertex, rhs: Vertex): Option[Vertex]
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.label == this.label) {
       val result = for {
         lhs <- target.thru(Label.E.lhs).headOption
@@ -19,15 +19,14 @@ abstract class BinOpRewriter[T <: Vertex] extends Rewriter {
       } yield calcRes
       result match {
         case Some(resVal) => {
-          target.write(resVal)
-          RewriteResult(done = true)
+          RewriteResult.write(target, resVal)
         }
-        case _ => RewriteResult.NOP
+        case _ => RewriteResult.Nop
       }
     } else {
-      RewriteResult.NOP
+      RewriteResult.Nop
     }
   }
 
-  override def pp(implicit opt: PrettyPrintOptions): String = ???
+  override def pp(implicit opt: PrettyPrintOptions): String = s"<operator '${label.expr}>"
 }

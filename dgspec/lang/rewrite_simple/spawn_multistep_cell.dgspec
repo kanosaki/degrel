@@ -1,6 +1,7 @@
 
 caption: Cell spawn rule works for multi step.
 version: 1
+ignore: true
 seq_spec:
   - init: >
       {

@@ -45,7 +45,7 @@ def dependency_classpath():
 
 def run_degrel(*args):
     if not args:
-        args = utils.args_str()
+        args = utils.args()
     os.chdir(utils.APP_DIR)
     try:
         project_classes = glob.glob(

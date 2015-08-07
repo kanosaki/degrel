@@ -37,19 +37,6 @@ class PrettyPrinter(val root: Vertex)
       })
   }
 
-  def repsep[T](src: Iterable[T],
-                sb: StringBuilder,
-                sep: String,
-                eachFunc: (T, StringBuilder) => Unit): Unit = {
-    val srcSeq = src.toSeq
-    if (srcSeq.isEmpty) return
-    srcSeq.dropRight(1).foreach(v => {
-      eachFunc(v, sb)
-      sb ++= sep
-    })
-    val lst = srcSeq.last
-    eachFunc(lst, sb)
-  }
 
   protected trait Printer {
     def print(sb: StringBuilder)(implicit traj: Trajectory): Unit
@@ -77,19 +64,40 @@ class PrettyPrinter(val root: Vertex)
       }
     }
 
-    protected def idExpr = {
-      if (this.isCycled || opts.showAllId)
-        s"[${root.id}]"
-      else
-        ""
+    protected def putTypeInfo(sb: StringBuilder): Unit = {
+      sb ++= PrettyPrintUtils.shortenTypeName(this.root)
+      this.root match {
+        case vh: VertexHeader => {
+          sb += '/'
+          sb ++= PrettyPrintUtils.shortenTypeName(vh.body)
+        }
+        case _ =>
+      }
+
+    }
+
+    protected def putIdExpr(sb: StringBuilder): Unit = {
+      if (this.isCycled || opts.showAllId) {
+        sb += '['
+        sb ++= this.root.id.toString
+        if (opts.showType) {
+          sb += '/'
+          this.putTypeInfo(sb)
+        }
+        sb += ']'
+      } else {
+        if (opts.showType) {
+          sb += '['
+          this.putTypeInfo(sb)
+          sb += ']'
+        }
+      }
     }
 
     protected def labelExpr = {
       root.label.expr
     }
-  }
 
-  protected class VertexPrinter(val root: Vertex, val parent: Printer) extends Printer {
     def putNameExpr(sb: StringBuilder): Unit = {
       root.attr(Label.A.capturedAs) match {
         case Some(capAs) if root.label == Label.V.wildcard => {
@@ -104,9 +112,25 @@ class PrettyPrinter(val root: Vertex)
         case _ =>
           sb ++= this.labelExpr
       }
-      sb ++= this.idExpr
+      this.putIdExpr(sb)
     }
 
+    def repsep[T](src: Iterable[T],
+                  sb: StringBuilder,
+                  sep: String,
+                  eachFunc: (T, StringBuilder) => Unit): Unit = {
+      val srcSeq = src.toSeq
+      if (srcSeq.isEmpty) return
+      srcSeq.dropRight(1).foreach(v => {
+        eachFunc(v, sb)
+        sb ++= sep
+      })
+      val lst = srcSeq.last
+      eachFunc(lst, sb)
+    }
+  }
+
+  protected class VertexPrinter(val root: Vertex, val parent: Printer) extends Printer {
     private def edgesExprSingle(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
       val edges = root.edges.toSeq
       if (edges.nonEmpty) {
@@ -179,25 +203,59 @@ class PrettyPrinter(val root: Vertex)
       case false => ""
     }
 
+    val baseEdges = root.edgesWith(Label.E.cellBase)
+    val ruleEdges = root.edgesWith(Label.E.cellRule)
+    val itemEdges = root.edgesWith(Label.E.cellItem)
+    val othersEdges = root.edges.filter(
+      l => l.label != Label.E.cellItem
+        && l.label != Label.E.cellRule
+        && l.label != Label.E.cellBase).toSeq
+
     override def print(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
       val v = root
       traj.walk(v) {
         case Unvisited(trj) => {
-          sb ++= "{" ++= this.idExpr ++= nl
-          repsep[Edge](v.edgesWith(Label.E.cellItem), sb, itemSep, (e, sb_) => {
-            getPrinter(e.dst, this).print(sb_)
-          })
-          val ruleEdges = v.edgesWith(Label.E.cellRule)
+          sb ++= "{"
+          this.putIdExpr(sb)
+          sb ++= nl
+          var lineCount = 0
+          if (baseEdges.nonEmpty) {
+            repsep[Edge](baseEdges, sb, itemSep, (e, sb_) => {
+              sb_ ++= e.label.expr ++= ": "
+              getPrinter(e.dst, this).print(sb_)
+            })
+          }
+          lineCount += baseEdges.size
+          if (itemEdges.nonEmpty) {
+            if (lineCount != 0)
+              sb ++= itemSep
+            repsep[Edge](itemEdges, sb, itemSep, (e, sb_) => {
+              getPrinter(e.dst, this).print(sb_)
+            })
+          }
+          lineCount += itemEdges.size
           if (ruleEdges.nonEmpty) {
-            sb ++= itemSep
+            if (lineCount != 0)
+              sb ++= itemSep
             repsep[Edge](ruleEdges, sb, itemSep, (e, sb_) => {
+              getPrinter(e.dst, this).print(sb_)
+            })
+          }
+          lineCount += ruleEdges.size
+          if (othersEdges.nonEmpty) {
+            if (lineCount != 0)
+              sb ++= itemSep
+            repsep[Edge](othersEdges, sb, itemSep, (e, sb_) => {
+              sb_ ++= e.label.expr ++= ": "
               getPrinter(e.dst, this).print(sb_)
             })
           }
           sb ++= nlEnd ++= "}"
         }
         case Visited(_) => {
-          sb ++= s"{${this.idExpr}}"
+          sb += '{'
+          this.putIdExpr(sb)
+          sb += '}'
         }
       }
     }
@@ -215,6 +273,11 @@ class PrettyPrinter(val root: Vertex)
           getPrinter(lhsRoot, this).print(sb)
           sb ++= " -> "
           getPrinter(rhsRoot, this).print(sb)
+        }
+        case Visited(trj) => {
+          sb ++= "<RULE"
+          this.putIdExpr(sb)
+          sb += '>'
         }
       }
     }

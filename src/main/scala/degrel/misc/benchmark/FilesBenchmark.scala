@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import javax.swing.table.DefaultTableModel
 
+import degrel.control.Bootstrapper
 import degrel.utils.text.table.TextTable
 import org.json4s.JsonAST.JObject
 import org.json4s.JsonDSL._
@@ -20,7 +21,7 @@ import scala.language.implicitConversions
  * @param resultJson 結果を書き出すパス．JSONで書き出されます
  * @param quiet これを`true`の時，スクリプトの標準出力を無効にします．
  */
-class FilesBenchmark(targets: Seq[Path], resultJson: Option[Path], quiet: Boolean = true) {
+class FilesBenchmark(bootstrapper: Bootstrapper, targets: Seq[Path], resultJson: Option[Path], quiet: Boolean = true) {
   val outputEncoding = "utf-8"
   val out = System.out
   var beginTime: LocalDateTime = null
@@ -75,9 +76,9 @@ class FilesBenchmark(targets: Seq[Path], resultJson: Option[Path], quiet: Boolea
 
   def mapEntry(path: Path): Iterator[FileEntry] = {
     if (Files.isDirectory(path)) {
-      Files.list(path).iterator().toIterator.filter(entryFilter).map(new FileEntry(_, quiet))
+      Files.list(path).iterator().toIterator.filter(entryFilter).map(new FileEntry(bootstrapper, _, quiet))
     } else {
-      Seq(new FileEntry(path, quiet)).iterator
+      Seq(new FileEntry(bootstrapper, path, quiet)).iterator
     }
   }
 

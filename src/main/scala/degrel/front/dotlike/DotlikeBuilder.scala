@@ -1,7 +1,7 @@
 package degrel.front.dotlike
 
 import degrel.core.{Label, Edge, Vertex}
-import degrel.graphbuilder.{LexicalSymbolTable}
+import degrel.front.graphbuilder.{LexicalSymbolTable}
 import degrel.utils.collection.mutable.BiHashMap
 
 import scala.collection.mutable

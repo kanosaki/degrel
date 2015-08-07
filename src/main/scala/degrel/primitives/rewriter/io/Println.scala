@@ -10,17 +10,15 @@ class Println extends Rewriter {
 
   override def isPartial: Boolean = false
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
-    if (target.label != printlnLabel) return RewriteResult.NOP
+  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
+    if (target.label != printlnLabel) return RewriteResult.Nop
     val numberedEdges = target.edges.filter(_.label.expr.forall(_.isDigit)).toSeq.sortBy(_.label)
     val printNeighbors = numberedEdges.map(_.dst)
     val text = printNeighbors.map(mapString).mkString(" ")
     // Output to driver stdout
-    parent.resource.console.stdout.println(text)
+    self.resource.console.stdout.println(text)
 
-    target.write(Cell())
-
-    RewriteResult(done = true)
+    RewriteResult.write(target, Cell())
   }
 
   def mapString(v: Vertex): String = v.getValue[String] match {

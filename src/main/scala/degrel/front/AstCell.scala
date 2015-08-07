@@ -28,10 +28,16 @@ case class AstCell(items: Seq[AstCellItem]) extends AstExpr[Cell] {
       case _ => None
     }
   }
+
+  def edges: Seq[AstCellEdge] = items.collect {
+    case ce: AstCellEdge => ce
+  }
 }
 
 trait AstCellItem extends AstNode {
 }
+
+case class AstCellEdge(label: AstLabel, dst: AstVertex) extends AstCellItem
 
 case class AstImport(from: Option[AstLabel],
                      imports: Seq[AstLabel],

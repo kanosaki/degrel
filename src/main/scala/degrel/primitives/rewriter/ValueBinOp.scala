@@ -12,7 +12,7 @@ abstract class ValueBinOp[TLhs: TypeTag, TRhs: TypeTag, TResult: TypeTag] extend
 
   def calc(lhs: TLhs, rhs: TRhs): TResult
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.label == this.label) {
       val result = for {
         lhs <- target.thru(Label.E.lhs).headOption
@@ -23,12 +23,12 @@ abstract class ValueBinOp[TLhs: TypeTag, TRhs: TypeTag, TResult: TypeTag] extend
       result match {
         case Some(resVal) => {
           target.write(ValueVertex(resVal))
-          RewriteResult(done = true)
+          RewriteResult.write(target, ValueVertex(resVal))
         }
-        case _ => RewriteResult.NOP
+        case _ => RewriteResult.Nop
       }
     } else {
-      RewriteResult.NOP
+      RewriteResult.Nop
     }
   }
 

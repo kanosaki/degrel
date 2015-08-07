@@ -4,17 +4,31 @@ import java.io.File
 
 case class CLIArguments(script: Option[File] = None,
                         verbose: Boolean = false,
-                        cmd: CLICommand = CLICommand.Plain)
+                        cmd: CLICommand = CLICommand.Plain,
+                        options: Map[String, String] = Map())
 
 /**
  * 引数解析
  */
 object CLIArguments {
+  /**
+   * --optionsで渡されるKey-Value pairをSystem.propertyへも上書きするかどうかを指定します
+   */
+  val MIRROR_NAME_OPTS_TO_SYSPROP = true
+
   def parser() = {
     new scopt.OptionParser[CLIArguments]("degrel") {
       opt[Unit]("verbose").abbr("v").optional().action { (_, c) =>
         c.copy(verbose = true)
       }
+      opt[Map[String, String]]("options").abbr("D").valueName("k1=v1,k2=v2,...").action((x, c) => {
+        if (MIRROR_NAME_OPTS_TO_SYSPROP) {
+          x.foreach(kv => {
+            System.setProperty(kv._1, kv._2)
+          })
+        }
+        c.copy(options = x)
+      }).text("versatile parameters")
       arg[File]("<file>").optional().action { (x, c) =>
         c.copy(script = Some(x))
       }.text("Input script")

@@ -10,9 +10,12 @@ trait Molder {
     if (ph <= finishedPhase) return
     this.onPhase(ph)
     finishedPhase = ph
+    this.children.foreach(_.process(ph))
+  }
+
+  def children: Iterable[Molder] = {
     mold.edges
       .map(e => context.getMolder(e.dst))
-      .foreach(_.process(ph))
   }
 
   def onPhase(ph: MoldPhase): Unit = {}

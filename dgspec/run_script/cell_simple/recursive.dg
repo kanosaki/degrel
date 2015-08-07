@@ -1,0 +1,10 @@
+
+
+greet(@Msg, @I) -> {
+  println(Msg, I)
+  fin if(I < 3, then: {
+    fin greet(Msg, (I + 1))
+  })
+}
+
+greet("Hello", 0)
