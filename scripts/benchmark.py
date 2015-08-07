@@ -2,7 +2,6 @@ from __future__ import print_function
 import sys
 import os
 from datetime import datetime
-import tempfile
 import json
 import shutil
 import itertools
@@ -36,21 +35,20 @@ class Bench(object):
             entry.prepare()
 
         tasks = [(e, t)
-                for e in self.entries
-                for t in enumerate(e.tasks)]
+                 for e in self.entries
+                 for t in enumerate(e.tasks)]
 
         for (index, (entry, (index_of_entry, task))) in enumerate(tasks):
-            print("Runing: %s (Try: %d/%d) (All: %d/%d)"
-                % (entry.name,
-                    index_of_entry, len(entry.tasks),
-                    index, len(tasks)),
-                file=sys.stderr)
+            print("Runing: %s (Try: %d/%d) (All: %d/%d)" %
+                  (entry.name,
+                   index_of_entry, len(entry.tasks),
+                   index, len(tasks)),
+                  file=sys.stderr)
             task.start()
 
         self.write_param_json()
         if self.temp_output and os.path.exists(self.temp_output):
             shutil.copytree(self.temp_output, self.real_bench_dir())
-
 
     def write_param_json(self):
         path = os.path.join(self.bench_dir, 'param.json')
@@ -129,7 +127,11 @@ class BenchEntry(object):
                 result_path = os.path.join(
                     self.output_dir,
                     '%s-%s.json' % (count_index_str, param_index_str))
-                yield BenchRun(self.config, param, result_path, self.scripts_dir)
+                yield BenchRun(
+                    self.config,
+                    param,
+                    result_path,
+                    self.scripts_dir)
 
     @property
     def tasks(self):
@@ -142,11 +144,11 @@ class BenchEntry(object):
 
     def mk_param_product(self, params):
         keys = params.keys()
+
         def zipWithKey(values):
             return zip(keys, values)
 
         return map(zipWithKey, itertools.product(*params.values()))
-
 
 
 class BenchRun(object):
