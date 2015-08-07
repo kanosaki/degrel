@@ -25,12 +25,12 @@ class VertexTest extends FlatSpec {
     }
   }
 
-  "asCell" should "return a vertex as `Cell` instance" in {
-    val v = parse("__cell__(__item__: hoge)")
-    val expected = parse("{hoge}")
-    val actual = v.asCell
-    assert(actual ===~ expected)
-    assert(!v.isInstanceOf[Cell])
-    assert(actual.isInstanceOf[Cell])
-  }
+  //"asCell" should "return a vertex as `Cell` instance" in {
+  //  val v = parse("__cell__(__item__: hoge)")
+  //  val expected = parse("{hoge}")
+  //  val actual = v.asCell
+  //  assert(actual ===~ expected)
+  //  assert(!v.isInstanceOf[Cell])
+  //  assert(actual.isInstanceOf[Cell])
+  //}
 }

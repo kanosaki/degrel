@@ -22,7 +22,7 @@ object RewriteResult {
     override def done: Boolean = true
 
     override def exec(self: Driver): Unit = {
-      target.write(value)
+      self.writeVertex(target, value)
     }
   }
 
@@ -30,7 +30,7 @@ object RewriteResult {
     override def done: Boolean = true
 
     override def exec(self: Driver): Unit = {
-      target.write(rule)
+      self.writeVertex(target, rule)
       val rw = new ContinueRewriter(rule, binding, target)
       self.addContinueRewriter(rw)
     }

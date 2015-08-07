@@ -1,11 +1,12 @@
 package degrel.dgspec
 
-import java.io.{File, PrintStream, ByteArrayOutputStream}
+import java.io.{ByteArrayOutputStream, PrintStream}
 
 import degrel.control.Interpreter
+import degrel.engine.Chassis
 import degrel.engine.sphere.DefaultConsole
 
-class SpecInterpreter(file: File) extends Interpreter(file) {
+class SpecInterpreter(ch: Chassis) extends Interpreter(ch) {
   val console = new BufferingOutputConsole()
 
   def lastOutput = console.byteArrayOutput.toString

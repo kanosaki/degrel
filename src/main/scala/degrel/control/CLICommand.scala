@@ -3,7 +3,6 @@ package degrel.control
 import java.nio.file.Paths
 
 import degrel.control.console.ConsoleHandle
-import degrel.engine.Chassis
 import degrel.misc.benchmark.FilesBenchmark
 import jline.console.ConsoleReader
 
@@ -24,7 +23,8 @@ object CLICommand {
    */
   case class Benchmark(targets: Seq[String] = Seq(), outputJson: Option[String] = None) extends CLICommand {
     override def start(arg: CLIArguments): Unit = {
-      val bench = new FilesBenchmark(targets.map(Paths.get(_)), outputJson.map(Paths.get(_)))
+      val bootstrapper = Bootstrapper(arg)
+      val bench = new FilesBenchmark(bootstrapper, targets.map(Paths.get(_)), outputJson.map(Paths.get(_)))
       bench.start()
     }
   }
@@ -60,16 +60,15 @@ object CLICommand {
    */
   case object Plain extends CLICommand {
     override def start(arg: CLIArguments): Unit = {
+      val bootstrapper = Bootstrapper(arg)
+
       arg.script match {
         case Some(scriptFile) => {
-          val interpreter = new Interpreter(
-            mainFile = scriptFile)
-          interpreter.chassis.verbose = arg.verbose
+          val interpreter = bootstrapper.initInterpreter()
           interpreter.start()
         }
         case None => {
-          val console = new ConsoleHandle(Chassis.createWithMain())
-          console.chassis.verbose = arg.verbose
+          val console = new ConsoleHandle(bootstrapper.createChassis())
           console.start()
         }
       }

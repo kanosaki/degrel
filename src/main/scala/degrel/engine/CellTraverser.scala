@@ -7,13 +7,13 @@ import scala.collection.mutable
 /**
  * Optimized class for Traverser
  */
-class CellTraverser(target: Cell) extends Iterable[Vertex] {
+class CellTraverser(roots: Iterable[Vertex]) extends Iterable[Vertex] {
 
   class It extends Iterator[Vertex] {
     val nextItems = mutable.Queue[Vertex]()
     val visited = mutable.HashSet[Vertex]()
 
-    nextItems ++= target.roots.filter(v => !v.isRule)
+    nextItems ++= roots.filter(v => !v.isRule)
 
     override def hasNext: Boolean = nextItems.nonEmpty
 
@@ -35,6 +35,14 @@ class CellTraverser(target: Cell) extends Iterable[Vertex] {
 
 object CellTraverser {
   def apply(cell: Cell): CellTraverser = {
-    new CellTraverser(cell)
+    new CellTraverser(cell.roots)
+  }
+
+  def apply(root: Vertex): CellTraverser = {
+    if (root.isCell) {
+      new CellTraverser(root.toCell.roots)
+    } else {
+      new CellTraverser(Seq(root))
+    }
   }
 }

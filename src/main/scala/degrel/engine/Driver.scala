@@ -15,6 +15,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   implicit protected val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
+  var rewritee = new RootTableRewriteeSet(this)
 
   def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
@@ -168,7 +169,13 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   }
 
   def addContinueRewriter(rw: ContinueRewriter) = {
+    this.rewritee.onContinue(rw)
     contRewriters += rw
+  }
+
+  def writeVertex(target: VertexHeader, value: Vertex) = {
+    this.rewritee.onWriteVertex(target, value)
+    target.write(value)
   }
 
   def binding: Binding = {

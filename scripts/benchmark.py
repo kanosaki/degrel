@@ -5,6 +5,7 @@ from datetime import datetime
 import tempfile
 import json
 import shutil
+import itertools
 
 import jinja2
 
@@ -13,11 +14,15 @@ import utils
 
 
 class Bench(object):
-    def __init__(self, bench_list):
-        self.bench_list = bench_list
+    def __init__(self, config):
+        self.config = config
         # Cahce, prevent from getting twice
         self.timestamp = datetime.now()
         self.timestamp_str = self.timestamp.strftime('%Y%m%d-%H%M%S')
+
+    @property
+    def bench_list(self):
+        return self.config['benchmarks']
 
     def start(self):
         self.temp_output = utils.app_relative('benchmark', 'working')
@@ -55,6 +60,7 @@ class Bench(object):
 
         params = dict(
             bench_list=bench_list,
+            options=self.config['options'],
             timestamp=self.timestamp.isoformat(),
             version=utils.version(),
             version_hash=utils.version_hash()
@@ -80,18 +86,20 @@ class Bench(object):
             return self.real_bench_dir()
 
     def mk_entries(self):
+        params = self.config['options']
         for config in self.bench_list:
             entry_dir = os.path.join(self.bench_dir, config['name'])
-            yield BenchEntry(self, config, entry_dir)
+            yield BenchEntry(self, config, params, entry_dir)
 
 
 class BenchEntry(object):
-    def __init__(self, bench, config, entry_dir):
+    def __init__(self, bench, config, params, entry_dir):
         self.bench = bench
+        self.params = params
         self.output_dir = os.path.join(entry_dir, 'output')
         self.scripts_dir = os.path.join(entry_dir, 'scripts')
         self.config = config
-        self.count = config.get('try_count', 1)
+        self.count = config['try_count']
 
     @property
     def name(self):
@@ -111,11 +119,17 @@ class BenchEntry(object):
         pass
 
     def _mk_tasks(self):
-        for i in range(self.count):
-            result_path = os.path.join(
-                self.output_dir,
-                '%d.json' % i)
-            yield BenchRun(self.config, result_path, self.scripts_dir)
+        params = list(self.mk_param_product(self.params))
+        params_padsize = len(str(len(params)))
+        count_padsize = len(str(self.count))
+        for param_index, param in enumerate(params):
+            for count_index in range(self.count):
+                count_index_str = str(count_index).rjust(count_padsize, '0')
+                param_index_str = str(param_index).rjust(params_padsize, '0')
+                result_path = os.path.join(
+                    self.output_dir,
+                    '%s-%s.json' % (count_index_str, param_index_str))
+                yield BenchRun(self.config, param, result_path, self.scripts_dir)
 
     @property
     def tasks(self):
@@ -126,17 +140,35 @@ class BenchEntry(object):
             self._tasks = list(self._mk_tasks())
             return self._tasks
 
+    def mk_param_product(self, params):
+        keys = params.keys()
+        def zipWithKey(values):
+            return zip(keys, values)
+
+        return map(zipWithKey, itertools.product(*params.values()))
+
+
 
 class BenchRun(object):
-    def __init__(self, config, output_path, scripts_dir):
+    def __init__(self, config, params, output_path, scripts_dir):
+        """
+        params :: [('param1': 1), ('param2': 'abc'), ...]
+        """
+        self.params = params
         self.scripts_dir = scripts_dir
         self.output_path = output_path
         self.template_name = config['template']
         self.name = config['name']
 
+    def format_params(self):
+        def join_pair(kv):
+            return '%s=%s' % tuple(kv)
+        return ','.join(map(join_pair, self.params))
+
     def start(self):
         ret = start.run_degrel('bench',
-                               '-o', self.output_path,
+                               '--options', self.format_params(),
+                               '--report', self.output_path,
                                self.scripts_dir)
         if ret != 0:
             raise RuntimeError("degrel aborted")
@@ -149,11 +181,12 @@ class Generator(object):
                  output_dir):
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
+        self.config = config
         template_str = open(template_path).read()
         template = jinja2.Template(template_str)
         self.template = template
-        self.count = config.get('noise_range_length', 40)
-        self.jvm_warm_count = config.get('warm_up', 10)
+        self.count = config['noise_range_length']
+        self.jvm_warm_count = config['warm_up']
         self.output_dir = output_dir
         self.noise_fn = config['noise']
 

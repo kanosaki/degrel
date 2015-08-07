@@ -12,7 +12,8 @@ class ReportUnit(name: String,
                  totalSteps: Long,
                  begin: LocalDateTime,
                  end: LocalDateTime,
-                 initialMainSize: Long) {
+                 initialMainSize: Long,
+                 rewriteeSetName: String) {
   val elapsed = ChronoUnit.MILLIS.between(begin, end)
   val rps = totalSteps.toFloat / (elapsed.toFloat / 1000)
   val datetimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS")
@@ -32,6 +33,7 @@ class ReportUnit(name: String,
       ("end" -> degrel.utils.DateTime.strftime(end)) ~
       ("elapsed" -> elapsed) ~
       ("rps" -> rps) ~
+      ("rewriteeSetName" -> rewriteeSetName) ~
       ("initialMainSize" -> initialMainSize)
   }
 }
