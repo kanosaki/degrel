@@ -3,16 +3,17 @@ package degrel.utils
 import scala.collection.mutable
 
 object C3 {
-  def linearize[T <: HasParents[T]](node: T): List[T] = new C3().linearize(node)
+  def linearize[T : HasParents](node: T): List[T] = new C3().linearize(node)
 
-  def merge[T <: HasParents[T]](nodes: List[List[T]]) = new C3().merge(nodes)
+  def merge[T : HasParents](nodes: List[List[T]]) = new C3().merge(nodes)
 }
 
 /**
  * C3 Linearization algorithm implementation
  * http://en.wikipedia.org/wiki/C3_linearization
  */
-class C3[T <: HasParents[T]] {
+class C3[T : HasParents] {
+  private def parents(node: T): List[T] = implicitly[HasParents[T]].parents(node)
 
   /**
    * C3線形化アルゴリズムを用いて，継承グラフを線形化します．
@@ -24,7 +25,7 @@ class C3[T <: HasParents[T]] {
     if (hasCycle(node, Set())) {
       throw new IllegalArgumentException("Cyclic graph is not allowed.")
     }
-    node :: merge(node.parents.map(linearize) ++ List(node.parents))
+    node :: merge(parents(node).map(linearize) ++ List(parents(node)))
   }
 
   def merge(nodes: List[List[T]]): List[T] = {
@@ -39,12 +40,12 @@ class C3[T <: HasParents[T]] {
     if (history.contains(node)) {
       true
     } else {
-      val parents = node.parents
-      if (parents.isEmpty) {
+      val ps = parents(node)
+      if (ps.isEmpty) {
         false
       } else {
         val nextHistory = history + node
-        ! parents.forall(!hasCycle(_, nextHistory))
+        ! ps.forall(!hasCycle(_, nextHistory))
       }
     }
   }
@@ -76,7 +77,7 @@ class C3[T <: HasParents[T]] {
   }
 }
 
-class MemoizedC3[T <: HasParents[T]](parentC3: Iterable[MemoizedC3[T]])
+class MemoizedC3[T : HasParents](parentC3: Iterable[MemoizedC3[T]])
   extends C3[T] {
 
   private[this] val linearizeCache = new mutable.HashMap[T, List[T]]()
@@ -102,6 +103,6 @@ class MemoizedC3[T <: HasParents[T]](parentC3: Iterable[MemoizedC3[T]])
 }
 
 trait HasParents[T] {
-  def parents: List[T]
+  def parents(node: T): List[T]
 }
 

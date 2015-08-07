@@ -174,17 +174,16 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     ''' ~ capture((!''' ~ ANY).*) ~ ''' ~ ws ~> AstLabel
   }
 
+  def labels = rule(quotedLabel | label)
+
   /**
    * 頂点のHEAD部．
    * @note データの`VertexHeader`とは別物で，構文上でのHEAD部
    */
-  def vertexHead = {
-    val labels = rule(quotedLabel | label)
-    rule {
-      labels ~ binding.? ~> ((l, bind) => AstName(Some(l), bind)) |
-        binding ~> (bind => AstName(Some(AstLabel("_")), Some(bind))) |
-        variable ~> (v => AstName(None, Some(v)))
-    }
+  def vertexHead = rule {
+    labels ~ binding.? ~> ((l, bind) => AstName(Some(l), bind)) |
+      binding ~> (bind => AstName(Some(AstLabel("_")), Some(bind))) |
+      variable ~> (v => AstName(None, Some(v)))
   }
 
   /**
@@ -214,10 +213,15 @@ class ParboiledParser(val input: ParserInput) extends Parser {
   /**
    * 通常の接続
    */
-  def normalEdge: Rule1[AstAbbrEdge] = rule {
-    label ~ wl ~ ':' ~ wl ~ expression ~> ((l, v) => AstAbbrEdge(Some(l), v)) |
+  def normalEdge(strong: Boolean): Rule1[AstAbbrEdge] = strong match {
+    case true => rule {
       (label ~ wl ~ ':' ~ wl).? ~ element ~> AstAbbrEdge
+    }
+    case false => rule {
+      (label ~ wl ~ ':' ~ wl).? ~ expression ~> AstAbbrEdge
+    }
   }
+
 
   /**
    * Others接続
@@ -240,13 +244,13 @@ class ParboiledParser(val input: ParserInput) extends Parser {
    * MEMO:
    * `othersEdge`は`normalEdge`としても有効なので，`othersEdge`を優先します
    */
-  def edge: Rule1[AstEdgeElement] = rule(othersEdge | normalEdge)
+  def edge(strong: Boolean): Rule1[AstEdgeElement] = rule(othersEdge | normalEdge(strong))
 
   /**
    * 接続のリスト
    */
-  def edgesList: Rule1[Seq[AstEdgeElement]] = rule {
-    edge.*(edgeSeparator)
+  def edgesList(strong: Boolean): Rule1[Seq[AstEdgeElement]] = rule {
+    edge(strong).*(edgeSeparator)
   }
 
   /**
@@ -285,7 +289,7 @@ class ParboiledParser(val input: ParserInput) extends Parser {
   }
 
   def edges = rule {
-    ('(' ~ wl ~ edgesList ~ wl ~ ')' | edgesList) ~> verifyEdgeElements _
+    ('(' ~ wl ~ edgesList(false) ~ wl ~ ')' | edgesList(true)) ~> verifyEdgeElements _
   }
 
   def functor: Rule1[AstFunctor] = rule {
@@ -302,11 +306,15 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     ws ~ ('(' ~ expression ~ ')' | cell | valueVertex | functor) ~ ws
   }
 
+  def cellEdge: Rule1[AstCellEdge] = rule {
+    labels ~ ':' ~ expression ~> AstCellEdge
+  }
+
   /**
    * Cellの要素
    */
   def cellItem: Rule1[AstCellItem] = rule {
-    wl ~ expression ~ semis ~ wl
+    wl ~ (cellEdge | expression) ~ semis ~ wl
   }
 
   def cellBody: Rule1[AstCell] = rule {

@@ -1,8 +1,14 @@
 package degrel.core
 
+import degrel.engine.rewriting.Binding
+
 import scala.collection.mutable
 
-class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Vertex]) extends VertexBody with Cell {
+class CellBody(initRoots: Iterable[Vertex],
+               initRules: Iterable[Vertex],
+               initBases: Iterable[Vertex],
+               val otherEdges: Seq[Edge],
+               override val binding: Binding = Binding.empty()) extends VertexBody with Cell {
   private lazy val _rules = mutable.ListBuffer(initRules.map(_.asRule).toSeq: _*)
   private lazy val _roots = mutable.ListBuffer(initRoots.toSeq: _*)
 
@@ -12,11 +18,13 @@ class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Vertex]) extends
 
   override def edges: Iterable[Edge] =
     roots.map(Edge(this, Label.E.cellItem, _)) ++
-    rules.map(Edge(this, Label.E.cellRule, _))
+      rules.map(Edge(this, Label.E.cellRule, _)) ++
+      bases.map(Edge(this, Label.E.cellBase, _)) ++
+      otherEdges
 
   override def attributes: Map[Label, String] = Map()
 
-  override def shallowCopy(): Vertex = new CellBody(roots, rules)
+  override def shallowCopy(): Vertex = new CellBody(roots, rules, bases, otherEdges)
 
   override def label: Label = Label.V.cell
 
@@ -35,12 +43,25 @@ class CellBody(initRoots: Iterable[Vertex], initRules: Iterable[Vertex]) extends
   override def asCell: Cell = this
 
   override def asCellBody: CellBody = this
+
+  /**
+   * このCellを直接内包するCell
+   */
+  override def parent: Cell = ???
+
+  /**
+   * この`Cell`の元になるCell．
+   * 規則を継承します
+   */
+  override lazy val bases: Seq[Cell] = initBases.map(_.unref[Cell]).toSeq
 }
 
 object CellBody {
   def apply(edges: Iterable[Edge]) = {
     val roots = edges.filter(_.label == Label.E.cellItem).map(_.dst)
-    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst)
-    new CellBody(roots, rules)
+    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst.toRule)
+    val bases = edges.filter(_.label == Label.E.cellBase).map(_.dst).toSeq
+    val others = edges.filter(l => l.label != Label.E.cellItem && l.label != Label.E.cellRule && l.label != Label.E.cellBase).toSeq
+    new CellBody(roots, rules, bases, others)
   }
 }

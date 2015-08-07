@@ -4,11 +4,19 @@ import org.scalatest.FlatSpec
 
 class C3Test extends FlatSpec {
 
-  class Node(val parents: List[Node], val id: Int) extends HasParents[Node] {
+  class Node(val parents: List[Node], val id: Int) {
     override def toString: String = s"node($id)"
   }
 
-  class InjectableNode(var parents: List[InjectableNode], val id: Int) extends HasParents[InjectableNode]
+  class InjectableNode(var parents: List[InjectableNode], val id: Int)
+
+  implicit object NodeHasParents extends HasParents[Node] {
+    override def parents(node: Node): List[Node] = node.parents
+  }
+
+  implicit object InjectableNodeHasParents extends HasParents[InjectableNode] {
+    override def parents(node: InjectableNode): List[InjectableNode] = node.parents
+  }
 
   def node(i: Int, ps: Node*) = new Node(ps.toList, i)
 

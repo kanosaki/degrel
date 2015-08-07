@@ -4,6 +4,7 @@ from __future__ import print_function
 import os
 import sys
 import subprocess
+import shutil
 
 BIN_DIR = os.path.dirname(__file__)
 
@@ -19,6 +20,14 @@ def app_relative(*args):
     path = app_path(*args)
     return os.path.relpath(path)
 
+
+def remove_dir_entries(apppath):
+    """Remove all files in the directory, but preserves itself."""
+    dirpath = app_path(apppath)
+    for fpath in os.listdir(dirpath):
+        path = os.path.join(dirpath, fpath)
+        print("Removing", path)
+        #shutil.rmtree(path)
 
 
 def system(*cmd):

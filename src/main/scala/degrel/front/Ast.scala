@@ -20,5 +20,5 @@ trait AstNode {
  */
 trait AstGraph[+TBuilt <: Vertex] extends AstNode {
 
-  def toGraph: Vertex = degrel.graphbuilder.build(this)
+  def toGraph: Vertex = degrel.front.graphbuilder.build(this)
 }

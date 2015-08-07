@@ -2,15 +2,19 @@ package degrel.misc.benchmark
 
 import java.nio.file.Path
 
-class FileEntry(path: Path, quiet: Boolean) {
+import degrel.control.Bootstrapper
+
+class FileEntry(bootstrapper: Bootstrapper, path: Path, quiet: Boolean) {
   def exec(): ReportUnit = {
-    val bi = new BenchmarkInterpreter(path.toFile, quiet)
+    val chassis = bootstrapper.createChassis(path.toFile)
+    val bi = new BenchmarkInterpreter(chassis, quiet)
     bi.start()
     new ReportUnit(path.toString,
                    bi.totalSteps,
                    bi.startTime,
                    bi.finishTime,
-                   bi.initialSize)
+                   bi.initialSize,
+                   bi.rewriteeSetName)
   }
 
   override def toString: String = {

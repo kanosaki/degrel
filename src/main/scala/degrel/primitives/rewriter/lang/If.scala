@@ -15,22 +15,20 @@ class If extends Rewriter {
   val thenLabel = Label("then")
   val elseLabel = Label("else")
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
-    if (target.label != ifLabel) return RewriteResult.NOP
+  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
+    if (target.label != ifLabel) return RewriteResult.Nop
     val fullIfResult = for {
       pred <- target.thru(0).headOption
       thn <- target.thru(thenLabel).headOption
       els <- target.thru(elseLabel).headOption
     } yield pred.label match {
       case Label.V.vTrue => {
-        target.write(thn)
-        RewriteResult(done = true)
+        RewriteResult.write(target, thn)
       }
       case Label.V.vFalse  => {
-        target.write(els)
-        RewriteResult(done = true)
+        RewriteResult.write(target, els)
       }
-      case _ => RewriteResult.NOP
+      case _ => RewriteResult.Nop
     }
     if (fullIfResult.isDefined) return fullIfResult.get
 
@@ -39,18 +37,16 @@ class If extends Rewriter {
       thn <- target.thru(thenLabel).headOption
     }  yield pred.label match {
       case Label.V.vTrue => {
-        target.write(thn)
-        RewriteResult(done = true)
+        RewriteResult.write(target, thn)
       }
       case Label.V.vFalse => {
-        target.write(Cell())
-        RewriteResult(done = true)
+        RewriteResult.write(target, Cell())
       }
-      case _ => RewriteResult.NOP
+      case _ => RewriteResult.Nop
     }
     if (abbrIfResult.isDefined) return abbrIfResult.get
 
-    RewriteResult.NOP
+    RewriteResult.Nop
   }
 
   override def pp(implicit opt: PrettyPrintOptions): String = "<Built-in if rule>"

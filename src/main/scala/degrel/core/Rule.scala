@@ -4,6 +4,8 @@ trait Rule extends Vertex {
   def rhs: Vertex
 
   def lhs: Vertex
+
+  override def toRule: Rule = this
 }
 
 

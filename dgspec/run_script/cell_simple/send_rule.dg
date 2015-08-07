@@ -1,0 +1,10 @@
+
+target {
+  msg("foobar")
+}
+
+send_message_to_target(@R) -> target(@A) -> tgt(A ! R)
+
+send_message_to_target(msg(@M) -> {
+  println(M)
+})

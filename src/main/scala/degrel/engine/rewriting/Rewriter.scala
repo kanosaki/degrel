@@ -3,7 +3,6 @@ package degrel.engine.rewriting
 import degrel.Logger
 import degrel.core._
 import degrel.engine.Driver
-import degrel.engine.rewriting.molding.MoldingContext
 import degrel.utils.PrettyPrintable
 
 
@@ -29,10 +28,10 @@ trait Rewriter extends Logger with PrettyPrintable {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: VertexHeader, parent: Driver): RewriteResult
+  def rewrite(self: Driver, target: VertexHeader): RewriteResult
 
   def rewrite(target: VertexHeader): RewriteResult = {
-    this.rewrite(target, Driver())
+    this.rewrite(Driver(), target)
   }
 
   /**
@@ -47,11 +46,8 @@ trait Rewriter extends Logger with PrettyPrintable {
 }
 
 object Rewriter {
-  def apply(v: Vertex, contOpt: Option[Continuation] = None): Rewriter = {
-    contOpt match {
-      case Some(cont) => new ContinueRewriter(v.asRule, cont)
-      case None => new NakedRewriter(v.asRule)
-    }
+  def apply(v: Vertex): Rewriter = {
+    new NakedRewriter(v.asRule)
   }
 
   def parse(expr: String): Rewriter = {

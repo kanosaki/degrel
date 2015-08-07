@@ -11,7 +11,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("1 + 2")
     val expectedV = vertex("3")
     val rw = new Plus()
-    assert(rw.rewrite(targetV, Driver()).done)
+    assert(rw.rewrite(Driver(), targetV).done)
     assert(targetV ===~ expectedV)
   }
 
@@ -19,7 +19,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("1 + x")
     val expectedV = vertex("1 + x")
     val rw = new Plus()
-    assert(!rw.rewrite(targetV, Driver()).done)
+    assert(!rw.rewrite(Driver(), targetV).done)
     assert(targetV ===~ expectedV)
   }
 
@@ -27,7 +27,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("1 + (-3)")
     val expectedV = vertex("-2")
     val rw = new Plus()
-    assert(rw.rewrite(targetV, Driver()).done)
+    assert(rw.rewrite(Driver(), targetV).done)
     assert(targetV ===~ expectedV)
   }
 
@@ -35,7 +35,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("(-3) + 1")
     val expectedV = vertex("-2")
     val rw = new Plus()
-    assert(rw.rewrite(targetV, Driver()).done)
+    assert(rw.rewrite(Driver(), targetV).done)
     assert(targetV ===~ expectedV)
   }
 
@@ -43,7 +43,7 @@ class MathTest extends FlatSpec {
     val targetV = vertex("(-3) + (-2)")
     val expectedV = vertex("-5")
     val rw = new Plus()
-    assert(rw.rewrite(targetV, Driver()).done)
+    assert(rw.rewrite(Driver(), targetV).done)
     assert(targetV ===~ expectedV)
   }
 

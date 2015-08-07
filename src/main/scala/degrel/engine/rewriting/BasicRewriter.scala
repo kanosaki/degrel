@@ -10,7 +10,7 @@ import degrel.utils.PrettyPrintOptions
 abstract class BasicRewriter extends Rewriter {
   self =>
   def rule: Rule
-  protected def getBinding(pack: BindingPack): Binding
+  protected def getBinding(pack: BindingPack, cellBinding: Binding): Binding
 
   lazy val isSpawnsCells = Traverser(rule.rhs).exists(_.isCell)
 
@@ -22,21 +22,27 @@ abstract class BasicRewriter extends Rewriter {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     val mch = target.matches(rule.lhs)
     if (mch.success) {
-      val binding = this.getBinding(mch.pack)
+      val binding = this.getBinding(mch.pack, self.binding)
       if (rule.rhs.isRule) {
-        val cont = Continuation.Continue(rule.rhs.asRule, binding)
-        RewriteResult(done = true, cont)
+        RewriteResult.Continue(target, rule.rhs.asRule, binding)
       } else {
-        val builtGraph = molding.mold(rule.rhs, binding, parent)
-        target.write(builtGraph)
-        RewriteResult(done = true)
+        val builtGraph = molding.mold(rule.rhs, binding, self)
+        RewriteResult.write(target, builtGraph)
       }
     } else {
-      RewriteResult.NOP
+      RewriteResult.Nop
     }
+  }
+
+  /**
+   * 書き換え結果を反映します．基本的にはVertexHeader.writeを呼びますが
+   * ContinueRewriterではCellへ新規に追加とtargetの削除を行います．
+   */
+  def applyResult(target: VertexHeader, parent: Driver, builtGraph: Vertex) = {
+    target.write(builtGraph)
   }
 
   /**

@@ -1,12 +1,11 @@
 caption: FizzBuzz
 description: FizzBuzz
 version: 1
-ignore: true
 seq_spec:
   - run: run_script/fizzbuzz/fizzbuzz.dg
   - assert: 
       type: stdout
-      text: >
+      text: |
         1
         2
         Fizz
@@ -22,5 +21,10 @@ seq_spec:
         13
         14
         FizzBuzz
+        16
+        17
+        Fizz
+        19
+        Buzz
 
 # vim: ft=yaml sw=2 ts=2 sts=2

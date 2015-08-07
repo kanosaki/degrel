@@ -24,7 +24,7 @@ class RootAssertSpecPiece(root: String) extends SpecPiece {
 
 class OutputAssertSpecPiece(watch: String, expected: String) extends SpecPiece {
   override def evaluate(ctx: SpecContext): NextPiece = {
-
+    assert(expected === ctx.lastOutput)
     NextPiece.Continue
   }
 }

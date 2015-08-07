@@ -1,16 +1,17 @@
 package degrel.misc.benchmark
 
-import java.io.File
 import java.time.LocalDateTime
 
 import degrel.control.Interpreter
 import degrel.core.Traverser
+import degrel.engine.Chassis
 import degrel.engine.sphere.QuietConsole
 
-class BenchmarkInterpreter(f: File, quiet: Boolean = false) extends Interpreter(f) {
+class BenchmarkInterpreter(ch: Chassis, quiet: Boolean = false) extends Interpreter(ch) {
   var startTime: LocalDateTime = null
   var finishTime: LocalDateTime = null
   val initialSize = Traverser(chassis.main.header).size
+  val rewriteeSetName = ch.main.rewritee.name
   var elapsed: Long = -1
   var totalSteps: Long = -1
 

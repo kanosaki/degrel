@@ -1,11 +1,12 @@
 package degrel.core
 
+import degrel.DegrelException
+import degrel.core.utils.PrettyPrinter
+import degrel.engine.rewriting.matching.{Matcher, MatchingContext, VertexMatching}
 import degrel.utils.PrettyPrintOptions
 
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
-import degrel.core.utils.PrettyPrinter
-import degrel.engine.rewriting.matching.{Matcher, MatchingContext, VertexMatching}
 
 trait Vertex extends Element with Comparable[Vertex] {
   def edges: Iterable[Edge]
@@ -85,22 +86,28 @@ trait Vertex extends Element with Comparable[Vertex] {
     this.edges.filter(pred).map(_.dst)
   }
 
-  def asRule: Rule = {
-    val rhs = this.thruSingle(SpecialLabels.E_RHS)
-    val lhs = this.thruSingle(SpecialLabels.E_LHS)
+  def toRule: Rule = {
+    val rhs = this.thruSingle(Label.E.rhs)
+    val lhs = this.thruSingle(Label.E.lhs)
     Rule(lhs, rhs)
   }
 
-  def asCell: Cell = {
-    require(this.label == Label.V.cell)
+  def asRule: Rule = {
+    this.asInstanceOf[Rule]
+  }
+
+  def toCell: Cell = {
+    require(this.isCell, s"${this.label.expr} is not cell")
     Cell(this.edges)
   }
+
+  def asCell: Cell = this.asInstanceOf[Cell]
 
   def asHeader: VertexHeader = {
     this.asInstanceOf[VertexHeader]
   }
 
-  def unref[B <: VertexBody : ClassTag]: B = {
+  def unhead[B <: VertexBody : ClassTag]: B = {
     this match {
       case vh: VertexHeader if implicitly[ClassTag[B]].runtimeClass.isInstance(vh.body) => {
         vh.body.asInstanceOf[B]
@@ -110,6 +117,26 @@ trait Vertex extends Element with Comparable[Vertex] {
       }
       case _ => {
         throw new RuntimeException(s"Cannot unreference $this(${this.getClass}}) as ${implicitly[ClassTag[B]].runtimeClass}")
+      }
+    }
+  }
+
+  /**
+   * 自分が`ReferenceVertex`の時は，参照を辿って`B`のインスタンスを返します
+   *
+   * @tparam B
+   * @return
+   */
+  def unref[B <: Vertex : ClassTag]: B = {
+    if (!this.isReference) {
+      this.asInstanceOf[B]
+    } else {
+      val neighbors = this.thru(Label.E.ref)
+        .filter(implicitly[ClassTag[B]].runtimeClass.isInstance).toList
+      if (neighbors.length == 1) {
+        neighbors.head.asInstanceOf[B]
+      } else {
+        throw DegrelException(s"Malformed Reference Vertex! $this")
       }
     }
   }
