@@ -10,6 +10,7 @@ import jinja2
 
 import start
 import utils
+import report
 
 
 class Bench(object):
@@ -47,11 +48,19 @@ class Bench(object):
             task.start()
 
         self.write_param_json(tasks)
+        self.make_graphs()
         if self.temp_output and os.path.exists(self.temp_output):
             shutil.copytree(self.temp_output, self.real_bench_dir())
 
+    @property
+    def param_json_path(self):
+        return os.path.join(self.bench_dir, 'param.json')
+
+    def make_graphs(self):
+        report.process(self.param_json_path)
+
     def write_param_json(self, tasks):
-        path = os.path.join(self.bench_dir, 'param.json')
+        path = self.param_json_path
         bench_list = list(self.bench_list)
         for bl in bench_list:
             del bl['noise']
