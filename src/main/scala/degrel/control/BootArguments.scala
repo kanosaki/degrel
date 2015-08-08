@@ -5,7 +5,11 @@ import java.io.File
 case class BootArguments(script: Option[File] = None,
                          verbose: Boolean = false,
                          cmd: CLICommand = CLICommand.Plain,
-                         options: Map[String, String] = Map())
+                         options: Map[String, String] = Map()) {
+  def rewriteeSetName: String = {
+    options.getOrElse("rewriteeset", "plain")
+  }
+}
 
 /**
  * 引数解析

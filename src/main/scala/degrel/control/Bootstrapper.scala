@@ -14,8 +14,8 @@ import org.apache.commons.io.FileUtils
 class Bootstrapper(val args: BootArguments) {
 
   val driverFactory: DriverFactory = {
-    args.options.get("rewriteeset") match {
-      case Some("root_hash") => new RootHashDriverFactory()
+    args.rewriteeSetName match {
+      case "root_hash" => new RootHashDriverFactory()
       case o => {
         DriverFactory.default
       }
