@@ -96,15 +96,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   }
 
   def stepFor(rw: Rewriter): Boolean = {
-    val targets =
-      (if (rw.isPartial)
-        this.rewriteTargets
-      else
-        this.itemRoots) ++
-        (if (rw.isMeta)
-          Seq(header)
-        else
-          Seq())
+    val targets = this.rewritee.targetsFor(rw)
     targets.exists { v =>
       this.execRewrite(rw, v)
     }
