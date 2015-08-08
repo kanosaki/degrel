@@ -102,7 +102,7 @@ class ResultJson(object):
 
 def process(param_path):
     param = ParamJson(param_path)
-    param.create_report(['rps', 'initialMainSize'])
+    param.create_report(['rps', 'initialMainSize', 'rewriteTryCount'])
 
 
 if __name__ == '__main__':

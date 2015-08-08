@@ -14,6 +14,7 @@ class FileEntry(bootstrapper: Bootstrapper, path: Path, quiet: Boolean) {
                    bi.startTime,
                    bi.finishTime,
                    bi.initialSize,
+                   bi.chassis.main.wholeTryCount,
                    bi.rewriteeSetName)
   }
 
