@@ -1,6 +1,6 @@
 package degrel
 
-import degrel.control.BootArguments$
+import degrel.control.BootArguments
 
 
 object Main {

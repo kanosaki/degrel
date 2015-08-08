@@ -16,14 +16,13 @@ class SendMessage extends Rewriter {
       (lhs, rhs) match {
         case ((Some(l), Some(r))) if l.isCell => {
           val targetCell = l.unhead[CellBody]
-          targetCell.addRoot(r)
-          target.write(targetCell)
-          RewriteResult.write(target, targetCell)
+          multi(addRoot(targetCell, r),
+                write(target, targetCell))
         }
-        case _ => RewriteResult.Nop
+        case _ => nop
       }
     } else {
-      RewriteResult.Nop
+      nop
     }
   }
 

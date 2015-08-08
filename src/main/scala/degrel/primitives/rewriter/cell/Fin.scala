@@ -15,13 +15,12 @@ class Fin extends Rewriter {
       target.thru(Label.E.cellItem).find(_.label == finLabel) match {
         case Some(finV) => {
           val finValue = finV.thru(0).headOption.getOrElse(Cell())
-          target.write(finValue)
-          RewriteResult.write(target, finValue)
+          write(target, finValue)
         }
-        case None => RewriteResult.Nop
+        case None => nop
       }
     } else {
-      RewriteResult.Nop
+      nop
     }
   }
 

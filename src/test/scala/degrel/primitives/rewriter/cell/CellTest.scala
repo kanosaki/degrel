@@ -1,5 +1,6 @@
 package degrel.primitives.rewriter.cell
 
+import degrel.core.Label
 import degrel.engine.Driver
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
@@ -13,7 +14,9 @@ class CellTest extends FlatSpec {
     val targetV = vertex("{} ! foo")
     val expectedV = vertex("{foo}")
     val rw = new SendMessage()
-    assert(rw.rewrite(Driver(), targetV).done)
-    assert(targetV ===~ expectedV)
+    val driver = Driver(targetV.thruSingle(Label.E.lhs).asCell)
+    val res = rw.rewrite(driver, targetV)
+    res.exec(driver)
+    assert(driver.header ===~ expectedV)
   }
 }

@@ -16,19 +16,19 @@ class If extends Rewriter {
   val elseLabel = Label("else")
 
   override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
-    if (target.label != ifLabel) return RewriteResult.Nop
+    if (target.label != ifLabel) return nop
     val fullIfResult = for {
       pred <- target.thru(0).headOption
       thn <- target.thru(thenLabel).headOption
       els <- target.thru(elseLabel).headOption
     } yield pred.label match {
       case Label.V.vTrue => {
-        RewriteResult.write(target, thn)
+        write(target, thn)
       }
       case Label.V.vFalse  => {
-        RewriteResult.write(target, els)
+        write(target, els)
       }
-      case _ => RewriteResult.Nop
+      case _ => nop
     }
     if (fullIfResult.isDefined) return fullIfResult.get
 
@@ -37,16 +37,16 @@ class If extends Rewriter {
       thn <- target.thru(thenLabel).headOption
     }  yield pred.label match {
       case Label.V.vTrue => {
-        RewriteResult.write(target, thn)
+        write(target, thn)
       }
       case Label.V.vFalse => {
-        RewriteResult.write(target, Cell())
+        write(target, Cell())
       }
-      case _ => RewriteResult.Nop
+      case _ => nop
     }
     if (abbrIfResult.isDefined) return abbrIfResult.get
 
-    RewriteResult.Nop
+    nop
   }
 
   override def pp(implicit opt: PrettyPrintOptions): String = "<Built-in if rule>"

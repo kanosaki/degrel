@@ -22,13 +22,12 @@ abstract class ValueBinOp[TLhs: TypeTag, TRhs: TypeTag, TResult: TypeTag] extend
       } yield calc(lVal, rVal)
       result match {
         case Some(resVal) => {
-          target.write(ValueVertex(resVal))
-          RewriteResult.write(target, ValueVertex(resVal))
+          write(target, ValueVertex(resVal))
         }
-        case _ => RewriteResult.Nop
+        case _ => nop
       }
     } else {
-      RewriteResult.Nop
+      nop
     }
   }
 

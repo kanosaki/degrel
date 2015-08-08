@@ -43,6 +43,24 @@ trait Rewriter extends Logger with PrettyPrintable {
    * 書き換え対象として，Cellのitemsを再帰的に辿って渡されます
    */
   def isPartial: Boolean = true
+
+  def write(target: VertexHeader, value: Vertex): RewriteResult = {
+    RewriteResult.Write(target, value)
+  }
+
+  def continue(target: VertexHeader, rule: Rule, binding: Binding): RewriteResult = {
+    RewriteResult.Continue(target, rule, binding)
+  }
+
+  def multi(results: RewriteResult*) = {
+    RewriteResult.Multi(results)
+  }
+
+  def addRoot(target: Cell, value: Vertex): RewriteResult = {
+    RewriteResult.AddRoot(target, value)
+  }
+
+  def nop = RewriteResult.Nop
 }
 
 object Rewriter {

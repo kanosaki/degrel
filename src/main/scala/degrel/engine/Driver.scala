@@ -176,6 +176,10 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
     target.write(value)
   }
 
+  def addRoot(target: Cell, value: Vertex) = {
+    target.addRoot(value)
+  }
+
   def binding: Binding = {
     if (this.header.isCell) {
       this.cell.binding

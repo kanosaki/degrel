@@ -30,10 +30,10 @@ abstract class BasicRewriter extends Rewriter {
         RewriteResult.Continue(target, rule.rhs.asRule, binding)
       } else {
         val builtGraph = molding.mold(rule.rhs, binding, self)
-        RewriteResult.write(target, builtGraph)
+        write(target, builtGraph)
       }
     } else {
-      RewriteResult.Nop
+      nop
     }
   }
 
