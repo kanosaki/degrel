@@ -2,22 +2,22 @@ package degrel.control
 
 import java.io.File
 
-case class CLIArguments(script: Option[File] = None,
-                        verbose: Boolean = false,
-                        cmd: CLICommand = CLICommand.Plain,
-                        options: Map[String, String] = Map())
+case class BootArguments(script: Option[File] = None,
+                         verbose: Boolean = false,
+                         cmd: CLICommand = CLICommand.Plain,
+                         options: Map[String, String] = Map())
 
 /**
  * 引数解析
  */
-object CLIArguments {
+object BootArguments {
   /**
    * --optionsで渡されるKey-Value pairをSystem.propertyへも上書きするかどうかを指定します
    */
   val MIRROR_NAME_OPTS_TO_SYSPROP = true
 
   def parser() = {
-    new scopt.OptionParser[CLIArguments]("degrel") {
+    new scopt.OptionParser[BootArguments]("degrel") {
       opt[Unit]("verbose").abbr("v").optional().action { (_, c) =>
         c.copy(verbose = true)
       }
