@@ -26,6 +26,9 @@ class SendMessage extends Rewriter {
     }
   }
 
+
+  override def pattern: Vertex = parse("_ ! _")
+
   override def pp(implicit opt: PrettyPrintOptions): String = {
     "<Built-in rule 'SendMessage'>"
   }

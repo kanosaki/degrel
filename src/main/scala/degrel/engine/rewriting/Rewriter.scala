@@ -44,6 +44,14 @@ trait Rewriter extends Logger with PrettyPrintable {
    */
   def isPartial: Boolean = true
 
+  def pattern: Vertex
+
+  // ------------------------------------------------------------------
+  // utility functions
+  // ------------------------------------------------------------------
+
+  def parse(s: String): Vertex = degrel.parseVertex(s)
+
   def write(target: VertexHeader, value: Vertex): RewriteResult = {
     RewriteResult.Write(target, value)
   }

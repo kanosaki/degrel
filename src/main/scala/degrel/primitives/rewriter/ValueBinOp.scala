@@ -12,6 +12,9 @@ abstract class ValueBinOp[TLhs: TypeTag, TRhs: TypeTag, TResult: TypeTag] extend
 
   def calc(lhs: TLhs, rhs: TRhs): TResult
 
+
+  override def pattern: Vertex = parse(s"_ ${label.expr} _")
+
   override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.label == this.label) {
       val result = for {

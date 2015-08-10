@@ -1,6 +1,6 @@
 package degrel.primitives.rewriter.cell
 
-import degrel.core.{Cell, Label, VertexHeader}
+import degrel.core.{Vertex, Cell, Label, VertexHeader}
 import degrel.engine.Driver
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
 import degrel.utils.PrettyPrintOptions
@@ -23,6 +23,9 @@ class Fin extends Rewriter {
       nop
     }
   }
+
+
+  override def pattern: Vertex = parse("fin(_)")
 
   override def pp(implicit opt: PrettyPrintOptions): String = {
     "<Built-in rule 'Fin'>"

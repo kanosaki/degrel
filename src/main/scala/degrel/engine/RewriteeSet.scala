@@ -1,7 +1,7 @@
 package degrel.engine
 
 import degrel.core._
-import degrel.engine.rewriting.{BasicRewriter, ContinueRewriter, Rewriter}
+import degrel.engine.rewriting.{ContinueRewriter, Rewriter}
 import degrel.utils.collection.mutable.WeakMultiMap
 
 /**
@@ -42,7 +42,7 @@ class PlainRewriteeSet(val driver: Driver) extends RewriteeSet {
     (if (rw.isPartial)
       driver.rewriteTargets
     else
-      driver.itemRoots) ++
+      driver.atoms) ++
       (if (rw.isMeta)
         Seq(driver.header)
       else
@@ -71,17 +71,12 @@ class RootTableRewriteeSet(val driver: Driver) extends RewriteeSet {
   override def targetsFor(rw: Rewriter): Iterable[Vertex] = {
     val metaTargets = if (rw.isMeta) List(driver.header) else List()
     if (rw.isPartial) {
-      rw match {
-        case brw: BasicRewriter => {
-          val patternRootLabel = brw.rule.lhs.label
-          labelMap(patternRootLabel).toList ++ metaTargets
-        }
-        case _ => {
-          driver.rewriteTargets
-        }
-      }
+      val tgts = labelMap.getOrElse(rw.pattern.label, List()).toList ++ metaTargets
+      println(s"${tgts.size} ${rw.pattern.pp}")
+      println(s"${tgts}")
+      tgts
     } else {
-      driver.itemRoots
+      driver.atoms ++ metaTargets
     }
   }
 

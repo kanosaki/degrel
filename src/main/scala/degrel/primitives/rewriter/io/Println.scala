@@ -27,4 +27,6 @@ class Println extends Rewriter {
   }
 
   override def pp(implicit opt: PrettyPrintOptions): String = "<Built-in println>"
+
+  override def pattern: Vertex = parse("println")
 }

@@ -1,6 +1,6 @@
 package degrel.primitives.rewriter.lang
 
-import degrel.core.{Cell, Label, VertexHeader}
+import degrel.core.{Vertex, Cell, Label, VertexHeader}
 import degrel.engine.Driver
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
 import degrel.utils.PrettyPrintOptions
@@ -14,6 +14,9 @@ class If extends Rewriter {
   val ifLabel = Label("if")
   val thenLabel = Label("then")
   val elseLabel = Label("else")
+
+
+  override def pattern: Vertex = parse("if(then: _)")
 
   override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.label != ifLabel) return nop

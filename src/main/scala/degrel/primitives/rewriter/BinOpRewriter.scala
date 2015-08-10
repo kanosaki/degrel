@@ -10,6 +10,8 @@ abstract class BinOpRewriter[T <: Vertex] extends Rewriter {
 
   def calc(lhs: Vertex, rhs: Vertex): Option[Vertex]
 
+  override def pattern: Vertex = parse(s"_ ${label.expr} _")
+
   override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
     if (target.label == this.label) {
       val result = for {

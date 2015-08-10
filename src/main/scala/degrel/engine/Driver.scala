@@ -15,8 +15,8 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   implicit protected val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
-  var rewritee: RewriteeSet = new PlainRewriteeSet(this)
-  var rewriteTryCount: Long = 0
+  var rewritee: RewriteeSet = new RootTableRewriteeSet(this)
+  private var rewriteTryCount: Long = 0
 
   def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
@@ -61,7 +61,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
     if (!this.isActive) {
       return false
     }
-    itemRoots.foreach(r => {
+    atoms.foreach(r => {
       if (r.isCell) {
         if (!children.contains(r)) {
           this.spawn(r)
@@ -111,10 +111,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
 
   def rewriters: Seq[Rewriter] = cell.rules.map(Rewriter(_)) ++ baseRewriters ++ degrel.primitives.rewriter.default
 
-  def itemRoots: Iterable[Vertex] = cell
-    .edges
-    .filter(_.label == Label.E.cellItem)
-    .map(_.dst)
+  def atoms: Iterable[Vertex] = cell.roots
 
   def rewriteTargets: Iterable[Vertex] = {
     CellTraverser(this.cell)
@@ -124,16 +121,13 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
    * Send message vertex underlying cell
    */
   def send(msg: Vertex) = {
-    if (msg.isCell) {
-      this.spawn(msg.asCell)
-    }
-    this.cell.addRoot(msg)
+    this.addRoot(this.cell, msg)
   }
 
   def cell: CellBody = header.unhead[CellBody]
 
   def spawn(cell: Vertex): Vertex = {
-    this.children += cell -> new Driver(cell, chassis, null)
+    this.children += cell -> new Driver(cell, chassis, this)
     cell
   }
 
@@ -162,6 +156,10 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
         System.err.println(this.header.pp)
         System.err.println(Console.RESET)
       }
+    } else {
+      if (chassis.verbose) {
+        System.err.println(s"FAIL: ${rw.pattern.pp} :: ${v.pp}")
+      }
     }
     res.done
   }
@@ -177,6 +175,9 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   }
 
   def addRoot(target: Cell, value: Vertex) = {
+    if (value.isCell) {
+      this.spawn(value.asCell)
+    }
     target.addRoot(value)
   }
 

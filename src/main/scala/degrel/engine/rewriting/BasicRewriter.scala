@@ -14,6 +14,9 @@ abstract class BasicRewriter extends Rewriter {
 
   lazy val isSpawnsCells = Traverser(rule.rhs).exists(_.isCell)
 
+
+  override def pattern: Vertex = rule.lhs
+
   /**
    * この書き換え機で`target`を書き換えます．
    * @param target 書き換える対象のグラフ
