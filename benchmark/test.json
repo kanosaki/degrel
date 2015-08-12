@@ -1,0 +1,18 @@
+{
+  "options": {
+    "rewriteeset": ["root_hash"]
+  },
+  "benchmarks": [
+    {
+      "name": "hello",
+      "template": "hello.dg.template",
+      "reverse": true,
+      "try_count": 1,
+      "noise_range_length": 10,
+      "warm_up": 0,
+      "noise_param": {
+        "type": "basic"
+      }
+    }
+  ]
+}

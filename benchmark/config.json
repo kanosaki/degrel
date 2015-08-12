@@ -7,7 +7,7 @@
       "name": "hello",
       "template": "hello.dg.template",
       "reverse": true,
-      "try_count": 1,
+      "try_count": 5,
       "noise_range_length": 40,
       "warm_up": 10,
       "noise_param": {
@@ -18,7 +18,7 @@
       "name": "hello_complex",
       "template": "hello2.dg.template",
       "reverse": true,
-      "try_count": 1,
+      "try_count": 5,
       "noise_range_length": 40,
       "warm_up": 10,
       "noise_param": {

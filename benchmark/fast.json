@@ -8,8 +8,8 @@
       "template": "hello.dg.template",
       "reverse": true,
       "try_count": 1,
-      "noise_range_length": 3,
-      "warm_up": 2,
+      "noise_range_length": 5,
+      "warm_up": 3,
       "noise_param": {
         "type": "basic"
       }
@@ -19,8 +19,8 @@
       "template": "hello2.dg.template",
       "reverse": true,
       "try_count": 1,
-      "noise_range_length": 3,
-      "warm_up": 2,
+      "noise_range_length": 5,
+      "warm_up": 3,
       "noise_param": {
         "type": "basic"
       }
