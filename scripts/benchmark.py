@@ -14,8 +14,9 @@ import report
 
 
 class Bench(object):
-    def __init__(self, config):
+    def __init__(self, config, args):
         self.config = config
+        self.args = args
         # Cahce, prevent from getting twice
         self.timestamp = datetime.now()
         self.timestamp_str = self.timestamp.strftime('%Y%m%d-%H%M%S')
@@ -30,11 +31,27 @@ class Bench(object):
             shutil.rmtree(self.temp_output)
         os.makedirs(self.temp_output)
 
-        self.entries = list(self.mk_entries())
+        self.prepare()
 
+        if self.args.prepare_only:
+            return
+
+        self.run_benchmarks()
+
+        if self.args.no_report:
+            return
+
+        self.make_graphs()
+
+        if self.temp_output and os.path.exists(self.temp_output):
+            shutil.copytree(self.temp_output, self.real_bench_dir())
+
+    def prepare(self):
+        self.entries = list(self.mk_entries())
         for entry in self.entries:
             entry.prepare()
 
+    def run_benchmarks(self):
         tasks = [(e, t)
                  for e in self.entries
                  for t in enumerate(e.tasks)]
@@ -48,9 +65,6 @@ class Bench(object):
             task.start()
 
         self.write_param_json(tasks)
-        self.make_graphs()
-        if self.temp_output and os.path.exists(self.temp_output):
-            shutil.copytree(self.temp_output, self.real_bench_dir())
 
     @property
     def param_json_path(self):
