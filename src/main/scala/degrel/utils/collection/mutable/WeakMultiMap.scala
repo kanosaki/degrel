@@ -1,7 +1,6 @@
 package degrel.utils.collection.mutable
 
-import scala.collection.mutable.{HashMap => MutableHashMap, HashSet => MutableHashSet, Map => MutableMap, MultiMap => MutableMultiMap, Set => MutableSet}
-import scala.reflect.internal.util.WeakHashSet
+import scala.collection.mutable.{HashMap => MutableHashMap, Map => MutableMap, MultiMap => MutableMultiMap, Set => MutableSet}
 
 class WeakMultiMap[K, V <: AnyRef] extends MutableMap[K, MutableSet[V]] with MutableMultiMap[K, V] {
   val inner = new MutableHashMap[K, WeakHashSet[V]]()
