@@ -19,22 +19,32 @@ class PrettyPrinter(val root: Vertex)
     sb.toString()
   }
 
-  // Flyweight
-  protected def getPrinter(root: Vertex, parent: Printer): Printer = {
-    printerCache.getOrElseUpdate(
-      root,
-      root.label match {
-        case Label.V.cell => new CellPrinter(root, parent)
-        case Label.V.reference => new RefPrinter(root, parent)
-        case Label.V.rule => new RulePrinter(root, parent)
-        case _ => {
-          if (root.edges.map(_.label).toSet == Set(Label.E.lhs, Label.E.rhs)) {
-            new BinOpPrinter(root, parent)
-          } else {
-            new VertexPrinter(root, parent)
+  protected def createPrinter(root: Vertex, parent: Printer): Printer = {
+    root match {
+      case null => new ConstantPrinter("<NULL>", parent)
+      case vh: VertexHeader if vh.body == null => {
+        new HeaderOnlyPrinter(vh, parent)
+      }
+      case _ => {
+        root.label match {
+          case Label.V.cell => new CellPrinter(root, parent)
+          case Label.V.reference => new RefPrinter(root, parent)
+          case Label.V.rule => new RulePrinter(root, parent)
+          case _ => {
+            if (root.edges.map(_.label).toSet == Set(Label.E.lhs, Label.E.rhs)) {
+              new BinOpPrinter(root, parent)
+            } else {
+              new VertexPrinter(root, parent)
+            }
           }
         }
-      })
+      }
+    }
+  }
+
+  // Flyweight
+  protected def getPrinter(root: Vertex, parent: Printer): Printer = {
+    printerCache.getOrElseUpdate(root, createPrinter(root, parent))
   }
 
 
@@ -67,7 +77,7 @@ class PrettyPrinter(val root: Vertex)
     protected def putTypeInfo(sb: StringBuilder): Unit = {
       sb ++= PrettyPrintUtils.shortenTypeName(this.root)
       this.root match {
-        case vh: VertexHeader => {
+        case vh: VertexHeader if vh.body != null => {
           sb += '/'
           sb ++= PrettyPrintUtils.shortenTypeName(vh.body)
         }
@@ -320,6 +330,22 @@ class PrettyPrinter(val root: Vertex)
     }
 
     override def root: Vertex = null
+  }
+
+  class HeaderOnlyPrinter(val root: VertexHeader, val parent: Printer) extends Printer {
+    override def children = {
+      Seq()
+    }
+
+    override def print(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
+      traj.walk(root) {
+        case Unvisited(trj) => {
+          sb ++= "<!!NO-BODY!!"
+          this.putIdExpr(sb)
+          sb += '>'
+        }
+      }
+    }
   }
 
 }
