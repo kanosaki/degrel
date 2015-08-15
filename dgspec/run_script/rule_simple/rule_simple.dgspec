@@ -2,17 +2,50 @@ caption: Simple rules.
 description: Basic rule behaviors.
 version: 1
 seq_spec:
-  - run: run_script/rule_simple/basic.dg
+  - run: 
+      file: run_script/rule_simple/basic.dg
+      options:
+        rewritee: plain
   - assert: 
       type: stdout
       text: |
         foobar
-  - run: run_script/rule_simple/curry.dg
+  - run: 
+      file: run_script/rule_simple/basic.dg
+      options:
+        rewritee: root_hash
+  - assert: 
+      type: stdout
+      text: |
+        foobar
+  - run: 
+      file: run_script/rule_simple/curry.dg
+      options:
+        rewritee: plain
   - assert: 
       type: stdout
       text: |
         hoge fuga piyo
-  - run: run_script/rule_simple/curry_cell.dg
+  - run: 
+      file: run_script/rule_simple/curry.dg
+      options:
+        rewritee: root_hash
+  - assert: 
+      type: stdout
+      text: |
+        hoge fuga piyo
+  - run: 
+      file: run_script/rule_simple/curry_cell.dg
+      options:
+        rewritee: plain
+  - assert: 
+      type: stdout
+      text: |
+        hoge piyo
+  - run: 
+      file: run_script/rule_simple/curry_cell.dg
+      options:
+        rewritee: root_hash
   - assert: 
       type: stdout
       text: |

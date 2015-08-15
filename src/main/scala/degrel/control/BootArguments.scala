@@ -9,6 +9,10 @@ case class BootArguments(script: Option[File] = None,
   def rewriteeSetName: String = {
     options.getOrElse("rewriteeset", "plain")
   }
+
+  def createBootstrapper(): Bootstrapper = {
+    Bootstrapper(this)
+  }
 }
 
 /**

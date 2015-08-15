@@ -9,7 +9,7 @@ import degrel.engine.sphere.Sphere
  * @todo 冗長?
  * @param _repo 管理する名前空間
  */
-class Chassis(_repo: Repository, val driverFactory: DriverFactory = DriverFactory.default) {
+class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactory.default) {
   var sphere: Sphere = degrel.engine.sphere.default
   var verbose = false
 

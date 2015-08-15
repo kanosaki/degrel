@@ -16,7 +16,7 @@ class Bootstrapper(val args: BootArguments) {
   val driverFactory: DriverFactory = {
     args.rewriteeSetName match {
       case "root_hash" => new RootHashDriverFactory()
-      case o => {
+      case "plain" => {
         DriverFactory.default
       }
 
