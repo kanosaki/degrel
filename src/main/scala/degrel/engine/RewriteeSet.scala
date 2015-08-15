@@ -72,8 +72,6 @@ class RootTableRewriteeSet(val driver: Driver) extends RewriteeSet {
     val metaTargets = if (rw.isMeta) List(driver.header) else List()
     if (rw.isPartial) {
       val tgts = labelMap.getOrElse(rw.pattern.label, List()).toList ++ metaTargets
-      println(s"${tgts.size} ${rw.pattern.pp}")
-      println(s"${tgts}")
       tgts
     } else {
       driver.atoms ++ metaTargets

@@ -63,6 +63,10 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def isValue: Boolean = false
 
+  def isHeader: Boolean = false
+
+  def isBody: Boolean = false
+
   def getValue[T: TypeTag]: Option[T] = None
 
   def thruSingle(label: Label): Vertex = {

@@ -1,8 +1,7 @@
 package degrel.core
 
+import degrel.engine.rewriting.EdgeBridge
 import degrel.engine.rewriting.matching._
-import degrel.engine.rewriting.molding.MoldingContext
-import degrel.engine.rewriting.{EdgeBridge, _}
 import degrel.utils.PrettyPrintOptions
 
 object Edge {

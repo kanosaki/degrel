@@ -39,10 +39,10 @@ class WeakSetTest extends FlatSpec {
   }
 
   "WeakLinkedSet" should "behave as normal Set" in {
-    testSet(new WeakLinkedSet[String]())
+    testSet(new WeakLinearSet[String]())
   }
 
   "WeakHashSet" should "behave as normal Set" in {
-    testSet(new WeakLinkedSet[String]())
+    testSet(new WeakLinearSet[String]())
   }
 }

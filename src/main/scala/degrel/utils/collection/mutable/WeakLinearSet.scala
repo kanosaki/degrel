@@ -4,12 +4,12 @@ import java.lang.ref.{ReferenceQueue, WeakReference}
 
 import scala.collection.mutable
 
-class WeakLinkedSet[T] extends mutable.Set[T] {
+class WeakLinearSet[T] extends mutable.Set[T] {
   private[this] var items = mutable.ListBuffer[WeakReference[T]]()
   private[this] val queue = new ReferenceQueue[T]()
 
 
-  override def +=(elem: T): WeakLinkedSet.this.type = {
+  override def +=(elem: T): WeakLinearSet.this.type = {
     this.removeStaleEntries()
     val r = new WeakReference(elem, queue)
     items += r
@@ -24,7 +24,7 @@ class WeakLinkedSet[T] extends mutable.Set[T] {
     }
   }
 
-  override def -=(elem: T): WeakLinkedSet.this.type = {
+  override def -=(elem: T): WeakLinearSet.this.type = {
     this.removeStaleEntries()
     items = items.filter { item =>
       val v = item.get
@@ -41,5 +41,11 @@ class WeakLinkedSet[T] extends mutable.Set[T] {
   override def iterator: Iterator[T] = {
     this.removeStaleEntries()
     items.iterator.map(_.get).filter(_ != null)
+  }
+}
+
+object WeakLinearSet {
+  def apply[T]() = {
+    new WeakLinearSet[T]()
   }
 }

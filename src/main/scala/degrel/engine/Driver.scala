@@ -15,7 +15,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   implicit protected val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
-  var rewritee: RewriteeSet = new RootTableRewriteeSet(this)
+  var rewritee: RewriteeSet = new PlainRewriteeSet(this)
   private var rewriteTryCount: Long = 0
 
   def isActive: Boolean = {
