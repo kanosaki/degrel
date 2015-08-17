@@ -1,12 +1,11 @@
 package degrel.primitives.rewriter.lang
 
-import degrel.core.{Vertex, VertexHeader}
-import degrel.engine.Driver
-import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.core.Vertex
+import degrel.engine.rewriting.{RewritingTarget, RewriteResult, Rewriter, RewritingTarget$}
 import degrel.utils.PrettyPrintOptions
 
 class Require extends Rewriter {
-  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = ???
+  override def rewrite(rc: RewritingTarget): RewriteResult = ???
 
   override def pp(implicit opt: PrettyPrintOptions): String = ???
 

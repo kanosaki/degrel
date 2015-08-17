@@ -28,10 +28,10 @@ trait Rewriter extends Logger with PrettyPrintable {
    *       とりあえず参照を書き込む．
    *       --> 参照経由で規則が書き換えられてしまう可能性・・・・
    */
-  def rewrite(self: Driver, target: VertexHeader): RewriteResult
+  def rewrite(rc: RewritingTarget): RewriteResult
 
-  def rewrite(target: VertexHeader): RewriteResult = {
-    this.rewrite(Driver(), target)
+  def rewrite(target: VertexHeader, root: VertexHeader): RewriteResult = {
+    this.rewrite(new RewritingTarget(target, root, Driver()))
   }
 
   /**
@@ -52,11 +52,11 @@ trait Rewriter extends Logger with PrettyPrintable {
 
   def parse(s: String): Vertex = degrel.parseVertex(s)
 
-  def write(target: VertexHeader, value: Vertex): RewriteResult = {
+  def write(target: RewritingTarget, value: Vertex): RewriteResult = {
     RewriteResult.Write(target, value)
   }
 
-  def continue(target: VertexHeader, rule: Rule, binding: Binding): RewriteResult = {
+  def continue(target: RewritingTarget, rule: Rule, binding: Binding): RewriteResult = {
     RewriteResult.Continue(target, rule, binding)
   }
 

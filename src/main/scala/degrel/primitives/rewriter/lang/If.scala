@@ -1,8 +1,7 @@
 package degrel.primitives.rewriter.lang
 
-import degrel.core.{Vertex, Cell, Label, VertexHeader}
-import degrel.engine.Driver
-import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.core.{Cell, Label, Vertex}
+import degrel.engine.rewriting.{RewritingTarget, RewriteResult, Rewriter, RewritingTarget$}
 import degrel.utils.PrettyPrintOptions
 
 /**
@@ -18,7 +17,8 @@ class If extends Rewriter {
 
   override def pattern: Vertex = parse("if(then: _)")
 
-  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
+  override def rewrite(rt: RewritingTarget): RewriteResult = {
+    val target = rt.target
     if (target.label != ifLabel) return nop
     val fullIfResult = for {
       pred <- target.thru(0).headOption
@@ -26,10 +26,10 @@ class If extends Rewriter {
       els <- target.thru(elseLabel).headOption
     } yield pred.label match {
       case Label.V.vTrue => {
-        write(target, thn)
+        write(rt, thn)
       }
       case Label.V.vFalse  => {
-        write(target, els)
+        write(rt, els)
       }
       case _ => nop
     }
@@ -40,10 +40,10 @@ class If extends Rewriter {
       thn <- target.thru(thenLabel).headOption
     }  yield pred.label match {
       case Label.V.vTrue => {
-        write(target, thn)
+        write(rt, thn)
       }
       case Label.V.vFalse => {
-        write(target, Cell())
+        write(rt, Cell())
       }
       case _ => nop
     }

@@ -1,8 +1,7 @@
 package degrel.primitives.rewriter.math
 
-import degrel.core.{VertexHeader, Vertex}
-import degrel.engine.Driver
-import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.core.{Vertex, VertexHeader}
+import degrel.engine.rewriting.{RewritingTarget, RewriteResult, Rewriter}
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
@@ -10,7 +9,8 @@ class MathTest extends FlatSpec {
   def vertex(s: String) = degrel.parseVertex(s).asHeader
 
   def execRewriter(rw: Rewriter, targetV: VertexHeader, expectedV: Vertex) = {
-    val res = rw.rewrite(Driver(), targetV) match {
+    val rc = RewritingTarget.alone(targetV)
+    val res = rw.rewrite(rc) match {
       case RewriteResult.Write(t, v) => {
         assert(v ===~ expectedV)
       }
@@ -28,7 +28,8 @@ class MathTest extends FlatSpec {
   it should "not works for non-numbers" in {
     val targetV = vertex("1 + x")
     val rw = new Plus()
-    val res = rw.rewrite(Driver(), targetV) match {
+    val rc = RewritingTarget.alone(targetV)
+    val res = rw.rewrite(rc) match {
       case RewriteResult.Nop => {
       }
       case _ => fail()

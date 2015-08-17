@@ -1,15 +1,15 @@
 package degrel.primitives.rewriter.cell
 
 import degrel.core._
-import degrel.engine.Driver
-import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.engine.rewriting.{RewritingTarget, RewriteResult, Rewriter, RewritingTarget$}
 import degrel.front.BinOp
 import degrel.utils.PrettyPrintOptions
 
 class SendMessage extends Rewriter {
   val sendMessageLabel = BinOp.MSG_SEND.toLabel
 
-  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
+  override def rewrite(rt: RewritingTarget): RewriteResult = {
+    val target = rt.target
     if (target.label == sendMessageLabel) {
       val lhs = target.thru(Label.E.lhs).headOption
       val rhs = target.thru(Label.E.rhs).headOption
@@ -17,7 +17,7 @@ class SendMessage extends Rewriter {
         case ((Some(l), Some(r))) if l.isCell => {
           val targetCell = l.unhead[CellBody]
           multi(addRoot(targetCell, r),
-                write(target, targetCell))
+                write(rt, targetCell))
         }
         case _ => nop
       }

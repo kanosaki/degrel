@@ -1,8 +1,7 @@
 package degrel.primitives.rewriter
 
 import degrel.core._
-import degrel.engine.Driver
-import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.engine.rewriting.{RewritingTarget, RewriteResult, Rewriter, RewritingTarget$}
 import degrel.utils.PrettyPrintOptions
 
 import scala.reflect.runtime.universe._
@@ -15,7 +14,8 @@ abstract class ValueBinOp[TLhs: TypeTag, TRhs: TypeTag, TResult: TypeTag] extend
 
   override def pattern: Vertex = parse(s"_ ${label.expr} _")
 
-  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
+  override def rewrite(rt: RewritingTarget): RewriteResult = {
+    val target = rt.target
     if (target.label == this.label) {
       val result = for {
         lhs <- target.thru(Label.E.lhs).headOption
@@ -25,7 +25,7 @@ abstract class ValueBinOp[TLhs: TypeTag, TRhs: TypeTag, TResult: TypeTag] extend
       } yield calc(lVal, rVal)
       result match {
         case Some(resVal) => {
-          write(target, ValueVertex(resVal))
+          write(rt, ValueVertex(resVal))
         }
         case _ => nop
       }

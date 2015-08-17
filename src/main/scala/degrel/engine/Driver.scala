@@ -2,7 +2,7 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.core._
-import degrel.engine.rewriting.{Binding, ContinueRewriter, Rewriter}
+import degrel.engine.rewriting._
 import degrel.engine.sphere.Sphere
 import degrel.utils.PrettyPrintOptions
 
@@ -102,8 +102,8 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
 
   def stepFor(rw: Rewriter): Boolean = {
     val targets = this.rewritee.targetsFor(rw)
-    targets.exists { v =>
-      this.execRewrite(rw, v)
+    targets.exists { rc =>
+      this.execRewrite(rw, rc)
     }
   }
 
@@ -113,8 +113,12 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
 
   def atoms: Iterable[Vertex] = cell.roots
 
-  def rewriteTargets: Iterable[Vertex] = {
-    CellTraverser(this.cell)
+  def atomTargets: Iterable[RewritingTarget] = cell.roots.map { r =>
+    RewritingTarget(r.asHeader, r.asHeader, this)
+  }
+
+  def rewriteTargets: Iterable[RewritingTarget] = {
+    CellTraverser(this.cell, this)
   }
 
   /**
@@ -142,9 +146,10 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
     }
   }
 
-  private def execRewrite(rw: Rewriter, v: Vertex): Boolean = {
+  private def execRewrite(rw: Rewriter, rc: RewritingTarget): Boolean = {
     rewriteTryCount += 1
-    val res = rw.rewrite(this, v.asHeader)
+    val v = rc.target
+    val res = rw.rewrite(rc)
     if (res.done) {
       res.exec(this)
       if (chassis.verbose) {
@@ -156,10 +161,6 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
         System.err.println(this.header.pp)
         System.err.println(Console.RESET)
       }
-    } else {
-      if (chassis.verbose) {
-        System.err.println(s"FAIL: ${rw.pattern.pp} :: ${v.pp}")
-      }
     }
     res.done
   }
@@ -169,9 +170,9 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
     contRewriters += rw
   }
 
-  def writeVertex(target: VertexHeader, value: Vertex) = {
+  def writeVertex(target: RewritingTarget, value: Vertex) = {
     this.rewritee.onWriteVertex(target, value)
-    target.write(value)
+    target.target.write(value)
   }
 
   def addRoot(target: Cell, value: Vertex) = {
