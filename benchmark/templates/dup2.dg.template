@@ -1,4 +1,3 @@
-
 {% macro noise(c) -%}
   {%- for i in range(c) %}
     foo(a(b, c(d, e)), bar: baz, hoge: fuga, piyo: hogefuga(x, y, z))
@@ -10,7 +9,7 @@ greet(@N, @Max) -> {
   {{ noise(noise_index) }}
   original(@X) -> transoformed(plus_one(X + 1), plus_two(X + 2))
 
-  fin if((N < Max), 
+  fin if((N < Max),
     then: {
       {{ noise(noise_index) }}
       println("HELLO", N)

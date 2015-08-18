@@ -9,10 +9,7 @@
       "reverse": true,
       "try_count": 5,
       "noise_range_length": 40,
-      "warm_up": 10,
-      "noise_param": {
-        "type": "basic"
-      }
+      "warm_up": 10
     },
     {
       "name": "hello_complex",
@@ -20,10 +17,15 @@
       "reverse": true,
       "try_count": 5,
       "noise_range_length": 40,
-      "warm_up": 10,
-      "noise_param": {
-        "type": "basic"
-      }
+      "warm_up": 10
+    },
+    {
+      "name": "dup2",
+      "template": "dup2.dg.template",
+      "reverse": true,
+      "try_count": 5,
+      "noise_range_length": 40,
+      "warm_up": 10
     }
   ]
 }

@@ -76,8 +76,6 @@ class Bench(object):
     def write_param_json(self, tasks):
         path = self.param_json_path
         bench_list = list(self.bench_list)
-        for bl in bench_list:
-            del bl['noise']
         task_entries = []
         for (index, (entry, (index_of_entry, task))) in enumerate(tasks):
             task_entries.append(task.export_dict(self.bench_dir))
@@ -236,13 +234,11 @@ class Generator(object):
         self.count = config['noise_range_length']
         self.jvm_warm_count = config['warm_up']
         self.output_dir = output_dir
-        self.noise_fn = config['noise']
 
-    def gen(self, index, noise):
+    def gen(self, index, noise_index):
         return self.template.render(
             index=index,
-            count=self.count,
-            noise=noise)
+            noise_index=noise_index)
 
     def write_out(self, index, content):
         script_name = str(index)\
@@ -253,9 +249,9 @@ class Generator(object):
 
     def start(self):
         for i in range(self.jvm_warm_count):
-            content = self.gen(i, utils.fix(""))
+            content = self.gen(i, 0)
             self.write_out(i, content)
 
         for i in range(self.count):
-            content = self.gen(i, self.noise_fn)
+            content = self.gen(i + self.jvm_warm_count, i)
             self.write_out(i + self.jvm_warm_count, content)
