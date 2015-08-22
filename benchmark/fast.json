@@ -1,29 +1,24 @@
 {
   "options": {
-    "rewriteeset": ["basic", "root_hash"]
+    "rewriteeset": ["plain", "root_hash"]
   },
   "benchmarks": [
-    {
-      "name": "hello",
-      "template": "hello.dg.template",
-      "reverse": true,
-      "try_count": 1,
-      "noise_range_length": 5,
-      "warm_up": 3,
-      "noise_param": {
-        "type": "basic"
-      }
-    },
     {
       "name": "hello_complex",
       "template": "hello2.dg.template",
       "reverse": true,
       "try_count": 1,
       "noise_range_length": 5,
-      "warm_up": 3,
-      "noise_param": {
-        "type": "basic"
-      }
+      "warm_up": 3
+    },
+    {
+      "name": "dup2",
+      "template": "dup2.dg.template",
+      "reverse": true,
+      "try_count": 1,
+      "noise_range_length": 10,
+      "warm_up": 3
     }
+
   ]
 }

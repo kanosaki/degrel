@@ -4,15 +4,12 @@
   },
   "benchmarks": [
     {
-      "name": "hello",
-      "template": "hello.dg.template",
+      "name": "dup2",
+      "template": "dup2.dg.template",
       "reverse": true,
       "try_count": 1,
       "noise_range_length": 10,
-      "warm_up": 0,
-      "noise_param": {
-        "type": "basic"
-      }
+      "warm_up": 0
     }
   ]
 }

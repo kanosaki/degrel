@@ -1,5 +1,6 @@
 {% macro noise(c) -%}
   {%- for i in range(c) %}
+    dummy(first(hoge: fuga), second(piyo), third(foobar))
     foo(a(b, c(d, e)), bar: baz, hoge: fuga, piyo: hogefuga(x, y, z))
   {%- endfor %}
 {%- endmacro %}
@@ -7,17 +8,19 @@
 
 greet(@N, @Max) -> {
   {{ noise(noise_index) }}
-  original(@X) -> transoformed(plus_one(X + 1), plus_two(X + 2))
-
-  fin if((N < Max),
-    then: {
-      {{ noise(noise_index) }}
-      println("HELLO", N)
-      fin greet((N + 1), Max)
-    },
-    else: {
-      println("DONE", N)
-    })
+  first(num: N)
+  first(num: @X) -> second(num: X, a: first(hoge: fuga))
+  second(num: @X) -> third(num: X, b: second(foo: bar))
+  third(num: @X) -> fin (
+    if (X < Max,
+      then: {
+        println("HELLO", X)
+        fin greet(X + 1, Max)
+      },
+      else: {
+        println("DONE", X)
+      })
+  )
 }
 
 greet(0, 5000)

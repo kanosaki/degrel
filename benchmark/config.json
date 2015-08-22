@@ -1,6 +1,6 @@
 {
   "options": {
-    "rewriteeset": ["basic", "root_hash"]
+    "rewriteeset": ["plain", "root_hash"]
   },
   "benchmarks": [
     {
