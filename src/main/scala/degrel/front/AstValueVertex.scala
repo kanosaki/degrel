@@ -15,7 +15,7 @@ trait AstValueVertex[T] extends AstVertex {
  */
 case class AstIntegerVertex(expr: String, radix: Int = 10) extends AstValueVertex[Int] {
   override def toVertex: ValueVertex[Int] = {
-    ValueVertex(expr.toInt)
+    new ValueVertex(expr.toInt)
   }
 }
 
@@ -24,7 +24,7 @@ case class AstIntegerVertex(expr: String, radix: Int = 10) extends AstValueVerte
  */
 case class AstFloatVertex(expr: String) extends AstValueVertex[Double] {
   override def toVertex: ValueVertex[Double] = {
-    ValueVertex(expr.toDouble)
+    new ValueVertex(expr.toDouble)
   }
 }
 
@@ -40,9 +40,9 @@ case class AstStringVertex(expr: String, trimQuotes: Boolean) extends AstValueVe
       require(expr.charAt(0) == '"')
       require(expr.charAt(expr.length - 1) == '"')
 
-      ValueVertex(expr.substring(1, expr.length - 1))
+      new ValueVertex(expr.substring(1, expr.length - 1))
     } else {
-      ValueVertex(expr)
+      new ValueVertex(expr)
     }
   }
 }

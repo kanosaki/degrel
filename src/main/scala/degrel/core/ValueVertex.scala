@@ -1,6 +1,6 @@
 package degrel.core
 
-import scala.reflect.runtime.universe.{TypeTag, typeOf, runtimeMirror}
+import scala.reflect.runtime.universe.{TypeTag, typeOf}
 
 class ValueVertex[T: TypeTag](val get: T) extends VertexBody {
 
@@ -27,7 +27,7 @@ class ValueVertex[T: TypeTag](val get: T) extends VertexBody {
 }
 
 object ValueVertex {
-  def apply[T: TypeTag](value: T): ValueVertex[T] = {
-    new ValueVertex[T](value)
+  def apply[T: TypeTag](value: T): VertexHeader = {
+    VertexHeader(new ValueVertex[T](value))
   }
 }

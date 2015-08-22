@@ -3,6 +3,8 @@ package degrel.engine
 import degrel.core._
 import degrel.engine.rewriting.{RewritingTarget, RewritingTarget$, ContinueRewriter, Rewriter}
 import degrel.utils.collection.mutable.WeakMultiMap
+import scala.collection.mutable
+import scala.ref.WeakReference
 
 /**
  * 書き換えを行う際パターンマッチの探索と実行を最適化するために
@@ -19,6 +21,10 @@ trait RewriteeSet extends Iterable[RewritingTarget] {
   def targetsFor(rw: Rewriter): Iterable[RewritingTarget]
 
   def onWriteVertex(target: RewritingTarget, value: Vertex): Unit = {}
+
+  def onAddRoot(targetCell: Cell, value: Vertex): Unit = {}
+
+  def onRemoveRoot(value: Vertex): Unit = {}
 
   def onContinue(rw: ContinueRewriter): Unit = {}
 
@@ -56,23 +62,46 @@ class PlainRewriteeSet(val driver: Driver) extends RewriteeSet {
  * 根のラベルを見て書き換え対象を絞り込む`RewriteeSet`
  */
 class RootTableRewriteeSet(val driver: Driver) extends RewriteeSet {
-  val labelMap = new WeakMultiMap[Label, RewritingTarget]()
+  val labelMap = new WeakMultiMap[Label, Vertex]()
 
   for (v <- driver.rewriteTargets) {
-    labelMap.addBinding(v.target.label, v)
+    labelMap.addBinding(v.target.label, v.root)
+  }
+
+  override def onRemoveRoot(value: Vertex): Unit = {
+    val prevSize = labelMap.size
+    for (v <- CellTraverser(value, driver)) {
+      labelMap.removeBinding(v.target.label, value)
+    }
+  }
+
+  override def onAddRoot(targetCell: Cell, value: Vertex): Unit = {
+    val prevSize = labelMap.size
+    for (v <- CellTraverser(value, driver)) {
+      labelMap.addBinding(v.target.label, value)
+    }
   }
 
   override def onWriteVertex(target: RewritingTarget, value: Vertex): Unit = {
+    // 書き込まれる頂点のテーブルを削除します
+    // TODO: root以外への書き込みの時は？
+    if (target.target == target.root) {
+      for (v <- CellTraverser(target.target, driver)) {
+        labelMap.removeBinding(v.target.label, v.root)
+      }
+    }
     for (v <- CellTraverser(value, driver)) {
-      labelMap.addBinding(v.target.label, v)
+      labelMap.addBinding(v.target.label, target.root)
     }
   }
 
   override def targetsFor(rw: Rewriter): Iterable[RewritingTarget] = {
     val metaTargets = if (rw.isMeta) List(RewritingTarget.alone(driver.header, driver)) else List()
     if (rw.isPartial) {
-      val tgts = labelMap.getOrElse(rw.pattern.label, List()).toList ++ metaTargets
-      tgts
+      val candidates = labelMap.getOrElse(rw.pattern.label, List()).toSet
+      candidates.flatMap { rt =>
+        CellTraverser(rt, driver)
+      } ++ metaTargets
     } else {
       driver.atomTargets ++ metaTargets
     }

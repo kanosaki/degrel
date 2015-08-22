@@ -7,6 +7,7 @@ import scala.collection.mutable
 
 /**
  * Optimized class for Traverser
+ * この頂点から「Cellの範囲として適切な」頂点の集合を`RewritingTarget`として返します
  */
 class CellTraverser(roots: Iterable[Vertex], self: Driver) extends Iterable[RewritingTarget] {
 

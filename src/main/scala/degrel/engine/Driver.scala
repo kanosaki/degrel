@@ -12,10 +12,10 @@ import scala.collection.mutable
  * Cellの実行をします
  */
 class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null) extends Reactor {
-  implicit protected val printOption = PrettyPrintOptions(multiLine = true)
+  implicit val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
-  var rewritee: RewriteeSet = new PlainRewriteeSet(this)
+  var rewritee: RewriteeSet = new RootTableRewriteeSet(this)
   private var rewriteTryCount: Long = 0
 
   def isActive: Boolean = {
@@ -102,6 +102,17 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
 
   def stepFor(rw: Rewriter): Boolean = {
     val targets = this.rewritee.targetsFor(rw)
+//    val allTargets = this.rewriteTargets.toSet
+//    if (targets.size != allTargets.size) {
+//      println("----------------------------------")
+//      println(s"${targets.size} / ${allTargets.size}")
+//      if (allTargets.size > 200) {
+//        println(rw.pp)
+//        targets.foreach { t =>
+//          println(s"${t.target.pp}")
+//        }
+//      }
+//    }
     targets.exists { rc =>
       this.execRewrite(rw, rc)
     }
@@ -141,14 +152,13 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
       this.cell.roots.filter(v => {
         v.isCell && v.edges.isEmpty
       }).foreach { v =>
-        this.cell.removeRoot(v)
+        this.removeRoot(v)
       }
     }
   }
 
   private def execRewrite(rw: Rewriter, rc: RewritingTarget): Boolean = {
     rewriteTryCount += 1
-    val v = rc.target
     val res = rw.rewrite(rc)
     if (res.done) {
       res.exec(this)
@@ -170,9 +180,21 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
     contRewriters += rw
   }
 
-  def writeVertex(target: RewritingTarget, value: Vertex) = {
+  def writeVertex(target: RewritingTarget, value: Vertex): Unit = {
+    if (target.target == this.header) {
+      if (this.parent == null) {
+        throw DegrelException("Destroying root cell!")
+      } else {
+        this.parent.writeVertex(target, value)
+      }
+    }
     this.rewritee.onWriteVertex(target, value)
     target.target.write(value)
+  }
+
+  def removeRoot(v: Vertex): Unit = {
+    this.rewritee.onRemoveRoot(v)
+    this.cell.removeRoot(v)
   }
 
   def addRoot(target: Cell, value: Vertex) = {
