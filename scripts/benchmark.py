@@ -43,6 +43,9 @@ class Bench(object):
 
         self.make_graphs()
 
+        if self.args.no_archive:
+            return
+
         if self.temp_output and os.path.exists(self.temp_output):
             shutil.copytree(self.temp_output, self.real_bench_dir())
 

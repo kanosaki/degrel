@@ -24,12 +24,12 @@ def parse_arguments():
     parser.add_argument('-R', '--no-report',
                         action='store_true',
                         default=False)
+    parser.add_argument('-A', '--no-archive',
+                        action='store_true',
+                        default=False)
     parser.add_argument('config_file', nargs='?')
     return parser.parse_args()
 
-
-def create_noise_fn(param):
-    return NOISE_FUNCTIONS[param['type']]
 
 def main():
     args = parse_arguments()
