@@ -11,12 +11,12 @@ import org.apache.commons.io.FileUtils
 /**
  * Chassisをアプリケーション引数などから初期化します
  */
-class Bootstrapper(val args: CLIArguments) {
+class Bootstrapper(val args: BootArguments) {
 
   val driverFactory: DriverFactory = {
-    args.options.get("rewriteeset") match {
-      case Some("root_hash") => new RootHashDriverFactory()
-      case o => {
+    args.rewriteeSetName match {
+      case "root_hash" => new RootHashDriverFactory()
+      case "plain" => {
         DriverFactory.default
       }
 
@@ -61,7 +61,7 @@ class Bootstrapper(val args: CLIArguments) {
 
 
 object Bootstrapper {
-  def apply(args: CLIArguments): Bootstrapper = {
+  def apply(args: BootArguments): Bootstrapper = {
     new Bootstrapper(args)
   }
 }

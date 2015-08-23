@@ -1,6 +1,8 @@
 package degrel.primitives.rewriter.cell
 
+import degrel.core.Label
 import degrel.engine.Driver
+import degrel.engine.rewriting.RewritingTarget
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
@@ -10,10 +12,13 @@ class CellTest extends FlatSpec {
   def vertex(s: String) = degrel.parseVertex(s).asHeader
 
   "Send message operator" should "add vertex to a cell" in {
-    val targetV = vertex("{} ! foo")
+    val targetV = vertex("{} ! foo").asHeader
     val expectedV = vertex("{foo}")
     val rw = new SendMessage()
-    assert(rw.rewrite(Driver(), targetV).done)
-    assert(targetV ===~ expectedV)
+    val driver = Driver(targetV.thruSingle(Label.E.lhs).asCell)
+    val rc = new RewritingTarget(targetV, targetV, driver)
+    val res = rw.rewrite(rc)
+    res.exec(driver)
+    assert(driver.header ===~ expectedV)
   }
 }

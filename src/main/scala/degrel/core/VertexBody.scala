@@ -1,5 +1,7 @@
 package degrel.core
 
+import java.lang.ref.WeakReference
+
 
 object VertexBody {
   def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID): VertexBody = {
@@ -12,6 +14,8 @@ object VertexBody {
 }
 
 trait VertexBody extends Vertex {
+  protected var headerRef: WeakReference[VertexHeader] = null
+
   def attr(key: Label): Option[String] = {
     attributes.get(key)
   }
@@ -41,6 +45,20 @@ trait VertexBody extends Vertex {
   def asCellBody: CellBody = {
     require(this.label == Label.V.cell)
     CellBody(this.edges)
+  }
+
+  override def isBody = true
+
+  def header: VertexHeader = {
+    if (this.headerRef == null) {
+      null
+    } else {
+      this.headerRef.get()
+    }
+  }
+
+  def header_=(vh: VertexHeader) = {
+    this.headerRef = new WeakReference[VertexHeader](vh)
   }
 
   override val id: ID = ID.autoAssign
