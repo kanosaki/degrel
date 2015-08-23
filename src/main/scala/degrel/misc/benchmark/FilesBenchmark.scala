@@ -35,8 +35,10 @@ class FilesBenchmark(bootstrapper: Bootstrapper, targets: Seq[Path], resultJson:
     _println(s"${entries.size} entries found")
     this.beginTime = LocalDateTime.now()
     val reports = entries.map { entry =>
-      _println(s"Running $entry")
-      entry.exec()
+      _print(s"Running $entry")
+      val ret = entry.exec()
+      _print("\r")
+      ret
     }
     val finishTime = LocalDateTime.now()
     _println(s"------------- Finished ----------------")
@@ -65,6 +67,10 @@ class FilesBenchmark(bootstrapper: Bootstrapper, targets: Seq[Path], resultJson:
 
   def _println(msg: String) = {
     out.println(msg)
+  }
+
+  def _print(msg: String) = {
+    out.print(msg)
   }
 
   def mkOutputJson(reportJsonObjs: Seq[JObject]) = {
