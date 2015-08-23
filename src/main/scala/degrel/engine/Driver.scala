@@ -176,7 +176,6 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   }
 
   def addContinueRewriter(rw: ContinueRewriter) = {
-    this.rewritee.onContinue(rw)
     contRewriters += rw
   }
 

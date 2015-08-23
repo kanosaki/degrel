@@ -3,11 +3,9 @@ package degrel.engine
 import java.io.PrintStream
 
 import degrel.core._
-import degrel.engine.rewriting.{RewritingTarget, RewritingTarget$, ContinueRewriter, Rewriter}
+import degrel.engine.rewriting.{Rewriter, RewritingTarget}
 import degrel.utils.PrettyPrintOptions
 import degrel.utils.collection.mutable.WeakMultiMap
-import scala.collection.mutable
-import scala.ref.WeakReference
 
 /**
  * 書き換えを行う際パターンマッチの探索と実行を最適化するために
@@ -21,16 +19,33 @@ trait RewriteeSet extends Iterable[RewritingTarget] {
     case _ => Seq(RewritingTarget.alone(driver.header, driver)).iterator
   }
 
+  /**
+   * `Rewriter`が書き換えられるかもしれない頂点を返します．
+   * つまり，`rw: Rewriter`の`pattern`にマッチする可能性がある頂点を列挙します
+   * 偽陽性は含まれる可能性がありますが，偽陰性はありません．
+   * @param rw 対象となる`Rewriter`
+   * @return 書き換えられる可能性のある`RewritingTarget`の集合
+   */
   def targetsFor(rw: Rewriter): Iterable[RewritingTarget]
 
+  /**
+   * `Driver`において，書き込みが発生した際に呼ばれるコールバック
+   */
   def onWriteVertex(target: RewritingTarget, value: Vertex): Unit = {}
 
+  /**
+   * `Driver`において，根の追加が発生したときに呼ばれるコールバック
+   */
   def onAddRoot(targetCell: Cell, value: Vertex): Unit = {}
 
+  /**
+   * `Driver`において，根の削除が発生したときに呼ばれるコールバック
+   */
   def onRemoveRoot(value: Vertex): Unit = {}
 
-  def onContinue(rw: ContinueRewriter): Unit = {}
-
+  /**
+   * 名前．表示やインタプリタオプションの名前になります
+   */
   def name: String
 }
 
@@ -72,14 +87,12 @@ class RootTableRewriteeSet(val driver: Driver) extends RewriteeSet {
   }
 
   override def onRemoveRoot(value: Vertex): Unit = {
-    val prevSize = labelMap.size
     for (v <- CellTraverser(value, driver)) {
       labelMap.removeBinding(v.target.label, value)
     }
   }
 
   override def onAddRoot(targetCell: Cell, value: Vertex): Unit = {
-    val prevSize = labelMap.size
     for (v <- CellTraverser(value, driver)) {
       labelMap.addBinding(v.target.label, value)
     }
