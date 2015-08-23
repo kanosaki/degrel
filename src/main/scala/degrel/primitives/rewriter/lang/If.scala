@@ -1,8 +1,7 @@
 package degrel.primitives.rewriter.lang
 
-import degrel.core.{Cell, Label, VertexHeader}
-import degrel.engine.Driver
-import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.core.{Cell, Label, Vertex}
+import degrel.engine.rewriting.{RewritingTarget, RewriteResult, Rewriter, RewritingTarget$}
 import degrel.utils.PrettyPrintOptions
 
 /**
@@ -15,20 +14,24 @@ class If extends Rewriter {
   val thenLabel = Label("then")
   val elseLabel = Label("else")
 
-  override def rewrite(self: Driver, target: VertexHeader): RewriteResult = {
-    if (target.label != ifLabel) return RewriteResult.Nop
+
+  override def pattern: Vertex = parse("if(then: _)")
+
+  override def rewrite(rt: RewritingTarget): RewriteResult = {
+    val target = rt.target
+    if (target.label != ifLabel) return nop
     val fullIfResult = for {
       pred <- target.thru(0).headOption
       thn <- target.thru(thenLabel).headOption
       els <- target.thru(elseLabel).headOption
     } yield pred.label match {
       case Label.V.vTrue => {
-        RewriteResult.write(target, thn)
+        write(rt, thn)
       }
       case Label.V.vFalse  => {
-        RewriteResult.write(target, els)
+        write(rt, els)
       }
-      case _ => RewriteResult.Nop
+      case _ => nop
     }
     if (fullIfResult.isDefined) return fullIfResult.get
 
@@ -37,16 +40,16 @@ class If extends Rewriter {
       thn <- target.thru(thenLabel).headOption
     }  yield pred.label match {
       case Label.V.vTrue => {
-        RewriteResult.write(target, thn)
+        write(rt, thn)
       }
       case Label.V.vFalse => {
-        RewriteResult.write(target, Cell())
+        write(rt, Cell())
       }
-      case _ => RewriteResult.Nop
+      case _ => nop
     }
     if (abbrIfResult.isDefined) return abbrIfResult.get
 
-    RewriteResult.Nop
+    nop
   }
 
   override def pp(implicit opt: PrettyPrintOptions): String = "<Built-in if rule>"

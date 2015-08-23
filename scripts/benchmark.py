@@ -14,8 +14,9 @@ import report
 
 
 class Bench(object):
-    def __init__(self, config):
+    def __init__(self, config, args):
         self.config = config
+        self.args = args
         # Cahce, prevent from getting twice
         self.timestamp = datetime.now()
         self.timestamp_str = self.timestamp.strftime('%Y%m%d-%H%M%S')
@@ -30,11 +31,30 @@ class Bench(object):
             shutil.rmtree(self.temp_output)
         os.makedirs(self.temp_output)
 
-        self.entries = list(self.mk_entries())
+        self.prepare()
 
+        if self.args.prepare_only:
+            return
+
+        self.run_benchmarks()
+
+        if self.args.no_report:
+            return
+
+        self.make_graphs()
+
+        if self.args.no_archive:
+            return
+
+        if self.temp_output and os.path.exists(self.temp_output):
+            shutil.copytree(self.temp_output, self.real_bench_dir())
+
+    def prepare(self):
+        self.entries = list(self.mk_entries())
         for entry in self.entries:
             entry.prepare()
 
+    def run_benchmarks(self):
         tasks = [(e, t)
                  for e in self.entries
                  for t in enumerate(e.tasks)]
@@ -48,9 +68,6 @@ class Bench(object):
             task.start()
 
         self.write_param_json(tasks)
-        self.make_graphs()
-        if self.temp_output and os.path.exists(self.temp_output):
-            shutil.copytree(self.temp_output, self.real_bench_dir())
 
     @property
     def param_json_path(self):
@@ -62,8 +79,6 @@ class Bench(object):
     def write_param_json(self, tasks):
         path = self.param_json_path
         bench_list = list(self.bench_list)
-        for bl in bench_list:
-            del bl['noise']
         task_entries = []
         for (index, (entry, (index_of_entry, task))) in enumerate(tasks):
             task_entries.append(task.export_dict(self.bench_dir))
@@ -222,13 +237,11 @@ class Generator(object):
         self.count = config['noise_range_length']
         self.jvm_warm_count = config['warm_up']
         self.output_dir = output_dir
-        self.noise_fn = config['noise']
 
-    def gen(self, index, noise):
+    def gen(self, index, noise_index):
         return self.template.render(
             index=index,
-            count=self.count,
-            noise=noise)
+            noise_index=noise_index)
 
     def write_out(self, index, content):
         script_name = str(index)\
@@ -239,9 +252,9 @@ class Generator(object):
 
     def start(self):
         for i in range(self.jvm_warm_count):
-            content = self.gen(i, utils.fix(""))
+            content = self.gen(i, 0)
             self.write_out(i, content)
 
         for i in range(self.count):
-            content = self.gen(i, self.noise_fn)
+            content = self.gen(i + self.jvm_warm_count, i)
             self.write_out(i + self.jvm_warm_count, content)

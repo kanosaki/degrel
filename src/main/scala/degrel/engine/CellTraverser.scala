@@ -1,23 +1,41 @@
 package degrel.engine
 
-import degrel.core.{Cell, Vertex}
+import degrel.core.Vertex
+import degrel.engine.rewriting.RewritingTarget
 
 import scala.collection.mutable
 
 /**
  * Optimized class for Traverser
+ * この頂点から「Cellの範囲として適切な」頂点の集合を`RewritingTarget`として返します
  */
-class CellTraverser(roots: Iterable[Vertex]) extends Iterable[Vertex] {
+class CellTraverser(roots: Iterable[Vertex], self: Driver) extends Iterable[RewritingTarget] {
 
-  class It extends Iterator[Vertex] {
+  class It extends Iterator[RewritingTarget] {
+    val remainRoots = mutable.Queue[Vertex]()
     val nextItems = mutable.Queue[Vertex]()
     val visited = mutable.HashSet[Vertex]()
+    var currentRoot: Vertex = null
 
-    nextItems ++= roots.filter(v => !v.isRule)
+    // init
+    remainRoots ++= roots.filter(v => !v.isRule)
+    if (remainRoots.nonEmpty) {
+      pullItemFromRoots()
+    }
 
-    override def hasNext: Boolean = nextItems.nonEmpty
 
-    override def next(): Vertex = {
+    override def hasNext: Boolean = remainRoots.nonEmpty || nextItems.nonEmpty
+
+
+    private def pullItemFromRoots() = {
+      currentRoot = remainRoots.dequeue()
+      nextItems.enqueue(currentRoot)
+    }
+
+    override def next(): RewritingTarget = {
+      if (nextItems.isEmpty) {
+        pullItemFromRoots()
+      }
       val next = nextItems.dequeue()
       next.edges.foreach { e =>
         val dst = e.dst
@@ -26,23 +44,19 @@ class CellTraverser(roots: Iterable[Vertex]) extends Iterable[Vertex] {
           visited += dst
         }
       }
-      next
+      RewritingTarget(next.asHeader, currentRoot.asHeader, self)
     }
   }
 
-  override def iterator: Iterator[Vertex] = new It()
+  override def iterator: Iterator[RewritingTarget] = new It()
 }
 
 object CellTraverser {
-  def apply(cell: Cell): CellTraverser = {
-    new CellTraverser(cell.roots)
-  }
-
-  def apply(root: Vertex): CellTraverser = {
+  def apply(root: Vertex, self: Driver): CellTraverser = {
     if (root.isCell) {
-      new CellTraverser(root.toCell.roots)
+      new CellTraverser(root.toCell.roots, self)
     } else {
-      new CellTraverser(Seq(root))
+      new CellTraverser(Seq(root), self)
     }
   }
 }

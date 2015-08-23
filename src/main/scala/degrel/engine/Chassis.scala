@@ -9,7 +9,7 @@ import degrel.engine.sphere.Sphere
  * @todo 冗長?
  * @param _repo 管理する名前空間
  */
-class Chassis(_repo: Repository, val driverFactory: DriverFactory = DriverFactory.default) {
+class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactory.default) {
   var sphere: Sphere = degrel.engine.sphere.default
   var verbose = false
 
@@ -28,8 +28,8 @@ class Chassis(_repo: Repository, val driverFactory: DriverFactory = DriverFactor
     this.repository.get(name)
   }
 
-  def createDriver(cell: Vertex, name: List[Symbol], parent: Driver = null): Driver = {
-    new Driver(cell, this)
+  def createDriver(cell: Vertex, parent: Driver = null): Driver = {
+    driverFactory.create(this, cell, parent)
   }
 
   def addDriver(name: List[Symbol], driver: Driver): Driver = {
