@@ -28,8 +28,8 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
     this.repository.get(name)
   }
 
-  def createDriver(cell: Vertex, name: List[Symbol], parent: Driver = null): Driver = {
-    new Driver(cell, this)
+  def createDriver(cell: Vertex, parent: Driver = null): Driver = {
+    driverFactory.create(this, cell, parent)
   }
 
   def addDriver(name: List[Symbol], driver: Driver): Driver = {

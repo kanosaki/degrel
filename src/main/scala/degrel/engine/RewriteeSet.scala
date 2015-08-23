@@ -1,7 +1,10 @@
 package degrel.engine
 
+import java.io.PrintStream
+
 import degrel.core._
 import degrel.engine.rewriting.{RewritingTarget, RewritingTarget$, ContinueRewriter, Rewriter}
+import degrel.utils.PrettyPrintOptions
 import degrel.utils.collection.mutable.WeakMultiMap
 import scala.collection.mutable
 import scala.ref.WeakReference
@@ -92,6 +95,18 @@ class RootTableRewriteeSet(val driver: Driver) extends RewriteeSet {
     }
     for (v <- CellTraverser(value, driver)) {
       labelMap.addBinding(v.target.label, target.root)
+    }
+  }
+
+  def printTable(out: PrintStream = System.out): Unit = {
+    implicit val ppo = PrettyPrintOptions(showAllId = true, multiLine = true)
+    out.println(driver.header.pp)
+    out.println(s"TableSize: ${labelMap.size}")
+    labelMap.foreach {
+      case (k, v) => {
+        out.println(s"${k.expr} :: ${v.size}")
+        out.println(s"  ${v.map(_.id)}")
+      }
     }
   }
 
