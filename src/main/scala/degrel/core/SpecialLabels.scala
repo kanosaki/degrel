@@ -21,6 +21,11 @@ object SpecialLabels {
   val V_REFERENCE = '__ref__
 
   /**
+   * JVM値頂点
+   */
+  val V_VALUE = '__value__
+
+  /**
    * 書き換え規則頂点
    * NOTE: 二項演算子は演算子自体が頂点ラベルになるのが原則です．
    * 特殊頂点は__label__というアンダースコアに囲まれた形式ですが，

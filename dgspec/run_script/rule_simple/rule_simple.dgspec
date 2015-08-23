@@ -1,0 +1,55 @@
+caption: Simple rules.
+description: Basic rule behaviors.
+version: 1
+seq_spec:
+  - run: 
+      file: run_script/rule_simple/basic.dg
+      options:
+        rewritee: plain
+  - assert: 
+      type: stdout
+      text: |
+        foobar
+  - run: 
+      file: run_script/rule_simple/basic.dg
+      options:
+        rewritee: root_hash
+  - assert: 
+      type: stdout
+      text: |
+        foobar
+  - run: 
+      file: run_script/rule_simple/curry.dg
+      options:
+        rewritee: plain
+  - assert: 
+      type: stdout
+      text: |
+        hoge fuga piyo
+  - run: 
+      file: run_script/rule_simple/curry.dg
+      options:
+        rewritee: root_hash
+  - assert: 
+      type: stdout
+      text: |
+        hoge fuga piyo
+  - run: 
+      file: run_script/rule_simple/curry_cell.dg
+      options:
+        rewritee: plain
+  - assert: 
+      type: stdout
+      text: |
+        hoge piyo
+  - run: 
+      file: run_script/rule_simple/curry_cell.dg
+      options:
+        rewritee: root_hash
+  - assert: 
+      type: stdout
+      text: |
+        hoge piyo
+
+
+# vim: ft=yaml sw=2 ts=2 sts=2

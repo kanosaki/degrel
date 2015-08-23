@@ -1,0 +1,15 @@
+{
+  "options": {
+    "rewriteeset": ["root_hash"]
+  },
+  "benchmarks": [
+    {
+      "name": "dup2",
+      "template": "dup2.dg.template",
+      "reverse": true,
+      "try_count": 1,
+      "noise_range_length": 10,
+      "warm_up": 0
+    }
+  ]
+}

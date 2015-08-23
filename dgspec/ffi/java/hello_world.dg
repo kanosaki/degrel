@@ -1,0 +1,8 @@
+/* LANGUAGE JavaFunctionCalling */
+
+[System.out.println]("Hello world")
+
+{
+  [PrintStream|new]("filepath")@X
+  [X|println]
+}

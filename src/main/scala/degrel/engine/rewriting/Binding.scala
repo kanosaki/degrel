@@ -1,7 +1,7 @@
 package degrel.engine.rewriting
 
 import degrel.core
-import degrel.core.{Edge, Vertex, Element}
+import degrel.core.{Edge, Element, Vertex}
 
 object Binding {
   def apply(bridges: Seq[MatchBridge[Element]], parent: Binding = null): Binding = {
@@ -10,6 +10,10 @@ object Binding {
     } else {
       new ChainedBinding(bridges, parent)
     }
+  }
+
+  def chain(primary: Binding, secondary: Binding): Binding = {
+    new ChainedBinding(primary.bridges, secondary)
   }
 
   def empty(): Binding = Binding(Seq())

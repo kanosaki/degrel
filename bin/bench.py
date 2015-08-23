@@ -3,38 +3,42 @@
 import sys
 import os
 import itertools
+import json
+import argparse
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 
 import benchmark
+import utils
+
+DEFAULT_CONFIG_FILE = "benchmark/config.json"
 
 
-def noise_gen():
-    while True:
-        yield "foo(a(b, c(d, e)), bar: baz, hoge: fuga, piyo: hogefuga(x, y, z))"
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description='degrel benchmark tool'
+    )
+    parser.add_argument('-P', '--prepare-only',
+                        action='store_true',
+                        default=False)
+    parser.add_argument('-R', '--no-report',
+                        action='store_true',
+                        default=False)
+    parser.add_argument('-A', '--no-archive',
+                        action='store_true',
+                        default=False)
+    parser.add_argument('config_file', nargs='?')
+    return parser.parse_args()
 
 
-def noise_fn(size=1):
-    return "\n".join(itertools.islice(noise_gen(), size))
+def main():
+    args = parse_arguments()
+    config_path = args.config_file or utils.app_path(DEFAULT_CONFIG_FILE)
+    config = json.load(open(config_path))
+    bench_configs = config['benchmarks']
+    bench = benchmark.Bench(config, args)
+    bench.start()
 
 
-BENCH_LIST = [
-    dict(name='hello',
-         template='hello.dg.template',
-         reverse=True,
-         try_count=1,
-         noise_range_length=40,
-         warm_up=10,
-         noise=noise_fn),
-
-    dict(name='hello_complex',
-         template='hello2.dg.template',
-         reverse=True,
-         try_count=1,
-         noise_range_length=40,
-         warm_up=10,
-         noise=noise_fn)
-]
-
-bench = benchmark.Bench(BENCH_LIST)
-bench.start()
+if __name__ == '__main__':
+    main()

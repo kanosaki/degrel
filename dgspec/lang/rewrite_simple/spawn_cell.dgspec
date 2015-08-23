@@ -1,11 +1,12 @@
 
 caption: Cell spawn rule works for single step.
 version: 1
+ignore: true
 seq_spec:
   - init: >
       {
         foo(bar: baz)
-        foo(bar: _@X) -> {
+        foo(bar: @X) -> {
           hoge(fuga: X)
         }
       }
@@ -15,7 +16,7 @@ seq_spec:
         {
           hoge(fuga: baz)
         }
-        foo(bar: _@X) -> {
+        foo(bar: @X) -> {
           hoge(fuga: X)
         }
       }

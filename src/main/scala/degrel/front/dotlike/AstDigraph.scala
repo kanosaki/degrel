@@ -1,6 +1,6 @@
 package degrel.front.dotlike
 
-import degrel.graphbuilder.LexicalSymbolTable
+import degrel.front.graphbuilder.LexicalSymbolTable
 
 case class AstDigraph(label: String, body: AstDigraphBody) {
 

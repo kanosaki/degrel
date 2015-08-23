@@ -3,13 +3,12 @@ package degrel.control
 import java.nio.file.Paths
 
 import degrel.control.console.ConsoleHandle
-import degrel.engine.Chassis
 import degrel.misc.benchmark.FilesBenchmark
 import jline.console.ConsoleReader
 
 
 sealed trait CLICommand {
-  def start(arg: CLIArguments): Unit
+  def start(arg: BootArguments): Unit
 }
 
 /**
@@ -23,8 +22,9 @@ object CLICommand {
    * @param outputJson 結果を出力するファイル
    */
   case class Benchmark(targets: Seq[String] = Seq(), outputJson: Option[String] = None) extends CLICommand {
-    override def start(arg: CLIArguments): Unit = {
-      val bench = new FilesBenchmark(targets.map(Paths.get(_)), outputJson.map(Paths.get(_)))
+    override def start(arg: BootArguments): Unit = {
+      val bootstrapper = Bootstrapper(arg)
+      val bench = new FilesBenchmark(bootstrapper, targets.map(Paths.get(_)), outputJson.map(Paths.get(_)))
       bench.start()
     }
   }
@@ -33,7 +33,7 @@ object CLICommand {
    * 入力を構文解析してASTを表示するだけのREPL
    */
   case object Parse extends CLICommand {
-    override def start(arg: CLIArguments): Unit = {
+    override def start(arg: BootArguments): Unit = {
       val console = new ConsoleReader()
       while (true) {
         val line = console.readLine(s"parse> ")
@@ -59,15 +59,16 @@ object CLICommand {
    * ファイルが引数に存在する場合はインタプリタ，しない場合はREPLを起動します
    */
   case object Plain extends CLICommand {
-    override def start(arg: CLIArguments): Unit = {
+    override def start(arg: BootArguments): Unit = {
+      val bootstrapper = Bootstrapper(arg)
+
       arg.script match {
         case Some(scriptFile) => {
-          val interpreter = new Interpreter(
-            mainFile = scriptFile)
+          val interpreter = bootstrapper.initInterpreter()
           interpreter.start()
         }
         case None => {
-          val console = new ConsoleHandle(Chassis.createWithMain())
+          val console = new ConsoleHandle(bootstrapper.createChassis())
           console.start()
         }
       }

@@ -1,17 +1,9 @@
 package degrel.control
 
-import java.io.File
-
 import degrel.engine.Chassis
-import org.apache.commons.io.FileUtils
 
-class Interpreter(mainFile: File) {
+class Interpreter(val chassis: Chassis) {
   val stepLimit = -1
-  var chassis: Chassis = {
-    val src = FileUtils.readFileToString(mainFile)
-    val main = degrel.parseCell(src)
-    Chassis.create(main)
-  }
 
   def start() = {
     this.onStarting()

@@ -1,12 +1,14 @@
 caption: FizzBuzz
 description: FizzBuzz
 version: 1
-ignore: true
 seq_spec:
-  - run: run_script/fizzbuzz/fizzbuzz.dg
+  - run: 
+      file: run_script/fizzbuzz/fizzbuzz.dg
+      options:
+        rewritee: plain
   - assert: 
       type: stdout
-      text: >
+      text: |
         1
         2
         Fizz
@@ -22,5 +24,38 @@ seq_spec:
         13
         14
         FizzBuzz
+        16
+        17
+        Fizz
+        19
+        Buzz
+  - run: 
+      file: run_script/fizzbuzz/fizzbuzz.dg
+      options:
+        rewritee: root_hash
+  - assert: 
+      type: stdout
+      text: |
+        1
+        2
+        Fizz
+        4
+        Buzz
+        Fizz
+        7
+        8
+        Fizz
+        Buzz
+        11
+        Fizz
+        13
+        14
+        FizzBuzz
+        16
+        17
+        Fizz
+        19
+        Buzz
+
 
 # vim: ft=yaml sw=2 ts=2 sts=2

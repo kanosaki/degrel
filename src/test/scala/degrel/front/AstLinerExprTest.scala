@@ -1,8 +1,7 @@
 package degrel.front
 
-import degrel.graphbuilder
-import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
+import org.scalatest.FlatSpec
 
 class AstLinerExprTest extends FlatSpec {
   val parseDot = ParserUtils.parseDot _
@@ -22,11 +21,11 @@ class AstLinerExprTest extends FlatSpec {
     val graph = graphbuilder.build(ast)
     val expected = parseDot(
       """@ '->' {
-         |   -> c : __rhs__
-         |   -> '+' : __lhs__
-         |   '+' -> a : __lhs__
-         |   '+' -> b : __rhs__
-         | }
+        |   -> c : __rhs__
+        |   -> '+' : __lhs__
+        |   '+' -> a : __lhs__
+        |   '+' -> b : __rhs__
+        | }
       """.stripMargin)
     assert(graph ===~ expected)
   }

@@ -10,7 +10,7 @@ class WeakMultiMapTest extends FlatSpec {
                      "x" -> "baz",
                      "y" -> "hoge",
                      "y" -> "fuga")
-    map.addBindings(values)
+    values.foreach(kv => map.addBinding(kv._1, kv._2))
     assert(map.get("x").get === Set("foo", "bar", "baz"))
     assert(map.get("y").get === Set("hoge", "fuga"))
     assert(map.entryExists("x", _ == "foo"))

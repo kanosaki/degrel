@@ -1,8 +1,12 @@
 package degrel.core
 
+import degrel.utils.collection.mutable.WeakLinearSet
+
 import scala.reflect.runtime.universe.TypeTag
 
 trait VertexHeader extends Vertex {
+  protected val reverse = WeakLinearSet[VertexBody]()
+
   def body: VertexBody
 
   def write(v: Vertex): Unit
@@ -17,17 +21,20 @@ trait VertexHeader extends Vertex {
 
   override def isValue: Boolean = body.isValue
 
+  override def isHeader = true
+
   override def getValue[T: TypeTag]: Option[T] = body.getValue[T]
 
-  val id: ID = ID.autoAssign
-
-  override def asCell: Cell = {
-    if (this.body.isCell) {
-      this.asInstanceOf[Cell]
-    } else {
-      super.asCell
-    }
+  def addRevrseNeighbor(vb: VertexBody) = {
+    reverse += vb
   }
+
+  def reverseNeighbors: Iterable[VertexBody] = {
+    reverse
+  }
+
+
+  val id: ID = ID.autoAssign
 }
 
 object VertexHeader {

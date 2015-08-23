@@ -1,0 +1,45 @@
+caption: Simple cell operations
+description: FizzBuzz
+version: 1
+seq_spec:
+  - run: 
+      file: run_script/cell_simple/greet.dg
+      options:
+        rewritee: plain
+  - assert: 
+      type: stdout
+      text: |
+        Hello world!
+  - run: 
+      file: run_script/cell_simple/greet.dg
+      options:
+        rewritee: root_hash
+  - assert: 
+      type: stdout
+      text: |
+        Hello world!
+  - run: 
+      file: run_script/cell_simple/recursive.dg
+      options:
+        rewritee: plain
+  - assert: 
+      type: stdout
+      text: |
+        Hello 0
+        Hello 1
+        Hello 2
+        Hello 3
+  - run: 
+      file: run_script/cell_simple/recursive.dg
+      options:
+        rewritee: root_hash
+  - assert: 
+      type: stdout
+      text: |
+        Hello 0
+        Hello 1
+        Hello 2
+        Hello 3
+
+
+# vim: ft=yaml sw=2 ts=2 sts=2

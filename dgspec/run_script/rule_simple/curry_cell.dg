@@ -1,0 +1,14 @@
+
+
+foo("hoge")
+
+foo(@X) -> hoge {
+  bar("piyo")
+  bar(@Y) -> fin {
+    fin baz(X, Y)
+  }
+}
+
+hoge(baz(@X, @Y)) -> {
+  println(X, Y)
+}

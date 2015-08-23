@@ -1,8 +1,7 @@
 package degrel.primitives.rewriter
 
-import degrel.core.{Vertex, Label, VertexHeader}
-import degrel.engine.Driver
-import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.core.{Label, Vertex}
+import degrel.engine.rewriting.{RewritingTarget, RewriteResult, Rewriter}
 import degrel.utils.PrettyPrintOptions
 
 abstract class BinOpRewriter[T <: Vertex] extends Rewriter {
@@ -10,7 +9,10 @@ abstract class BinOpRewriter[T <: Vertex] extends Rewriter {
 
   def calc(lhs: Vertex, rhs: Vertex): Option[Vertex]
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  override def pattern: Vertex = parse(s"_ ${label.expr} _")
+
+  override def rewrite(rt: RewritingTarget): RewriteResult = {
+    val target = rt.target
     if (target.label == this.label) {
       val result = for {
         lhs <- target.thru(Label.E.lhs).headOption
@@ -19,15 +21,14 @@ abstract class BinOpRewriter[T <: Vertex] extends Rewriter {
       } yield calcRes
       result match {
         case Some(resVal) => {
-          target.write(resVal)
-          RewriteResult(done = true)
+          write(rt, resVal)
         }
-        case _ => RewriteResult.NOP
+        case _ => nop
       }
     } else {
-      RewriteResult.NOP
+      nop
     }
   }
 
-  override def pp(implicit opt: PrettyPrintOptions): String = ???
+  override def pp(implicit opt: PrettyPrintOptions): String = s"<operator '${label.expr}>"
 }

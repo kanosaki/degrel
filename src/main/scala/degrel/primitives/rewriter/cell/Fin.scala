@@ -1,8 +1,7 @@
 package degrel.primitives.rewriter.cell
 
-import degrel.core.{Cell, Label, Vertex, VertexHeader}
-import degrel.engine.Driver
-import degrel.engine.rewriting.{RewriteResult, Rewriter}
+import degrel.core.{Cell, Label, Vertex}
+import degrel.engine.rewriting.{RewritingTarget, RewriteResult, Rewriter}
 import degrel.utils.PrettyPrintOptions
 
 class Fin extends Rewriter {
@@ -10,20 +9,23 @@ class Fin extends Rewriter {
 
   override def isMeta: Boolean = true
 
-  override def rewrite(target: VertexHeader, parent: Driver): RewriteResult = {
+  override def rewrite(rt: RewritingTarget): RewriteResult = {
+    val target = rt.target
     if (target.isCell) {
       target.thru(Label.E.cellItem).find(_.label == finLabel) match {
         case Some(finV) => {
           val finValue = finV.thru(0).headOption.getOrElse(Cell())
-          target.write(finValue)
-          RewriteResult(done = true)
+          write(rt, finValue)
         }
-        case None => RewriteResult.NOP
+        case None => nop
       }
     } else {
-      RewriteResult.NOP
+      nop
     }
   }
+
+
+  override def pattern: Vertex = parse("fin(_)")
 
   override def pp(implicit opt: PrettyPrintOptions): String = {
     "<Built-in rule 'Fin'>"
