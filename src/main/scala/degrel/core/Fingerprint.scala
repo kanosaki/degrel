@@ -14,18 +14,13 @@ trait Fingerprint {
 
   def pack(data: Long, position: Int): Long = data << (length - position)
 
-  def labelBloom(lbl: Label): Long = {
-    if (lbl == Label.V.wildcard) {
-      0l
-    }
-    else {
-      val pos = hash(lbl) % (blockSize - 1) // shrink for flag bit
-      pack(1, pos.toInt)
-    }
-  }
-
   def hash(obj: AnyRef): Long = {
-    new Random(obj.hashCode()).nextLong()
+    val v = new Random(obj.hashCode()).nextLong()
+    if (v < 0) {
+      -v
+    } else {
+      v
+    }
   }
 
   def formatBits(data: Long): String = {
@@ -69,6 +64,16 @@ class DepthFingerprint(val blockSize: Int, val depth: Int) extends Fingerprint {
       ret
     } else {
       this.headBlock(v)
+    }
+  }
+
+  def labelBloom(lbl: Label): Long = {
+    if (lbl == Label.V.wildcard) {
+      0l
+    }
+    else {
+      val pos = hash(lbl) % blockSize
+      pack(1, pos.toInt)
     }
   }
 
@@ -131,6 +136,16 @@ class HeadTailFingerprint(val blockSize: Int) extends Fingerprint {
       v.fingerprintCache = this.calcFingerprint(v)
     }
     v.fingerprintCache
+  }
+
+  def labelBloom(lbl: Label): Long = {
+    if (lbl == Label.V.wildcard) {
+      0l
+    }
+    else {
+      val pos = hash(lbl) % (blockSize - 1) // shrink for head bit
+      pack(1, pos.toInt)
+    }
   }
 
   def headBlock(v: Vertex): Long = {
