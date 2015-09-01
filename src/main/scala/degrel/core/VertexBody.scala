@@ -16,6 +16,9 @@ object VertexBody {
 trait VertexBody extends Vertex {
   protected var headerRef: WeakReference[VertexHeader] = null
 
+  var fingerprintCache: Long = Fingerprint.EMPTY
+
+
   def attr(key: Label): Option[String] = {
     attributes.get(key)
   }

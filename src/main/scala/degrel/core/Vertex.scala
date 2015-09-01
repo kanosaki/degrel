@@ -177,9 +177,16 @@ trait Vertex extends Element with Comparable[Vertex] {
     this.neighbors.filter(pred)
   }
 
-  def hash: VertexHash = {
-    VertexHash(this)
+  def fingerprint(implicit fp: Fingerprint = Fingerprint.default): Long = {
+    if (this.fingerprintCache == 0) {
+      this.fingerprintCache = fp.get(this)
+    }
+    this.fingerprintCache
   }
+
+  def fingerprintCache: Long
+
+  def fingerprintCache_=(fp: Long): Unit
 }
 
 object Vertex {

@@ -18,4 +18,8 @@ class BuiltinRule extends Rule {
   override def attr(key: Label): Option[String] = ???
 
   override def id: ID = ???
+
+  override def fingerprintCache: Long = ???
+
+  override def fingerprintCache_=(fp: Long): Unit = ???
 }
