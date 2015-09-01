@@ -1,5 +1,7 @@
 package degrel.core
 
+import java.util.Random
+
 trait Fingerprint {
   def get(v: Vertex): Long
 
@@ -23,7 +25,7 @@ trait Fingerprint {
   }
 
   def hash(obj: AnyRef): Long = {
-    xorShift(obj.hashCode())
+    new Random(obj.hashCode()).nextLong()
   }
 
   def formatBits(data: Long): String = {
@@ -51,14 +53,6 @@ trait Fingerprint {
 
   def printlnBits(data: Long): Unit = {
     println(formatBits(data))
-  }
-
-  def xorShift(seed: Long): Long = {
-    var x = seed
-    x ^= (x << 21)
-    x ^= (x >>> 35)
-    x ^= (x << 4)
-    x
   }
 }
 
