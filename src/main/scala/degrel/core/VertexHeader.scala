@@ -35,6 +35,14 @@ trait VertexHeader extends Vertex {
 
 
   val id: ID = ID.autoAssign
+
+  def fingerprintCache: Long = {
+    body.fingerprintCache
+  }
+
+  def fingerprintCache_=(fp: Long): Unit = {
+    body.fingerprintCache = fp
+  }
 }
 
 object VertexHeader {
