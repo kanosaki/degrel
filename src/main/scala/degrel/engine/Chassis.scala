@@ -56,6 +56,29 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
   def main: Driver = {
     repository.get(Label.N.main).get
   }
+
+  object diagnostics {
+    var rewriteTryCount: Long = 0
+    var rewriteExecCount: Long = 0
+    val rewriteSpan = new ProcedureSpan("rewrite")
+    val matchSpan = new ProcedureSpan("match")
+    val buildSpan = new ProcedureSpan("build")
+  }
+
+}
+
+class ProcedureSpan(val name: String) {
+  var accNanoTime: Long = 0
+  var callCount: Long = 0
+
+  def enter[T](f: => T): T = {
+    val begin = System.nanoTime()
+    val ret = f
+    val duration = System.nanoTime() - begin
+    callCount += 1
+    accNanoTime += duration
+    ret
+  }
 }
 
 object Chassis {

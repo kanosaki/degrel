@@ -9,12 +9,17 @@ class FileEntry(bootstrapper: Bootstrapper, path: Path, quiet: Boolean) {
     val chassis = bootstrapper.createChassis(path.toFile)
     val bi = new BenchmarkInterpreter(chassis, quiet)
     bi.start()
+    val diag = bi.chassis.diagnostics
     new ReportUnit(path.toString,
                    bi.totalSteps,
                    bi.startTime,
                    bi.finishTime,
                    bi.initialSize,
-                   bi.chassis.main.wholeTryCount,
+                   diag.rewriteTryCount,
+                   diag.rewriteSpan.callCount,
+                   diag.rewriteSpan.accNanoTime,
+                   diag.matchSpan.accNanoTime,
+                   diag.buildSpan.accNanoTime,
                    bi.rewriteeSetName)
   }
 

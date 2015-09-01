@@ -15,10 +15,18 @@ class ReportUnit(name: String,
                  end: LocalDateTime,
                  initialMainSize: Long,
                  rewriteTryCount: Long,
+                 rewriteExecCount: Long,
+                 rewriteNanoTime: Long,
+                 matchNanoTime: Long,
+                 builtNanoTime: Long,
                  rewriteeSetName: String) {
   val elapsed = ChronoUnit.MILLIS.between(begin, end)
   val rps = totalSteps.toFloat / (elapsed.toFloat / 1000)
   val datetimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS")
+
+  private def long2DoubleSec(nanoSec: Long): Double = {
+    nanoSec.toDouble / Math.pow(1000, 3)
+  }
 
   def toTableRowForPrint: Array[AnyRef] = {
     Array(FilenameUtils.getName(name),
@@ -27,7 +35,11 @@ class ReportUnit(name: String,
           Long.box(initialMainSize),
           Long.box(elapsed),
           Float.box(rps),
-          Long.box(rewriteTryCount))
+          Long.box(rewriteTryCount),
+          Double.box(long2DoubleSec(rewriteNanoTime)),
+          Double.box(long2DoubleSec(matchNanoTime)),
+          Double.box(long2DoubleSec(builtNanoTime)),
+          Long.box(rewriteExecCount))
   }
 
   def toJson: JObject = {
@@ -38,11 +50,18 @@ class ReportUnit(name: String,
       ("elapsed" -> elapsed) ~
       ("rps" -> rps) ~
       ("rewriteTryCount" -> rewriteTryCount) ~
+      ("rewriteExecCount" -> rewriteExecCount) ~
       ("rewriteeSetName" -> rewriteeSetName) ~
+      ("rewriteNanoTime" -> rewriteNanoTime) ~
+      ("matchNanoTime" -> matchNanoTime) ~
+      ("builtNanoTime" -> builtNanoTime) ~
       ("initialMainSize" -> initialMainSize)
   }
 }
 
 object ReportUnit {
-  val csvRows = Array("Name", "Steps", "Rewritee", "Size", "Elapsed", "RPS", "Try")
+  val csvRows = Array(
+    "Name", "Steps", "Rewritee",
+    "Size", "Elapsed", "RPS", "Try",
+    "Rewrite", "Match", "Build", "Exec")
 }

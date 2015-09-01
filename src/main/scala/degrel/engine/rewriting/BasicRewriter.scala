@@ -27,13 +27,20 @@ abstract class BasicRewriter extends Rewriter {
   def rewrite(rt: RewritingTarget): RewriteResult = {
     val target = rt.target
     val self = rt.self
-    val mch = target.matches(rule.lhs)
+    val diagnostics = self.chassis.diagnostics
+
+    val mch = diagnostics.matchSpan.enter {
+      target.matches(rule.lhs)
+    }
+
     if (mch.success) {
       val binding = this.getBinding(mch.pack, self.binding)
       if (rule.rhs.isRule) {
         RewriteResult.Continue(rt, rule.rhs.asRule, binding)
       } else {
-        val builtGraph = molding.mold(rule.rhs, binding, self)
+        val builtGraph = diagnostics.buildSpan.enter {
+          molding.mold(rule.rhs, binding, self)
+        }
         write(rt, builtGraph)
       }
     } else {

@@ -16,14 +16,9 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
   var rewritee: RewriteeSet = new PlainRewriteeSet(this)
-  private var rewriteTryCount: Long = 0
 
   def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
-  }
-
-  def wholeTryCount: Long = {
-    rewriteTryCount + children.valuesIterator.foldLeft(0l)(_ + _.wholeTryCount)
   }
 
   val resource: Sphere = if (chassis == null) {
@@ -102,17 +97,6 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
 
   def stepFor(rw: Rewriter): Boolean = {
     val targets = this.rewritee.targetsFor(rw)
-//    val allTargets = this.rewriteTargets.toSet
-//    if (targets.size != allTargets.size) {
-//      println("----------------------------------")
-//      println(s"${targets.size} / ${allTargets.size}")
-//      if (allTargets.size > 200) {
-//        println(rw.pp)
-//        targets.foreach { t =>
-//          println(s"${t.target.pp}")
-//        }
-//      }
-//    }
     targets.exists { rc =>
       this.execRewrite(rw, rc)
     }
@@ -158,9 +142,14 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   }
 
   private def execRewrite(rw: Rewriter, rc: RewritingTarget): Boolean = {
-    rewriteTryCount += 1
-    val res = rw.rewrite(rc)
+    chassis.diagnostics.rewriteTryCount += 1
+
+    val res = chassis.diagnostics.rewriteSpan.enter {
+      rw.rewrite(rc)
+    }
+
     if (res.done) {
+      chassis.diagnostics.rewriteExecCount += 1
       res.exec(this)
       if (chassis.verbose) {
         System.err.print(Console.GREEN)
