@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+import degrel.engine.ProcedureSpan
 import org.apache.commons.io.FilenameUtils
 import org.json4s.JsonAST.JObject
 import org.json4s.JsonDSL._
@@ -14,18 +15,19 @@ class ReportUnit(name: String,
                  begin: LocalDateTime,
                  end: LocalDateTime,
                  initialMainSize: Long,
-                 rewriteTryCount: Long,
-                 rewriteExecCount: Long,
-                 rewriteNanoTime: Long,
-                 matchNanoTime: Long,
-                 builtNanoTime: Long,
+                 spans: Seq[ProcedureSpan],
                  rewriteeSetName: String) {
   val elapsed = ChronoUnit.MILLIS.between(begin, end)
   val rps = totalSteps.toFloat / (elapsed.toFloat / 1000)
   val datetimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS")
 
-  private def long2DoubleSec(nanoSec: Long): Double = {
-    nanoSec.toDouble / Math.pow(1000, 3)
+  val fpCheckSpan = spans.find(_.name == "fingerprintCheck").get
+  val rewriteSpan = spans.find(_.name == "rewrite").get
+  val matchSpan = spans.find(_.name == "match").get
+  val buildSpan = spans.find(_.name == "build").get
+
+  private def nanoSecToMsec(nanoSec: Long): Long = {
+    nanoSec  / Math.pow(1000, 2).toLong
   }
 
   def toTableRowForPrint: Array[AnyRef] = {
@@ -35,11 +37,13 @@ class ReportUnit(name: String,
           Long.box(initialMainSize),
           Long.box(elapsed),
           Float.box(rps),
-          Long.box(rewriteTryCount),
-          Double.box(long2DoubleSec(rewriteNanoTime)),
-          Double.box(long2DoubleSec(matchNanoTime)),
-          Double.box(long2DoubleSec(builtNanoTime)),
-          Long.box(rewriteExecCount))
+          Long.box(fpCheckSpan.callCount),
+          Long.box(rewriteSpan.callCount),
+          Long.box(nanoSecToMsec(rewriteSpan.accNanoTime)),
+          Long.box(nanoSecToMsec(fpCheckSpan.accNanoTime)),
+          Long.box(nanoSecToMsec(matchSpan.accNanoTime)),
+          Long.box(nanoSecToMsec(buildSpan.accNanoTime))
+    )
   }
 
   def toJson: JObject = {
@@ -49,12 +53,7 @@ class ReportUnit(name: String,
       ("end" -> degrel.utils.DateTime.strftime(end)) ~
       ("elapsed" -> elapsed) ~
       ("rps" -> rps) ~
-      ("rewriteTryCount" -> rewriteTryCount) ~
-      ("rewriteExecCount" -> rewriteExecCount) ~
-      ("rewriteeSetName" -> rewriteeSetName) ~
-      ("rewriteNanoTime" -> rewriteNanoTime) ~
-      ("matchNanoTime" -> matchNanoTime) ~
-      ("builtNanoTime" -> builtNanoTime) ~
+      ("spans" -> spans.map(ps => (ps.name, ps.toJson)).toMap) ~
       ("initialMainSize" -> initialMainSize)
   }
 }
@@ -62,6 +61,6 @@ class ReportUnit(name: String,
 object ReportUnit {
   val csvRows = Array(
     "Name", "Steps", "Rewritee",
-    "Size", "Elapsed", "RPS", "Try",
-    "Rewrite", "Match", "Build", "Exec")
+    "Size", "Elapsed", "RPS", "FpTry", "RwTry",
+    "Rewrite", "Fp", "Match", "Build")
 }

@@ -8,7 +8,7 @@
       "template": "dup2.dg.template",
       "reverse": true,
       "try_count": 1,
-      "noise_range_length": 10,
+      "noise_range_length": 3,
       "warm_up": 0
     }
   ]

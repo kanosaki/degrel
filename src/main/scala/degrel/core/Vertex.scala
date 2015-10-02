@@ -178,7 +178,7 @@ trait Vertex extends Element with Comparable[Vertex] {
   }
 
   def fingerprint(implicit fp: Fingerprint = Fingerprint.default): Long = {
-    if (this.fingerprintCache == 0) {
+    if (this.fingerprintCache == Fingerprint.EMPTY) {
       this.fingerprintCache = fp.get(this)
     }
     this.fingerprintCache

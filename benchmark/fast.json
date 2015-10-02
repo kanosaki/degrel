@@ -19,6 +19,13 @@
       "noise_range_length": 10,
       "warm_up": 3
     }
-
-  ]
+  ],
+  "charts": {
+    "plots": [
+      {
+        "name": "Size-RPS.eps",
+        "xaxis": ""
+      }
+    ]
+  }
 }

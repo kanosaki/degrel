@@ -3,6 +3,9 @@ package degrel.engine
 import degrel.core.{Cell, Label, Vertex}
 import degrel.engine.namespace.Repository
 import degrel.engine.sphere.Sphere
+import org.json4s.JsonAST.JObject
+
+import org.json4s.JsonDSL._
 
 /**
  * 名前空間を管理し`Driver`のためのfactoryクラスとして動作します
@@ -63,6 +66,11 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
     val rewriteSpan = new ProcedureSpan("rewrite")
     val matchSpan = new ProcedureSpan("match")
     val buildSpan = new ProcedureSpan("build")
+    val applySpan = new ProcedureSpan("apply")
+    val spawnSpan = new ProcedureSpan("spawn")
+    val fingerprintCheckSpan = new ProcedureSpan("fingerprintCheck")
+
+    def spans = Seq(rewriteSpan, matchSpan, buildSpan, applySpan, spawnSpan, fingerprintCheckSpan)
   }
 
 }
@@ -71,6 +79,10 @@ class ProcedureSpan(val name: String) {
   var accNanoTime: Long = 0
   var callCount: Long = 0
 
+  def aveNanoTime: Long = {
+    accNanoTime / callCount
+  }
+
   def enter[T](f: => T): T = {
     val begin = System.nanoTime()
     val ret = f
@@ -78,6 +90,12 @@ class ProcedureSpan(val name: String) {
     callCount += 1
     accNanoTime += duration
     ret
+  }
+
+  def toJson: JObject = {
+    ("name" -> name) ~
+      ("accNanoTime" -> accNanoTime) ~
+      ("callCount" -> callCount)
   }
 }
 

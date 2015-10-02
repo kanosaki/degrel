@@ -12,5 +12,9 @@ class LocalVertexHeader(private var _body: VertexBody) extends VertexHeader {
     _body.header = this
   }
 
+  def clearReverseFingerprint(depth: Int): Unit = {
+
+  }
+
   override def shallowCopy(): Vertex = ???
 }

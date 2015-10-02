@@ -15,6 +15,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   implicit val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
+  implicit val fp = Fingerprint.default
   var rewritee: RewriteeSet = new PlainRewriteeSet(this)
 
   def isActive: Boolean = {
@@ -142,26 +143,34 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   }
 
   private def execRewrite(rw: Rewriter, rc: RewritingTarget): Boolean = {
-    chassis.diagnostics.rewriteTryCount += 1
-
-    val res = chassis.diagnostics.rewriteSpan.enter {
-      rw.rewrite(rc)
+    val fpCheck = chassis.diagnostics.fingerprintCheckSpan.enter {
+      val rwFp = rw.pattern.fingerprint
+      val tFp = rc.target.fingerprint
+      (rwFp & tFp) == rwFp
     }
-
-    if (res.done) {
-      chassis.diagnostics.rewriteExecCount += 1
-      res.exec(this)
-      if (chassis.verbose) {
-        System.err.print(Console.GREEN)
-        System.err.println("--- Apply ---")
-        System.err.println(rw.pp)
-        System.err.print(Console.BLUE)
-        System.err.println("--- Result ---")
-        System.err.println(this.header.pp)
-        System.err.println(Console.RESET)
+    if (!fpCheck) {
+      false
+    } else {
+      val res = chassis.diagnostics.rewriteSpan.enter {
+        rw.rewrite(rc)
       }
+
+      if (res.done) {
+        chassis.diagnostics.applySpan.enter {
+          res.exec(this)
+        }
+        if (chassis.verbose) {
+          System.err.print(Console.GREEN)
+          System.err.println("--- Apply ---")
+          System.err.println(rw.pp)
+          System.err.print(Console.BLUE)
+          System.err.println("--- Result ---")
+          System.err.println(this.header.pp)
+          System.err.println(Console.RESET)
+        }
+      }
+      res.done
     }
-    res.done
   }
 
   def addContinueRewriter(rw: ContinueRewriter) = {
@@ -189,6 +198,7 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
     if (value.isCell) {
       this.spawn(value.asCell)
     }
+    this.rewritee.onAddRoot(target, value)
     target.addRoot(value)
   }
 

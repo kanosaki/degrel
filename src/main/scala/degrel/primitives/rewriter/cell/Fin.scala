@@ -25,7 +25,7 @@ class Fin extends Rewriter {
   }
 
 
-  override def pattern: Vertex = parse("fin(_)")
+  override def pattern: Vertex = parse("__cell__(__item__: fin(_))")
 
   override def pp(implicit opt: PrettyPrintOptions): String = {
     "<Built-in rule 'Fin'>"

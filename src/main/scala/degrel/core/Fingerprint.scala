@@ -17,7 +17,7 @@ trait Fingerprint {
   def hash(obj: AnyRef): Long = {
     val v = new Random(obj.hashCode()).nextLong()
     if (v < 0) {
-      -v
+      ~v
     } else {
       v
     }
@@ -56,7 +56,7 @@ class DepthFingerprint(val blockSize: Int, val depth: Int) extends Fingerprint {
   assert(depth >= 0)
 
   private def calcFp(v: Vertex, curDepth: Int, targetDepth: Int): Long = {
-    if (curDepth < targetDepth) {
+    if (curDepth < targetDepth && v.label != Label.V.cell) {
       var ret: Long = 0
       v.edges.foreach { e =>
         ret |= calcFp(e.dst, curDepth + 1, targetDepth)
@@ -100,7 +100,7 @@ class DepthFingerprint(val blockSize: Int, val depth: Int) extends Fingerprint {
 class PathFingerprint(_bs: Int, _d: Int) extends DepthFingerprint(_bs, _d) {
 
   private def calcFp(v: Vertex, curDepth: Int, targetDepth: Int, offset: Int): Long = {
-    if (curDepth < targetDepth) {
+    if (curDepth < targetDepth && v.label != Label.V.cell) {
       var ret: Long = 0
       v.edges.foreach { e =>
         val nextOffset = offset + (hash(e.label) % blockSize).toInt
@@ -168,7 +168,9 @@ class HeadTailFingerprint(val blockSize: Int) extends Fingerprint {
 }
 
 object Fingerprint {
-  val default = new HeadTailFingerprint(16)
+  val default = new PathFingerprint(20, 3)
 
   val EMPTY = Long.MinValue // 1000000....
+
+  val ANY = -1l // 111111...
 }
