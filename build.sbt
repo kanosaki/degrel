@@ -1,13 +1,8 @@
 
-import AssemblyKeys._
-
+import com.typesafe.sbt.SbtMultiJvm.MultiJvmKeys.MultiJvm
 import com.typesafe.sbt.SbtStartScript
 
 seq(SbtStartScript.startScriptForClassesSettings: _*)
-
-name := "degrel"
-
-scalaVersion := "2.11.7"
 
 //resolvers += "Twitter Repository" at "http://maven.twitter.com"
 
@@ -15,14 +10,12 @@ scalaVersion := "2.11.7"
 
 resolvers += Resolver.sonatypeRepo("public")
 
-libraryDependencies ++= { 
+val akkaVersion = "2.4.0"
+
+lazy val coreLibs = { 
   val scalazVersion = "7.1.3"
-  val akkaVersion = "2.3.12"
   val sprayVersion = "1.3.3"
-  val graphStreamVersion = "1.2"
   Seq(
-    "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
-    "org.scalamock" %% "scalamock-scalatest-support" % "3.2.1" % "test",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
     "ch.qos.logback" % "logback-classic" % "1.1.2",
     "com.github.scopt" %% "scopt" % "3.3.0",
@@ -35,43 +28,87 @@ libraryDependencies ++= {
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
     "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
     "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test",
-    "com.typesafe.akka" % "akka-actor_2.11" % akkaVersion,
-    "com.typesafe.akka" % "akka-testkit_2.11" % akkaVersion,
-    "com.typesafe.akka" % "akka-slf4j_2.11" % akkaVersion,
-    "com.typesafe.akka" % "akka-remote_2.11" % akkaVersion,
-    "com.typesafe.akka" % "akka-agent_2.11" % akkaVersion,
+    "com.typesafe.akka" %% "akka-actor" % akkaVersion,
+    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
+    "com.typesafe.akka" %% "akka-remote" % akkaVersion,
+    "com.typesafe.akka" %% "akka-agent" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "io.spray"  %%  "spray-can"     % sprayVersion,
     "io.spray"  %%  "spray-routing-shapeless2" % sprayVersion,
     "io.spray"  %%  "spray-testkit" % sprayVersion  % "test",
     "org.json4s" %% "json4s-native" % "3.2.11",
     "org.scaldi" %% "scaldi" % "0.5.5",
     "org.scaldi" %% "scaldi-akka" % "0.5.5",
-    "org.controlsfx" % "controlsfx" % "8.20.8",
-    "com.github.monkeysintown" % "jgraphx" % "3.1.2.1",
-    "org.graphstream" % "gs-core" % graphStreamVersion,
-    "org.graphstream" % "gs-ui" % graphStreamVersion,
-    "org.graphstream" % "gs-algo" % graphStreamVersion,
-    "org.scala-lang.modules" %% "scala-xml" % "1.0.3",
+    "org.scala-lang.modules" %% "scala-xml" % "1.0.4",
     "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.5.1",
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.0",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.5.1",
     "org.parboiled" %% "parboiled" % "2.1.0",
     "com.opencsv" % "opencsv" % "3.3"
   )
 }
 
-scalacOptions ++= Seq("-feature", "-deprecation")
+lazy val testLibs = { 
+  Seq(
+    "org.scalatest" %% "scalatest" % "2.2.4" % "test",
+    "org.scalamock" %% "scalamock-scalatest-support" % "3.2.1" % "test",
+    "com.typesafe.akka" %% "akka-testkit" % akkaVersion,
+    "com.typesafe.akka" %% "akka-multi-node-testkit" % akkaVersion
+  )
+}
 
-//scalacOptions in (Compile,doc) := Seq("-d doc/wiki/scaladoc")
+lazy val fxFrontLibs = { 
+  val graphStreamVersion = "1.2"
+  Seq(
+    "org.controlsfx" % "controlsfx" % "8.20.8",
+    "com.github.monkeysintown" % "jgraphx" % "3.1.2.1",
+    "org.graphstream" % "gs-core" % graphStreamVersion,
+    "org.graphstream" % "gs-ui" % graphStreamVersion,
+    "org.graphstream" % "gs-algo" % graphStreamVersion
+  )
+}
+
+lazy val commonSettings = Seq(
+    organization := "in.teor",
+    version := "0.1",
+    scalaVersion := "2.11.7",
+    scalacOptions ++= Seq("-feature", "-deprecation")
+  )
+
+lazy val root = (project in file(".")).
+  settings(SbtMultiJvm.multiJvmSettings).
+  settings(commonSettings: _*).
+  settings(
+      name := "degrel",
+      libraryDependencies ++= coreLibs ++ testLibs ++ fxFrontLibs,
+      mainClass in assembly := Some("degrel.Main"),
+      mainClass in Compile := Some("degrel.Main"),
+      test in assembly := {},
+      compile in MultiJvm <<= (compile in MultiJvm) triggeredBy (compile in Test),
+      parallelExecution in Test := false,
+      executeTests in Test <<= (executeTests in Test, executeTests in MultiJvm) map {
+        case (testResults, multiNodeResults) => 
+          val overall =
+            if (testResults.overall.id < multiNodeResults.overall.id)
+              multiNodeResults.overall
+            else
+              testResults.overall
+          Tests.Output(overall,
+            testResults.events ++ multiNodeResults.events,
+            testResults.summaries ++ multiNodeResults.summaries)
+      }
+    ).
+  configs(MultiJvm)
+
 
 initialCommands in console := "import scalaz._, Scalaz._"
 
-assemblySettings
+//scalacOptions in (Compile,doc) := Seq("-d doc/wiki/scaladoc")
 
-mainClass in assembly := Some("degrel.Main")
 
-mainClass in Compile := Some("degrel.Main")
-
-test in assembly := {}
+//assemblySettings
 
 // for windows
 javacOptions in compile ++= Seq("-encoding", "UTF-8")
