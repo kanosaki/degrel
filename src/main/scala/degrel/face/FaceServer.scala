@@ -3,7 +3,7 @@ package degrel.face
 import java.awt.Desktop
 import java.net.URI
 
-import akka.actor.Props
+import akka.actor.{ActorSystem, Props}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
@@ -13,7 +13,7 @@ import spray.can.Http
 import scala.concurrent.duration._
 
 class FaceServer(implicit inj: Injector) {
-  implicit val system = degrel.engine.system
+  implicit val system = ActorSystem("faceServer")
   implicit val timeout = Timeout(5.seconds)
 
   val service = {

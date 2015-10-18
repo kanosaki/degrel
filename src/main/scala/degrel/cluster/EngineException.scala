@@ -1,4 +1,4 @@
-package degrel.engine
+package degrel.cluster
 
 import degrel.DefaultDegrelException
 
