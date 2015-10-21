@@ -1,7 +1,7 @@
 package degrel.front.graphbuilder
 
 import degrel.core._
-import degrel.front.AstCell
+import degrel.front.{AstLabel, AstCell}
 
 class CellBuilder(val parent: Primitive,
                   val ast: AstCell) extends Builder[Cell] {
@@ -22,15 +22,23 @@ class CellBuilder(val parent: Primitive,
     case MainPhase => {
     }
     case FinalizePhase => {
-      val rules = rootChildren.filter(_.header.isInstanceOf[Rule]).map(_.header.asInstanceOf[Rule])
-      val roots = rootChildren.filter(!_.header.isInstanceOf[Rule]).map(_.header)
-      val bases = edgeChildren.filter(_._1.expr == Label.E.cellBase.expr).map {
-        case (label, builder) => {
+      val rules = rootChildren.collect {
+        case r if r.header.isInstanceOf[Rule] => r.header.asInstanceOf[Rule]
+      }
+      val roots = rootChildren.collect {
+        case r if !r.header.isInstanceOf[Rule] => r.header
+      }
+      val bases = edgeChildren.collect {
+        case (AstLabel(lbl), builder) if lbl == Label.E.cellBase.expr => {
           builder.header
         }
       }
-      val others = edgeChildren.filter(_._1.expr != Label.E.cellBase.expr).map(e => Edge(this.header, Label(e._1.expr), e._2.header))
-      val body = new CellBody(roots, rules, bases, others)
+      val others = edgeChildren.collect {
+        case (AstLabel(l), builder) if l != Label.E.cellBase.expr => {
+          Edge(this.header, Label(l), builder.header)
+        }
+      }
+      val body = CellBody(roots, rules, bases, others)
       header.write(body)
     }
     case _ =>

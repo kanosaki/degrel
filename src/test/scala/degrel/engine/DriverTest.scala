@@ -83,6 +83,22 @@ class DriverTest extends FlatSpec {
         |}
       """.stripMargin),
 
+    ("spawn and fin a cell",
+      """{
+        | foo(hoge)
+        | foo(@X) -> {
+        |   fin foobar(X)
+        | }
+        |}
+      """.stripMargin,
+      """{
+        | foobar(hoge)
+        | foo(@X) -> {
+        |   fin foobar(X)
+        | }
+        |}
+      """.stripMargin),
+
     ("Rewrite multi vertices with multi rules each other.",
       """{
         | a

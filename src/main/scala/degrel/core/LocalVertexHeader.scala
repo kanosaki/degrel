@@ -1,6 +1,6 @@
 package degrel.core
 
-class LocalVertexHeader(private var _body: VertexBody) extends VertexHeader {
+class LocalVertexHeader(protected var _body: VertexBody, override val id: ID = ID.autoAssign) extends VertexHeader {
 
   override def body: VertexBody = _body
 

@@ -4,17 +4,19 @@ import degrel.engine.rewriting.Binding
 
 import scala.collection.mutable
 
-class CellBody(initRoots: Iterable[Vertex],
-               initRules: Iterable[Vertex],
-               initBases: Iterable[Vertex],
+class CellBody(private val _roots: mutable.ListBuffer[Vertex],
+               private val _rules: mutable.ListBuffer[Rule],
+               private val _bases: mutable.ListBuffer[Vertex],
                val otherEdges: Seq[Edge],
-               override val binding: Binding = Binding.empty()) extends VertexBody with Cell {
-  private lazy val _rules = mutable.ListBuffer(initRules.map(_.asRule).toSeq: _*)
-  private lazy val _roots = mutable.ListBuffer(initRoots.toSeq: _*)
+               override val binding: Binding) extends VertexBody with Cell {
+  //private lazy val _rules =
+  //private lazy val _roots =
 
   override def rules: Seq[Rule] = _rules
 
   override def roots: Seq[Vertex] = _roots
+
+  override def bases: Seq[Cell] = _bases.map(_.unref[Cell])
 
   override def edges: Iterable[Edge] =
     roots.map(Edge(this, Label.E.cellItem, _)) ++
@@ -24,7 +26,7 @@ class CellBody(initRoots: Iterable[Vertex],
 
   override def attributes: Map[Label, String] = Map()
 
-  override def shallowCopy(): Vertex = new CellBody(roots, rules, bases, otherEdges)
+  override def shallowCopy(): Vertex = CellBody(roots, rules, bases, otherEdges)
 
   override def label: Label = Label.V.cell
 
@@ -53,15 +55,30 @@ class CellBody(initRoots: Iterable[Vertex],
    * この`Cell`の元になるCell．
    * 規則を継承します
    */
-  override lazy val bases: Seq[Cell] = initBases.map(_.unref[Cell]).toSeq
+  //override lazy val bases: Seq[Cell] =
 }
 
 object CellBody {
-  def apply(edges: Iterable[Edge]) = {
+  def apply(edges: Iterable[Edge]): CellBody = {
     val roots = edges.filter(_.label == Label.E.cellItem).map(_.dst)
-    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst.toRule)
+    val rules = edges.filter(_.label == Label.E.cellRule).map(_.dst)
     val bases = edges.filter(_.label == Label.E.cellBase).map(_.dst).toSeq
     val others = edges.filter(l => l.label != Label.E.cellItem && l.label != Label.E.cellRule && l.label != Label.E.cellBase).toSeq
-    new CellBody(roots, rules, bases, others)
+    CellBody(roots, rules, bases, others)
+  }
+
+  def apply(initRoots: Iterable[Vertex],
+            initRules: Iterable[Vertex],
+            initBases: Iterable[Vertex],
+            otherEdges: Seq[Edge],
+            binding: Binding = Binding.empty()): CellBody = {
+    new CellBody(
+      mutable.ListBuffer(initRoots.toSeq: _*),
+      mutable.ListBuffer(initRules.map(_.toRule).toSeq: _*),
+      mutable.ListBuffer(initBases.toSeq: _*),
+      otherEdges,
+      binding
+    )
   }
 }
+

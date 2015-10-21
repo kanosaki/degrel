@@ -23,7 +23,7 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   /**
    * このグラフ要素への参照用のヘッダ
    */
-  override val header: Rule = new RuleVertexHeader(null, null)
+  override val header: Rule = Rule(null)
 
   /**
    * このグラフ要素を直接内包するCell

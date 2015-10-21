@@ -1,10 +1,11 @@
-package degrel.cluster
+package multinodetest
 
 import akka.actor.Props
 import akka.cluster.Cluster
 import akka.remote.testkit.{MultiNodeConfig, MultiNodeSpec}
 import akka.testkit.ImplicitSender
 import com.typesafe.config.ConfigFactory
+import degrel.cluster.{Engine, Island}
 import org.scalatest._
 
 import scala.concurrent.duration._

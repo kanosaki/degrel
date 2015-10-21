@@ -7,6 +7,7 @@ object VertexBody {
   def apply(label: Label, attributes: Map[Label, String], allEdges: Iterable[Edge], id: ID): VertexBody = {
     label match {
       case Label.V.reference => new ReferenceVertexBody(label, attributes, allEdges)
+      case Label.V.rule => RuleVertexBody(allEdges.find(_.label == Label.E.lhs).get.dst, allEdges.find(_.label == Label.E.rhs).get.dst)
       case Label.V.cell => CellBody(allEdges)
       case _ => new LocalVertexBody(label, attributes, allEdges)
     }

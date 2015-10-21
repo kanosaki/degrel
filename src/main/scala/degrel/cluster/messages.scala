@@ -20,6 +20,8 @@ object messages {
   // control
   case object IslandRegistration
 
+  case class Hello()
+
 
   // == cell id ?
   val defaultExtractEntityId: ShardRegion.ExtractEntityId = {

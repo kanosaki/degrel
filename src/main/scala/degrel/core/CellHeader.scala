@@ -2,7 +2,7 @@ package degrel.core
 
 import degrel.engine.rewriting.Binding
 
-class CellHeader(bdy: CellBody) extends LocalVertexHeader(bdy) with Cell {
+class CellHeader(bdy: CellBody, override val id: ID = ID.autoAssign) extends LocalVertexHeader(bdy) with Cell {
 
   private def bodyAsCell: CellBody = {
     this.body.asInstanceOf[CellBody]

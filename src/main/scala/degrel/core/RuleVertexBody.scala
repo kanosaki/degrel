@@ -10,7 +10,7 @@ case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
 
   override def asRule: Rule = this
 
-  def rhs = _rhs
+  override def rhs = _rhs
 
-  def lhs = _lhs
+  override def lhs = _lhs
 }

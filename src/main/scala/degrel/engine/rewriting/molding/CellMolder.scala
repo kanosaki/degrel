@@ -21,11 +21,11 @@ class CellMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
    */
   private def doMold(): Unit = {
     val moldCell = mold.asCell
-    val cb = new CellBody(this.children.map(_.header),
-                          Seq(),
-                          Seq(mold.asCell),
-                          moldCell.otherEdges,
-                          Binding.chain(context.binding, moldCell.binding))
+    val cb = CellBody(this.children.map(_.header),
+                      Seq(),
+                      Seq(mold.asCell),
+                      moldCell.otherEdges,
+                      Binding.chain(context.binding, moldCell.binding))
     this.header.write(cb)
   }
 
