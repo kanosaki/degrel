@@ -3,7 +3,7 @@ package degrel.cluster
 import akka.actor.{Actor, ActorLogging, ActorRef}
 import akka.pattern.ask
 import akka.util.Timeout
-import degrel.core.{Vertex, Cell}
+import degrel.core.{Cell, Vertex}
 
 import scala.collection.mutable
 import scala.concurrent.duration._
@@ -11,10 +11,11 @@ import scala.concurrent.duration._
 // Akka controller
 class Engine() extends Actor with ActorLogging {
   val islands = mutable.ListBuffer[ActorRef]()
+  val node = new LocalNode(context.system.name, context.system.settings.config)
 
-  import messages._
-  import context.dispatcher
   import Engine.messages._
+  import context.dispatcher
+  import messages._
 
   override def receive = {
     case IslandRegistration if !islands.contains(sender()) => {
@@ -27,9 +28,15 @@ class Engine() extends Actor with ActorLogging {
     case Rewrite(cell) if islands.nonEmpty => {
       val rootIsland = islands.head
       implicit val timeout = Timeout(10.hours)
-      rootIsland ? Push(cell) onSuccess {
+      val packed = node.exchanger.packAll(cell)
+      val origin = sender()
+      rootIsland ? Push(packed) onSuccess {
         case Fin(v) =>
-          sender() ! Result(v)
+          val unpacked = node.exchanger.unpack(v)
+          log.info("-----------------------------------------")
+          log.info(s"Engine receive: ${unpacked.pp}")
+          log.info("-----------------------------------------")
+          origin ! Result(unpacked)
       }
     }
   }

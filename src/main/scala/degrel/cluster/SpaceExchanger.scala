@@ -38,10 +38,13 @@ class SpaceExchanger(implicit val node: LocalNode) {
       }.toVector
     }
 
-    v match {
-      case r: Rule => DRule(r.id.globalize, r.lhs.id.globalize, r.rhs.id.globalize, dAttrs())
-      case c: Cell => DCell(c.id.globalize, dAttrs(), dEdges(), Seq())
-      case v: Vertex => DPlainVertex(v.id.globalize, v.label.expr, dAttrs(), dEdges())
+    v.label match {
+      case Label.V.rule => {
+        val r = v.asRule
+        DRule(v.id.globalize, r.lhs.id.globalize, r.rhs.id.globalize, dAttrs())
+      }
+      case Label.V.cell => DCell(v.id.globalize, dAttrs(), dEdges(), Seq())
+      case _ => DPlainVertex(v.id.globalize, v.label.expr, dAttrs(), dEdges())
     }
   }
 

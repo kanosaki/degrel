@@ -3,6 +3,7 @@ package degrel.cluster
 import akka.actor._
 import akka.cluster.ClusterEvent._
 import akka.cluster.{Cluster, Member}
+import degrel.engine.Driver
 
 import scala.collection.mutable
 
@@ -15,6 +16,7 @@ class Island extends Actor with ActorLogging {
 
   val islands = mutable.ListBuffer[ActorSelection]()
   val controllers = mutable.ListBuffer[ActorSelection]()
+  val node = new LocalNode(context.system.name, context.system.settings.config)
 
 
   @throws[Exception](classOf[Exception])
@@ -53,10 +55,14 @@ class Island extends Actor with ActorLogging {
       log.info("Member is Removed: {} after {}", member.address, previousStatus)
     case e: MemberEvent => log.info(s"MemberEvent: $e")
     case messages.Push(msg) => {
-      log.info("=====================================================================")
-      log.info(s"${msg.pp}")
-      log.info("=====================================================================")
-      sender() ! messages.Fin(degrel.parseVertex("a"))
+      val unpacked = node.exchanger.unpack(msg)
+      if (unpacked.isCell) {
+        val driver = Driver(unpacked.asCell)
+        driver.stepUntilStop()
+        val packed = node.exchanger.packAll(driver.header)
+        sender() ! messages.Fin(packed)
+      }
+
     }
   }
 }

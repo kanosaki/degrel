@@ -178,15 +178,12 @@ class Driver(val header: Vertex, val chassis: Chassis, val parent: Driver = null
   }
 
   def writeVertex(target: RewritingTarget, value: Vertex): Unit = {
-    if (target.target == this.header) {
-      if (this.parent == null) {
-        throw DegrelException("Destroying root cell!")
-      } else {
-        this.parent.writeVertex(target, value)
-      }
+    if (target.target == this.header && this.parent != null) {
+      this.parent.writeVertex(target, value)
+    } else {
+      this.rewritee.onWriteVertex(target, value)
+      target.target.write(value)
     }
-    this.rewritee.onWriteVertex(target, value)
-    target.target.write(value)
   }
 
   def removeRoot(v: Vertex): Unit = {

@@ -10,6 +10,7 @@ import org.scalatest._
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import degrel.utils.TestUtils._
 
 
 object IslandConfig extends MultiNodeConfig {
@@ -74,16 +75,16 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
       enterBarrier("setup-complete")
     }
 
-    "return empty" in within(10.seconds) {
+    "interpret a graph" in within(15.seconds) {
       runOn(controller) {
         val engine = system.actorSelection(s"akka://${system.name}/user/engine")
         val req = degrel.parseVertex("{fin a}").asCell
         val expected = degrel.parseVertex("a")
-        log.info("================ MESSAGE SENDING =====================")
-        awaitAssert {
-          within(5.second) {
-            engine ! Engine.messages.Rewrite(req)
-            expectMsg(Engine.messages.Result(expected))
+        log.info("================ MESSAGE SENT =====================")
+        engine ! Engine.messages.Rewrite(req)
+        expectMsgPF() {
+          case Engine.messages.Result(msg) => {
+            msg ===~ expected
           }
         }
       }
