@@ -311,8 +311,12 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     labels ~ ':' ~ expression ~> AstCellEdge
   }
 
+  def pragmaEdge: Rule1[AstCellPragmaEdge] = rule {
+    (labels ~ ':').? ~ expression ~> AstCellPragmaEdge
+  }
+
   def cellPargma: Rule1[AstCellPragma] = rule {
-    "#" ~ ws ~ edges ~> AstCellPragma
+    "#" ~ ws ~ pragmaEdge.*(edgeSeparator) ~> AstCellPragma
   }
 
   /**

@@ -68,6 +68,11 @@ object SpecialLabels {
   val E_VALUE = '__val__
 
   /**
+   * Ruleへ実行時動作を制御するpragmaを保持するためのtagとして
+   */
+  val E_TAG = '__tag__
+
+  /**
    * パターングラフにおいて，その頂点が変数束縛対象の場合，何という名前で束縛されていたかを保存します
    */
   val A_CAPTURED_AS = '__captured_as__

@@ -61,6 +61,7 @@ object Label {
   val Vertex = V
 
   object E {
+    val tag = Label(SpecialLabels.E_TAG)
     val rhs = Label(SpecialLabels.E_RHS)
     val lhs = Label(SpecialLabels.E_LHS)
     val ref = Label(SpecialLabels.E_REFERENCE_TARGET)

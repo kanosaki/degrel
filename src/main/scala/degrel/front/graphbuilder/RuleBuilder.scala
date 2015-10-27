@@ -49,8 +49,8 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   }
 
   override def addPragma(pragma: AstCellPragma): Unit = {
-    pragma.edges.plains.foreach { e =>
-      pragmaChildren += e.label.expr -> factory.get[Vertex](this, e.dst)
+    pragma.edges.foreach { e =>
+      pragmaChildren += e.actualLabel.expr -> factory.get[Vertex](this, e.dst)
     }
   }
 }

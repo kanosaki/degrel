@@ -34,6 +34,13 @@ case class AstImport(from: Option[AstLabel],
   }
 }
 
-case class AstCellPragma(edges: AstEdges) extends AstCellItem {
+case class AstCellPragmaEdge(label: Option[AstLabel], dst: AstVertex) {
+  def actualLabel: AstLabel = label match {
+    case Some(lbl) => lbl
+    case None => AstLabel(SpecialLabel.Edge.tag.name)
+  }
+}
+
+case class AstCellPragma(edges: Seq[AstCellPragmaEdge]) extends AstCellItem {
 
 }

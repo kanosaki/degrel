@@ -12,6 +12,7 @@ object Keywords {
 object SpecialLabel {
 
   object Edge {
+    val tag = SL.E_TAG
     val lhs = SL.E_LHS
     val rhs = SL.E_RHS
     val ref = SL.E_REFERENCE_TARGET
