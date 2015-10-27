@@ -91,9 +91,7 @@ trait Vertex extends Element with Comparable[Vertex] {
   }
 
   def toRule: Rule = {
-    val rhs = this.thruSingle(Label.E.rhs)
-    val lhs = this.thruSingle(Label.E.lhs)
-    Rule(lhs, rhs)
+    Rule(this.edges)
   }
 
   def asRule: Rule = {

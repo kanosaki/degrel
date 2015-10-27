@@ -58,6 +58,7 @@ abstract class IslandTestBase extends MultiNodeSpec(IslandConfig)
 with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
 
   import IslandConfig._
+  import Engine.messages._
 
   "Island" must {
     "setup" in {
@@ -80,10 +81,10 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
         val engine = system.actorSelection(s"akka://${system.name}/user/engine")
         val req = degrel.parseVertex("{fin a}").asCell
         val expected = degrel.parseVertex("a")
-        log.info("================ MESSAGE SENT =====================")
-        engine ! Engine.messages.Rewrite(req)
+        engine ! Rewrite(req)
         expectMsgPF() {
-          case Engine.messages.Result(msg) => {
+          case Result(msg) => {
+            log.info(s"*** ${req.pp} ===> ${msg.pp}")
             msg ===~ expected
           }
         }

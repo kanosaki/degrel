@@ -1,6 +1,7 @@
 package degrel.front
 
 import org.parboiled2._
+import shapeless.{::, HNil}
 
 class ParboiledParser(val input: ParserInput) extends Parser {
   implicit val parserContext = new ParserContext()
@@ -67,7 +68,7 @@ class ParboiledParser(val input: ParserInput) extends Parser {
 
   private def blockComment: Rule0 = rule("/*" ~ (blockComment | !"*/" ~ ANY).* ~ "*/")
 
-  private def comment: Rule0 = rule(blockComment | "#" ~ (!newline ~ ANY).*)
+  private def comment: Rule0 = rule(blockComment | "//" ~ (!newline ~ ANY).*)
 
   private def commentLine = rule(quiet(WSCHAR.* ~ comment ~ WSCHAR.* ~ newline))
 
@@ -288,7 +289,7 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     AstEdges(fullPlainEs, othersEs.map(_.asInstanceOf[AstOthersEdges]))
   }
 
-  def edges = rule {
+  def edges: Rule1[AstEdges] = rule {
     ('(' ~ wl ~ edgesList(false) ~ wl ~ ')' | edgesList(true)) ~> verifyEdgeElements _
   }
 
@@ -310,19 +311,23 @@ class ParboiledParser(val input: ParserInput) extends Parser {
     labels ~ ':' ~ expression ~> AstCellEdge
   }
 
+  def cellPargma: Rule1[AstCellPragma] = rule {
+    "#" ~ ws ~ edges ~> AstCellPragma
+  }
+
   /**
    * Cellの要素
    */
   def cellItem: Rule1[AstCellItem] = rule {
-    wl ~ (cellEdge | expression) ~ semis ~ wl
+    cellPargma | cellEdge | expression
   }
 
   def cellBody: Rule1[AstCell] = rule {
-    wl ~ cellItem.* ~> AstCell
+    (wl ~ cellItem ~ semis).* ~> ((items: Seq[AstCellItem]) => AstCell(items.toVector))
   }
 
   def cell: Rule1[AstCell] = rule {
-    '{' ~ cellBody ~ '}' ~ wl
+    '{' ~ wl ~ cellBody ~ wl ~ '}'
   }
 
   /**

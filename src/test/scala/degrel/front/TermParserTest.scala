@@ -552,5 +552,26 @@ class TermParserTest extends FlatSpec {
       """.stripMargin)
     assert(graph ===~ expected)
   }
+
+  it should "parse a cell pragma" in {
+    val ast = parboiledParser(
+      """{
+        |  # foo: bar, piyo: baz
+        |  hoge -> fuga
+        |}
+      """.
+        stripMargin)
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->' : __rule__
+        |  '->' -> hoge : __lhs__
+        |  '->' -> fuga : __rhs__
+        |  '->' -> bar : foo
+        |  '->' -> baz : piyo
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
 }
 

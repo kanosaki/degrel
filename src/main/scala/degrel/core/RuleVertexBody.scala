@@ -1,16 +1,19 @@
 package degrel.core
 
-case class RuleVertexBody(_lhs: Vertex, _rhs: Vertex)
+class RuleVertexBody(override val lhs: Vertex, override val rhs: Vertex, pragmaEdges: Seq[Edge])
   extends LocalVertexBody(SpecialLabels.V_RULE, Map(), Seq())
   with Rule {
 
   override val edges: Iterable[Edge] = Seq(
-    Edge(this, SpecialLabels.E_LHS, _lhs),
-    Edge(this, SpecialLabels.E_RHS, _rhs))
+    Edge(this, SpecialLabels.E_LHS, lhs),
+    Edge(this, SpecialLabels.E_RHS, rhs)) ++ pragmaEdges
 
   override def asRule: Rule = this
+}
 
-  override def rhs = _rhs
-
-  override def lhs = _lhs
+object RuleVertexBody {
+  def apply(edges: Iterable[Edge]): RuleVertexBody = {
+    val (lhs, rhs, pragmaEdges) = Rule.splitEdges(edges)
+    new RuleVertexBody(lhs, rhs, pragmaEdges)
+  }
 }

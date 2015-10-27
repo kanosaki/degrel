@@ -5,23 +5,7 @@ import degrel.core.Cell
 /**
  * Cellを表すAST
  */
-case class AstCell(items: Seq[AstCellItem]) extends AstExpr[Cell] {
-  /**
-   * Import句
-   */
-  val imports = items.flatMap {
-    case i: AstImport => Some(i)
-    case _ => None
-  }
-
-  /**
-   * fin句
-   */
-  val fins = items.flatMap {
-    case i: AstFin => Some(i)
-    case _ => None
-  }
-
+case class AstCell(items: Vector[AstCellItem]) extends AstExpr[Cell] {
   def roots: Seq[AstVertex] = {
     items.flatMap {
       case g: AstVertex => Some(g)
@@ -50,7 +34,6 @@ case class AstImport(from: Option[AstLabel],
   }
 }
 
-case class AstFin(expr: AstVertex)(implicit ctx: ParserContext) extends AstCellItem {
+case class AstCellPragma(edges: AstEdges) extends AstCellItem {
 
 }
-

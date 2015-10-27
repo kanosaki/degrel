@@ -1,6 +1,7 @@
 package degrel.front.graphbuilder
 
 import degrel.core.{Label, Vertex, VertexHeader}
+import degrel.front.AstCellPragma
 
 /**
  * グラフは巡回するデータ構造のため，ヘッダ部とボディ部に分かれています．
@@ -72,6 +73,9 @@ trait Builder[+T <: Vertex] {
   def factory: BuilderFactory = parent match {
     case null => throw new RuntimeException(s"BuildefFactory for ${this} undefined!")
     case _ => parent.factory
+  }
+
+  def addPragma(pragma: AstCellPragma): Unit = {
   }
 }
 

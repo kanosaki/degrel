@@ -33,9 +33,7 @@ class Engine() extends Actor with ActorLogging {
       rootIsland ? Push(packed) onSuccess {
         case Fin(v) =>
           val unpacked = node.exchanger.unpack(v)
-          log.info("-----------------------------------------")
-          log.info(s"Engine receive: ${unpacked.pp}")
-          log.info("-----------------------------------------")
+          log.info(s"***** Engine result: ${unpacked.pp}")
           origin ! Result(unpacked)
       }
     }

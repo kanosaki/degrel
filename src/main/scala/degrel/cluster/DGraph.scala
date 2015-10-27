@@ -26,6 +26,7 @@ case class DPlainVertex(id: ID,
 case class DRule(id: ID,
                  lhs: ID,
                  rhs: ID,
+                 pragmaEdges: Seq[DEdge],
                  attributes: Seq[(String, String)]) extends DVertex {
 
   override def label: String = Label.V.rule.expr

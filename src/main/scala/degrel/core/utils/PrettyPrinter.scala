@@ -274,15 +274,35 @@ class PrettyPrinter(val root: Vertex)
   protected class RulePrinter(val root: Vertex, val parent: Printer) extends Printer {
     assert(root.label == Label.V.rule)
 
+    def printPragmas(edges: Seq[Edge], sb: StringBuilder)(implicit traj: Trajectory): Unit = {
+      if (!opts.multiLine) {
+        sb += '('
+      }
+      sb ++= "# "
+      repsep[Edge](edges, sb, ", ", (e, sb_) => {
+        sb ++= e.label.expr
+        sb ++= ": "
+        getPrinter(e.dst, this).print(sb)
+      })
+      if (!opts.multiLine) {
+        sb += ')'
+      } else {
+        sb += '\n'
+        sb ++= opts.indentItem * indentLevel
+      }
+    }
+
     override def print(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
       val v = root
       traj.walk(v) {
         case Unvisited(_) => {
-          val lhsRoot = v.thruSingle(Label.E.lhs)
-          val rhsRoot = v.thruSingle(Label.E.rhs)
-          getPrinter(lhsRoot, this).print(sb)
+          val (lhs, rhs, pragmaEdges) = Rule.splitEdges(root.edges)
+          if (pragmaEdges.nonEmpty) {
+            printPragmas(pragmaEdges, sb)
+          }
+          getPrinter(lhs, this).print(sb)
           sb ++= " -> "
-          getPrinter(rhsRoot, this).print(sb)
+          getPrinter(rhs, this).print(sb)
         }
         case Visited(trj) => {
           sb ++= "<RULE"

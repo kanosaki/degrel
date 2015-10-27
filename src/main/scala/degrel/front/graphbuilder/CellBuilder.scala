@@ -1,7 +1,9 @@
 package degrel.front.graphbuilder
 
 import degrel.core._
-import degrel.front.{AstLabel, AstCell}
+import degrel.front._
+
+import scala.collection.mutable
 
 class CellBuilder(val parent: Primitive,
                   val ast: AstCell) extends Builder[Cell] {
@@ -11,8 +13,31 @@ class CellBuilder(val parent: Primitive,
 
   override val variables: LexicalSymbolTable = new CellSymbolTable(parent.variables)
 
-  val rootChildren = ast.roots.map(a => factory.get(this, a))
-  val edgeChildren = ast.edges.map(e => e.label -> factory.get(this, e.dst))
+  // ASTのCellItemを走査して，pragmaをスタックしながら子とエッジを構成します
+  val (rootChildren, edgeChildren) = {
+    val retChildren = mutable.ListBuffer[Primitive]()
+    val retEdges = mutable.ListBuffer[(AstLabel, Primitive)]()
+    val pragmaStack = mutable.ListBuffer[AstCellPragma]()
+    def processItems(items: List[AstCellItem]): Unit = items match {
+      case (pragma: AstCellPragma) :: tail => {
+        pragmaStack += pragma
+        processItems(tail)
+      }
+      case (edge: AstCellEdge) :: tail => {
+        retEdges += edge.label -> factory.get(this, edge.dst)
+        processItems(tail)
+      }
+      case (v: AstVertex) :: tail => {
+        val builder = factory.get(this, v)
+        pragmaStack.foreach(builder.addPragma)
+        retChildren += builder
+        processItems(tail)
+      }
+      case _ =>
+    }
+    processItems(ast.items.toList)
+    (retChildren.toSeq, retEdges.toSeq)
+  }
 
   override def children = rootChildren ++ edgeChildren.map(_._2)
 
