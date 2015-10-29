@@ -622,5 +622,26 @@ class TermParserTest extends FlatSpec {
       """.stripMargin)
     assert(graph ===~ expected)
   }
+
+  it should "parse predicates" in {
+    val ast = parboiledParser(
+      """{
+        | foo(@X) | hoge -> piyo(X)
+        |}
+      """.stripMargin)
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ __cell__ {
+        | -> '->' : __rule__
+        | '->' -> foo : __lhs__
+        | foo -> '_' : 0
+        | '->' -> hoge : __pred__
+        | '->' -> piyo : __rhs__
+        | piyo -> __ref__ : 0
+        | __ref__ -> '_' : __to__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
 }
 

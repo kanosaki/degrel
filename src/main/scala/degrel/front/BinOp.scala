@@ -28,7 +28,7 @@ case class BinOp(expr: String,
   }
 
   def toLabel: Label = {
-    if(labelMapping == null){
+    if (labelMapping == null) {
       Label(this.expr)
     } else {
       labelMapping
@@ -58,15 +58,16 @@ object BinOp {
   val GREATER_EQUAL = BinOp(">=", -2)
   val EQUALS = BinOp("==", -3)
   val NOT_EQUALS = BinOp("!=", -3)
-  val BIT_AND = BinOp("&", -4)
-  val BIT_OR = BinOp("|", -4)
-  val BIT_XOR = BinOp("^", -4)
+  val BIT_AND = BinOp("&&&", -4)
+  val BIT_OR = BinOp("|||", -4)
+  val BIT_XOR = BinOp("^^^", -4)
   val BOOL_AND = BinOp("&&", -5)
   val BOOL_OR = BinOp("||", -6)
+  val PRED = BinOp("|", -7)
   // メッセージ送信
-  val MSG_SEND = BinOp("!", -7, OpAssoc.Right)
+  val MSG_SEND = BinOp("!", -8, OpAssoc.Right)
   // メッセージ送信 & 受信
-  val MSG_CALL = BinOp("?", -7, OpAssoc.Right)
+  val MSG_CALL = BinOp("?", -8, OpAssoc.Right)
   val RULE = BinOp("->", -10, OpAssoc.Right)
   val BIND = BinOp("=", -20, OpAssoc.Right)
 
@@ -80,6 +81,7 @@ object BinOp {
     EQUALS, NOT_EQUALS,
     BIT_AND, BIT_OR, BIT_XOR,
     BOOL_AND, BOOL_OR,
+    PRED,
     MSG_SEND, MSG_CALL,
     RULE, BIND
   )

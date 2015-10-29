@@ -40,8 +40,12 @@ class SpaceExchanger(implicit val node: LocalNode) {
 
     v.label match {
       case Label.V.rule => {
-        val (lhs, rhs, pragmaEdges) = Rule.splitEdges(v.edges)
-        DRule(v.id.globalize, lhs.id.globalize, rhs.id.globalize, pragmaEdges.map(mapEdges).toVector, dAttrs())
+        val (lhs, rhs, preds, pragmaEdges) = Rule.splitEdges(v.edges)
+        DRule(v.id.globalize,
+              lhs.id.globalize,
+              rhs.id.globalize,
+              preds.map(_.id.globalize),
+              pragmaEdges.map(mapEdges).toVector, dAttrs())
       }
       case Label.V.cell => DCell(v.id.globalize, dAttrs(), dEdges(), Seq())
       case _ => DPlainVertex(v.id.globalize, v.label.expr, dAttrs(), dEdges())

@@ -296,11 +296,13 @@ class PrettyPrinter(val root: Vertex)
       val v = root
       traj.walk(v) {
         case Unvisited(_) => {
-          val (lhs, rhs, pragmaEdges) = Rule.splitEdges(root.edges)
+          val (lhs, rhs, preds, pragmaEdges) = Rule.splitEdges(root.edges)
           if (pragmaEdges.nonEmpty) {
             printPragmas(pragmaEdges, sb)
           }
-          getPrinter(lhs, this).print(sb)
+          repsep[Vertex](Seq(lhs) ++ preds, sb, ", ", (v, sb_) => {
+            getPrinter(v, this).print(sb)
+          })
           sb ++= " -> "
           getPrinter(rhs, this).print(sb)
         }

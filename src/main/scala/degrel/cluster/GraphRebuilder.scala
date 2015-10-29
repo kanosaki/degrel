@@ -29,7 +29,11 @@ class GraphRebuilder(val source: DGraph) {
     }
     dv match {
       case _: DCell => CellBody(mkEdges())
-      case DRule(_, lhs, rhs, pragma, _) => new RuleVertexBody(fetchHeader(lhs), fetchHeader(rhs), pragma.map(concreteEdges))
+      case DRule(_, lhs, rhs, preds, pragma, _) => new RuleVertexBody(
+        fetchHeader(lhs),
+        fetchHeader(rhs),
+        preds.map(fetchHeader),
+        pragma.map(concreteEdges))
       case _ => new LocalVertexBody(dv.label, mkAttrs(), mkEdges())
     }
   }

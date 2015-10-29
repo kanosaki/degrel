@@ -64,6 +64,7 @@ object Label {
     val tag = Label(SpecialLabels.E_TAG)
     val rhs = Label(SpecialLabels.E_RHS)
     val lhs = Label(SpecialLabels.E_LHS)
+    val pred = Label(SpecialLabels.E_PREDICATE)
     val ref = Label(SpecialLabels.E_REFERENCE_TARGET)
     val others = Label(SpecialLabels.E_OTHERS)
     val include = Label(SpecialLabels.E_INCLUDE)

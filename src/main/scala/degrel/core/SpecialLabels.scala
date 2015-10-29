@@ -55,6 +55,11 @@ object SpecialLabels {
   val E_LHS = '__lhs__
 
   /**
+    * 述語
+    */
+  val E_PREDICATE = '__pred__
+
+  /**
    * Cellにおいて，
    */
   val E_CELL_RULE = '__rule__

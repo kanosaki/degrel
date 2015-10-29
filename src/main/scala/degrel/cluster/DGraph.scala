@@ -26,6 +26,7 @@ case class DPlainVertex(id: ID,
 case class DRule(id: ID,
                  lhs: ID,
                  rhs: ID,
+                 preds: Seq[ID],
                  pragmaEdges: Seq[DEdge],
                  attributes: Seq[(String, String)]) extends DVertex {
 
