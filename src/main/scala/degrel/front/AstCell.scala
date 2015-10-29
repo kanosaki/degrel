@@ -5,7 +5,7 @@ import degrel.core.Cell
 /**
  * Cellを表すAST
  */
-case class AstCell(items: Vector[AstCellItem]) extends AstExpr[Cell] {
+case class AstCell(selfBinding: Option[AstBinding], items: Vector[AstCellItem]) extends AstExpr[Cell] {
   def roots: Seq[AstVertex] = {
     items.flatMap {
       case g: AstVertex => Some(g)

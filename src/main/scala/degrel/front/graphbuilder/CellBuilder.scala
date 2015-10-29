@@ -12,6 +12,10 @@ class CellBuilder(val parent: Primitive,
   override def typeLabel: Option[Label] = Some(Label.V.cell)
 
   override val variables: LexicalSymbolTable = new CellSymbolTable(parent.variables)
+  ast.selfBinding match {
+    case Some(binding) => variables.bind(binding.expr, this, LexicalType.Vertex)
+    case _ =>
+  }
 
   // ASTのCellItemを走査して，pragmaをスタックしながら子とエッジを構成します
   val (rootChildren, edgeChildren) = {

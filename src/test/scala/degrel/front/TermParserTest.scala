@@ -573,5 +573,54 @@ class TermParserTest extends FlatSpec {
       """.stripMargin)
     assert(graph ===~ expected)
   }
+
+  it should "parse a cell pragma without edge" in {
+    val ast = parboiledParser(
+      """{
+        |  # eager, foobar
+        |  hoge -> fuga
+        |}
+      """.
+        stripMargin)
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ __cell__ {
+        |  -> '->' : __rule__
+        |  '->' -> hoge : __lhs__
+        |  '->' -> fuga : __rhs__
+        |  '->' -> eager : __tag__
+        |  '->' -> foobar : __tag__
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
+
+  it should "parse a floats" in {
+    val ast = parboiledParser(
+      """{
+        |  1
+        |  2.0
+        |  2.124
+        |}
+      """.stripMargin)
+    val graph = graphbuilder.build(ast)
+  }
+
+  it should "parse a cell self binding" in {
+    val ast = parboiledParser(
+      """{
+        | @Self
+        | foo(Self)
+        |}
+      """.stripMargin)
+    val graph = graphbuilder.build(ast)
+    val expected = parseDot(
+      """@ __cell__ {
+        | -> foo : __item__
+        | foo -> : 0
+        |}
+      """.stripMargin)
+    assert(graph ===~ expected)
+  }
 }
 

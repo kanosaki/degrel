@@ -77,6 +77,8 @@ class ParboiledParser(val input: ParserInput) extends Parser {
    */
   def wl = rule(quiet((WSCHAR | comment | newline).*))
 
+  def wl_plus = rule(quiet((WSCHAR | comment | newline).+))
+
   def lineEnd = rule(quiet(wl ~ newline))
 
   /**
@@ -106,9 +108,8 @@ class ParboiledParser(val input: ParserInput) extends Parser {
    * 浮動小数点
    */
   def float: Rule1[AstFloatVertex] = {
-    val Exp = rule(`Ee` ~ `+-`.? ~ DIGIT.+)
-    val Decimals = rule('.' ~ DIGIT.+ ~ Exp.? ~ `FfDd`.?)
-    rule(atomic(capture(Decimals | DIGIT.+ ~ (Decimals | Exp ~ `FfDd`.? | `FfDd`))) ~> AstFloatVertex)
+    val Exp = rule(ignoreCase('e') ~ optional(anyOf("+-")) ~ DIGIT.+)
+    rule(atomic(capture('-'.? ~ DIGIT.+ ~ '.' ~ DIGIT.+ ~ Exp.?)) ~> AstFloatVertex)
   }
 
   def mapEscapeChar(c: String) = c match {
@@ -327,7 +328,7 @@ class ParboiledParser(val input: ParserInput) extends Parser {
   }
 
   def cellBody: Rule1[AstCell] = rule {
-    (wl ~ cellItem ~ semis).* ~> ((items: Seq[AstCellItem]) => AstCell(items.toVector))
+    (binding ~ wl_plus).? ~ (wl ~ cellItem ~ semis).* ~> ((selfBinding: Option[AstBinding], items: Seq[AstCellItem]) => AstCell(selfBinding, items.toVector))
   }
 
   def cell: Rule1[AstCell] = rule {

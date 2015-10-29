@@ -158,7 +158,7 @@ class TermParser(val parsercontext: ParserContext = ParserContext.default) exten
   } <~ seek("}") ~> NLs
 
   def cellBody: Parser[AstCell] = cellItemList ^^ {
-    case exprs => AstCell(exprs.toVector)
+    case exprs => AstCell(None, exprs.toVector)
   }
 
   // NOTE: 副作用あり(this method has side effects)
