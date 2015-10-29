@@ -1,7 +1,7 @@
 package degrel.engine.rewriting
 
 import degrel.core.{VertexBody, Vertex, VertexHeader}
-import degrel.engine.Driver
+import degrel.engine.{Driver, LocalDriver}
 
 /**
  * @param target target vertex
@@ -17,7 +17,7 @@ case class RewritingTarget(target: VertexHeader, root: VertexHeader, self: Drive
 }
 
 object RewritingTarget {
-  def alone(v: Vertex, self: Driver = Driver()): RewritingTarget = {
+  def alone(v: Vertex, self: Driver = LocalDriver()): RewritingTarget = {
     RewritingTarget(v.asHeader, v.asHeader, self)
   }
 

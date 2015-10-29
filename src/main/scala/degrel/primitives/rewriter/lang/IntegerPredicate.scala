@@ -1,7 +1,7 @@
 package degrel.primitives.rewriter.lang
 
 import degrel.core.{Label, Vertex, VertexHeader}
-import degrel.engine.Driver
+import degrel.engine.LocalDriver$
 import degrel.engine.rewriting.{RewriteResult, Rewriter}
 import degrel.front.BinOp
 import degrel.primitives.rewriter.ValueBinOp

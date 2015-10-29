@@ -3,13 +3,13 @@ package degrel.cluster
 import akka.actor._
 import akka.cluster.ClusterEvent._
 import akka.cluster.{Cluster, Member}
-import degrel.engine.Driver
+import degrel.engine.LocalDriver
 
 import scala.collection.mutable
 
 /**
- * Worker actor for cluster
- */
+  * Worker actor for cluster
+  */
 class Island extends Actor with ActorLogging {
   val cluster = Cluster(context.system)
   val id: Int = cluster.selfUniqueAddress.uid
@@ -57,7 +57,7 @@ class Island extends Actor with ActorLogging {
     case messages.Push(msg) => {
       val unpacked = node.exchanger.unpack(msg)
       if (unpacked.isCell) {
-        val driver = Driver(unpacked.asCell)
+        val driver = LocalDriver(unpacked.asCell)
         driver.stepUntilStop()
         val packed = node.exchanger.packAll(driver.header)
         sender() ! messages.Fin(packed)

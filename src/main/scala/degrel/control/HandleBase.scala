@@ -1,15 +1,15 @@
 package degrel.control
 
-import degrel.engine.Driver
+import degrel.engine.LocalDriver
 
 abstract class HandleBase extends Handle {
-  protected var _current: Driver = null
+  protected var _current: LocalDriver = null
 
-  override def current: Driver = {
+  override def current: LocalDriver = {
     _current
   }
 
-  def setCurrent(drv: Driver) = {
+  def setCurrent(drv: LocalDriver) = {
     _current = drv
   }
 

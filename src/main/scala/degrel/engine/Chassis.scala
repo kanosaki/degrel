@@ -16,47 +16,47 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
   var sphere: Sphere = degrel.engine.sphere.default
   var verbose = false
 
-  def getResourceFor(driver: Driver): Sphere = sphere
+  def getResourceFor(driver: LocalDriver): Sphere = sphere
 
   def normalizeName(name: String): List[Symbol] = {
     name.split(namespace.NAME_DELIMITER).map(Symbol(_)).toList
   }
 
-  def getDriver(name: String): Option[Driver] = {
+  def getDriver(name: String): Option[LocalDriver] = {
     val key = this.normalizeName(name)
     this.getDriver(key)
   }
 
-  def getDriver(name: List[Symbol]): Option[Driver] = {
+  def getDriver(name: List[Symbol]): Option[LocalDriver] = {
     this.repository.get(name)
   }
 
-  def createDriver(cell: Vertex, parent: Driver = null): Driver = {
+  def createDriver(cell: Vertex, parent: LocalDriver = null): LocalDriver = {
     driverFactory.create(this, cell, parent)
   }
 
-  def addDriver(name: List[Symbol], driver: Driver): Driver = {
+  def addDriver(name: List[Symbol], driver: LocalDriver): LocalDriver = {
     this.repository.register(name, driver)
     driver
   }
 
-  def registerCell(name: List[Symbol], cell: Vertex, parent: Driver = null): Driver = {
+  def registerCell(name: List[Symbol], cell: Vertex, parent: LocalDriver = null): LocalDriver = {
     val driver = this.driverFactory.create(this, cell, parent)
     this.addDriver(name, driver)
   }
 
-  def register(name: String, cell: Vertex, parent: Driver = null): Driver = {
+  def register(name: String, cell: Vertex, parent: LocalDriver = null): LocalDriver = {
     val normalizedName = this.normalizeName(name)
-    this.registerCell(this.normalizeName(name), cell: Vertex, parent: Driver)
+    this.registerCell(this.normalizeName(name), cell: Vertex, parent: LocalDriver)
   }
 
   def repository: namespace.Repository = _repo
 
-  def getName(drv: Driver): String = {
+  def getName(drv: LocalDriver): String = {
     this.repository.getName(drv).map(_.name).mkString(namespace.NAME_DELIMITER)
   }
 
-  def main: Driver = {
+  def main: LocalDriver = {
     repository.get(Label.N.main).get
   }
 
@@ -107,13 +107,13 @@ object Chassis {
   def create(main: Cell): Chassis = {
     val repo = new Repository()
     val chassis = new Chassis(repo)
-    repo.register(Label.N.main, new Driver(main, chassis))
+    repo.register(Label.N.main, new LocalDriver(main, chassis))
     chassis
   }
 
   def createWithMain(initRepo: Repository = null): Chassis = {
     val ch = Chassis.create(initRepo)
-    ch.repository.register(Label.N.main, new Driver(Cell(Seq()), ch))
+    ch.repository.register(Label.N.main, new LocalDriver(Cell(Seq()), ch))
     ch
   }
 

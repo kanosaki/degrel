@@ -12,7 +12,7 @@ import degrel.utils.collection.mutable.WeakMultiMap
  * 書き換え対象の絞り込みを行うためのインターフェイス
  */
 trait RewriteeSet extends Iterable[RewritingTarget] {
-  def driver: Driver
+  def driver: LocalDriver
 
   override def iterator: Iterator[RewritingTarget] = this.driver.header match {
     case c: Cell => CellTraverser(c, driver).iterator
@@ -50,7 +50,7 @@ trait RewriteeSet extends Iterable[RewritingTarget] {
 }
 
 object RewriteeSet {
-  def create(name: String, driver: Driver): Option[RewriteeSet] = name match {
+  def create(name: String, driver: LocalDriver): Option[RewriteeSet] = name match {
     case "plain" => Some(new PlainRewriteeSet(driver))
     case "root_table" => Some(new RootTableRewriteeSet(driver))
     case _ => None
@@ -61,7 +61,7 @@ object RewriteeSet {
 /**
  * 特に何もせず，元の書き換え対象をそのまま返す`RewriteeSet`
  */
-class PlainRewriteeSet(val driver: Driver) extends RewriteeSet {
+class PlainRewriteeSet(val driver: LocalDriver) extends RewriteeSet {
   override def targetsFor(rw: Rewriter): Iterable[RewritingTarget] = {
     (if (rw.isPartial)
       driver.rewriteTargets
@@ -79,7 +79,7 @@ class PlainRewriteeSet(val driver: Driver) extends RewriteeSet {
 /**
  * 根のラベルを見て書き換え対象を絞り込む`RewriteeSet`
  */
-class RootTableRewriteeSet(val driver: Driver) extends RewriteeSet {
+class RootTableRewriteeSet(val driver: LocalDriver) extends RewriteeSet {
   val labelMap = new WeakMultiMap[Label, Vertex]()
 
   for (v <- driver.rewriteTargets) {

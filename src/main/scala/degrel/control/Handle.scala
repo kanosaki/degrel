@@ -1,11 +1,12 @@
 package degrel.control
 
-import degrel.engine.{Chassis, Driver}
+import degrel.engine.{LocalDriver, Chassis}
 
 /**
- * Controls Chassis
- */
+  * Controls Chassis
+  */
 trait Handle {
-  def current: Driver
+  def current: LocalDriver
+
   def chassis: Chassis
 }

@@ -1,7 +1,7 @@
 package degrel.engine.rewriting.molding
 
 import degrel.core.{Cell, VertexHeader, Edge, Vertex}
-import degrel.engine.Driver
+import degrel.engine.{Driver, LocalDriver$}
 import degrel.engine.rewriting.Binding
 
 import scala.collection.mutable

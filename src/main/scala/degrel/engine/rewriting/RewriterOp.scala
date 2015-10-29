@@ -1,7 +1,7 @@
 package degrel.engine.rewriting
 
 import degrel.core.{Vertex, VertexHeader}
-import degrel.engine.Driver
+import degrel.engine.{LocalDriver, Driver, LocalDriver$}
 
 trait RewriterOp {
   def apply(driver: Driver)

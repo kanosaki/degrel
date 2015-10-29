@@ -4,7 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, 
 
 import com.typesafe.config.ConfigFactory
 import degrel.core.{Cell, Vertex}
-import degrel.engine.Driver
+import degrel.engine.LocalDriver
 import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
 
@@ -25,9 +25,9 @@ class LocalNodeTest extends FlatSpec {
 
   def checkSameBehavior(cell: Cell) = {
     val channeled = channelThrough(cell).asCell
-    val driver1 = Driver(cell)
+    val driver1 = LocalDriver(cell)
     driver1.stepUntilStop()
-    val driver2 = Driver(channeled)
+    val driver2 = LocalDriver(channeled)
     driver2.stepUntilStop()
     assert(driver1.header ===~ driver2.header)
   }

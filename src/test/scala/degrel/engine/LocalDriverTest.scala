@@ -4,7 +4,7 @@ import degrel.core.Cell
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
-class DriverTest extends FlatSpec {
+class LocalDriverTest extends FlatSpec {
 
   val MAX_STEP = 100
 
@@ -12,7 +12,7 @@ class DriverTest extends FlatSpec {
 
   it should "Do nothing for empty cell" in {
     val cell = toCell("{}")
-    val cd = Driver(cell)
+    val cd = LocalDriver(cell)
     assert(!cd.step())
   }
 
@@ -122,7 +122,7 @@ class DriverTest extends FlatSpec {
       it should description in {
         val beforeCell = toCell(before)
         val afterCell = toCell(after)
-        val cd = Driver(beforeCell)
+        val cd = LocalDriver(beforeCell)
         cd.stepUntilStop(MAX_STEP)
         assert(cd.cell ===~ afterCell)
       }

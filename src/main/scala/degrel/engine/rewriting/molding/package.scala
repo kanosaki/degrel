@@ -1,7 +1,7 @@
 package degrel.engine.rewriting
 
 import degrel.core.Vertex
-import degrel.engine.Driver
+import degrel.engine.{Driver, LocalDriver$}
 
 /**
  * パターンマッチしたデータとパターンの対応表と，生成するグラフのパターンを受け取り，

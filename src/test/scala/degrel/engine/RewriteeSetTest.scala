@@ -14,7 +14,7 @@ class RewriteeSetTest extends FlatSpec {
         |  a -> b
         |}
       """.stripMargin).asCell
-    val driver = Driver(cell)
+    val driver = LocalDriver(cell)
     driver.rewritee = new PlainRewriteeSet(driver)
     val r1 = Rewriter(driver.cell.rules.head)
     val candidates = driver.rewritee.targetsFor(r1)
@@ -30,7 +30,7 @@ class RewriteeSetTest extends FlatSpec {
         |  a -> b
         |}
       """.stripMargin).asCell
-    val driver = Driver(cell)
+    val driver = LocalDriver(cell)
     driver.rewritee = new PlainRewriteeSet(driver)
     val r1 = Rewriter(driver.cell.rules.head)
     val candidates = driver.rewritee.targetsFor(r1)
@@ -58,7 +58,7 @@ class RewriteeSetTest extends FlatSpec {
         |  a -> b
         |}
       """.stripMargin).asCell
-    val driver = Driver(cell)
+    val driver = LocalDriver(cell)
     driver.rewritee = new RootTableRewriteeSet(driver)
     val r1 = Rewriter(driver.cell.rules.head)
     val candidates = driver.rewritee.targetsFor(r1)
@@ -74,7 +74,7 @@ class RewriteeSetTest extends FlatSpec {
         |  a -> b
         |}
       """.stripMargin).asCell
-    val driver = Driver(cell)
+    val driver = LocalDriver(cell)
     driver.rewritee = new RootTableRewriteeSet(driver)
     val r1 = Rewriter(driver.cell.rules.head)
     assert(driver.rewritee.targetsFor(r1).size == 2)

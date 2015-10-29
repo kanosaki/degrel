@@ -2,7 +2,7 @@ package degrel.engine.rewriting
 
 import degrel.Logger
 import degrel.core._
-import degrel.engine.Driver
+import degrel.engine.{LocalDriver, LocalDriver$}
 import degrel.utils.PrettyPrintable
 
 
@@ -31,7 +31,7 @@ trait Rewriter extends Logger with PrettyPrintable {
   def rewrite(rc: RewritingTarget): RewriteResult
 
   def rewrite(target: VertexHeader, root: VertexHeader): RewriteResult = {
-    this.rewrite(new RewritingTarget(target, root, Driver()))
+    this.rewrite(new RewritingTarget(target, root, LocalDriver()))
   }
 
   /**

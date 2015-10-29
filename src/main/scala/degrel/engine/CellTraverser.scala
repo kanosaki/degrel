@@ -9,7 +9,7 @@ import scala.collection.mutable
  * Optimized class for Traverser
  * この頂点から「Cellの範囲として適切な」頂点の集合を`RewritingTarget`として返します
  */
-class CellTraverser(roots: Iterable[Vertex], self: Driver) extends Iterable[RewritingTarget] {
+class CellTraverser(roots: Iterable[Vertex], self: LocalDriver) extends Iterable[RewritingTarget] {
 
   class It extends Iterator[RewritingTarget] {
     val remainRoots = mutable.Queue[Vertex]()
@@ -52,7 +52,7 @@ class CellTraverser(roots: Iterable[Vertex], self: Driver) extends Iterable[Rewr
 }
 
 object CellTraverser {
-  def apply(root: Vertex, self: Driver): CellTraverser = {
+  def apply(root: Vertex, self: LocalDriver): CellTraverser = {
     if (root.isCell) {
       new CellTraverser(root.toCell.roots, self)
     } else {
