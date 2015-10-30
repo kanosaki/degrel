@@ -1,12 +1,12 @@
 package degrel.engine.rewriting
 
 import degrel.core.{Cell, Rule, Vertex}
-import degrel.engine.Driver
+import degrel.engine.LocalDriver
 
 trait RewriteResult {
   def done: Boolean
 
-  def exec(self: Driver) = {}
+  def exec(self: LocalDriver) = {}
 }
 
 object RewriteResult {
@@ -14,7 +14,7 @@ object RewriteResult {
   case class Write(target: RewritingTarget, value: Vertex) extends RewriteResult {
     override def done: Boolean = true
 
-    override def exec(self: Driver): Unit = {
+    override def exec(self: LocalDriver): Unit = {
       self.writeVertex(target, value)
     }
   }
@@ -22,7 +22,7 @@ object RewriteResult {
   case class Continue(target: RewritingTarget, rule: Rule, binding: Binding) extends RewriteResult {
     override def done: Boolean = true
 
-    override def exec(self: Driver): Unit = {
+    override def exec(self: LocalDriver): Unit = {
       self.writeVertex(target, rule)
       val rw = new ContinueRewriter(rule, binding, target.target)
       self.addContinueRewriter(rw)
@@ -32,7 +32,7 @@ object RewriteResult {
   case class AddRoot(target: Cell, value: Vertex) extends RewriteResult {
     override def done: Boolean = true
 
-    override def exec(self: Driver): Unit = {
+    override def exec(self: LocalDriver): Unit = {
       self.addRoot(target, value)
     }
   }
@@ -48,7 +48,7 @@ object RewriteResult {
       }
     }
 
-    override def exec(self: Driver): Unit = {
+    override def exec(self: LocalDriver): Unit = {
       this.results.foreach(_.exec(self))
     }
   }

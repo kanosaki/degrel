@@ -1,14 +1,14 @@
 package degrel.engine.rewriting
 
-import degrel.core.{VertexBody, Vertex, VertexHeader}
-import degrel.engine.{Driver, LocalDriver}
+import degrel.core.{Vertex, VertexBody, VertexHeader}
+import degrel.engine.LocalDriver
 
 /**
  * @param target target vertex
  * @param root root of target vertex
  * @param self owner of target vertex
  */
-case class RewritingTarget(target: VertexHeader, root: VertexHeader, self: Driver) extends VertexHeader {
+case class RewritingTarget(target: VertexHeader, root: VertexHeader, self: LocalDriver) extends VertexHeader {
   override def body: VertexBody = target.body
 
   override def write(v: Vertex): Unit = target.write(v)
@@ -17,7 +17,7 @@ case class RewritingTarget(target: VertexHeader, root: VertexHeader, self: Drive
 }
 
 object RewritingTarget {
-  def alone(v: Vertex, self: Driver = LocalDriver()): RewritingTarget = {
+  def alone(v: Vertex, self: LocalDriver = LocalDriver()): RewritingTarget = {
     RewritingTarget(v.asHeader, v.asHeader, self)
   }
 

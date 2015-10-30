@@ -16,7 +16,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDri
   private var children = new mutable.HashMap[Vertex, LocalDriver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
   implicit val fp = Fingerprint.default
-  override var rewritee: RewriteeSet = new PlainRewriteeSet(this)
+  var rewritee: RewriteeSet = new PlainRewriteeSet(this)
 
   override def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
@@ -107,7 +107,11 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDri
 
   override def rewriters: Seq[Rewriter] = cell.rules.map(Rewriter(_)) ++ baseRewriters ++ degrel.primitives.rewriter.default
 
-  override def atoms: Iterable[Vertex] = cell.roots
+  def atoms: Iterable[Vertex] = cell.roots
+
+  def atomTargets: Iterable[RewritingTarget] = cell.roots.map { r =>
+    RewritingTarget(r.asHeader, r.asHeader, this)
+  }
 
   def rewriteTargets: Iterable[RewritingTarget] = {
     CellTraverser(this.cell, this)
