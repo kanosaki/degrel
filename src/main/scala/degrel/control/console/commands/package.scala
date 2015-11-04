@@ -5,5 +5,7 @@ package object commands {
 
   def default: Seq[ConsoleCommand] = Seq(
     new PrintCommand(),
-    new RewriteCommand())
+    new RewriteCommand(),
+    new ReprCommand()
+    )
 }
