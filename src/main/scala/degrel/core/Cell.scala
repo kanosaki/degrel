@@ -34,5 +34,7 @@ object Cell {
   def apply(edges: Iterable[Edge]): Cell = {
     new CellHeader(CellBody(edges))
   }
+
+  val root = Cell()
 }
 

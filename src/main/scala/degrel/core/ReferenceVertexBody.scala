@@ -1,6 +1,6 @@
 package degrel.core
 
-import degrel.engine.rewriting.molding.MoldingContext
+import degrel.engine.rewriting.molding.MoldingContextBase
 
 class ReferenceVertexBody(label: Label, attrs: Map[Label, String], all_edges: Iterable[Edge])
   extends LocalVertexBody(

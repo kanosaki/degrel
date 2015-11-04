@@ -124,11 +124,11 @@ trait Vertex extends Element with Comparable[Vertex] {
   }
 
   /**
-   * 自分が`ReferenceVertex`の時は，参照を辿って`B`のインスタンスを返します
-   *
-   * @tparam B
-   * @return
-   */
+    * 自分が`ReferenceVertex`の時は，参照を辿って`B`のインスタンスを返します
+    *
+    * @tparam B
+    * @return
+    */
   def unref[B <: Vertex : ClassTag]: B = {
     if (!this.isReference) {
       this.asInstanceOf[B]
@@ -185,6 +185,8 @@ trait Vertex extends Element with Comparable[Vertex] {
   def fingerprintCache: Long
 
   def fingerprintCache_=(fp: Long): Unit
+
+  def tryOwn(owner: Vertex): Boolean
 }
 
 object Vertex {
@@ -197,13 +199,13 @@ object Vertex {
   }
 
   /**
-   * Note: edgeInitに渡されるVertexはVertexHeaderのみなので注意
-   * @param label
-   * @param attributes
-   * @param id
-   * @param edgeInit
-   * @return
-   */
+    * Note: edgeInitに渡されるVertexはVertexHeaderのみなので注意
+    * @param label
+    * @param attributes
+    * @param id
+    * @param edgeInit
+    * @return
+    */
   def create(label: Label,
              attributes: Map[Label, String] = Map(),
              id: ID = ID.NA)

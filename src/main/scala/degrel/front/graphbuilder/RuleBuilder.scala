@@ -42,12 +42,12 @@ class RuleBuilder(val parent: Primitive, ast: AstBinExpr) extends Builder[Rule] 
   /**
     * このグラフ要素への参照用のヘッダ
     */
-  override val header: Rule = new RuleVertexHeader(null)
+  override val header: Rule = new RuleVertexHeader(null, autoAssingID())
 
   /**
     * このグラフ要素を直接内包するCell
     */
-  override def outerCell: CellBuilder = parent.outerCell
+  override def ownerCell: CellBuilder = parent.ownerCell
 
   /**
     * このメソッドが呼ばれると，ボディ部を作成します．

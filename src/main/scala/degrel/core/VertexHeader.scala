@@ -4,7 +4,7 @@ import degrel.utils.collection.mutable.WeakLinearSet
 
 import scala.reflect.runtime.universe.TypeTag
 
-trait VertexHeader extends Vertex {
+abstract class VertexHeader(var id: ID = ID.NA) extends Vertex {
   protected val reverse = WeakLinearSet[VertexBody]()
 
   def body: VertexBody
@@ -33,8 +33,13 @@ trait VertexHeader extends Vertex {
     reverse
   }
 
-
-  val id: ID = ID.autoAssign
+  override def tryOwn(owner: Vertex): Boolean = {
+    val canOwn = this.id.canOwnBy(owner)
+    if (canOwn) {
+      id = id.withOwner(owner)
+    }
+    canOwn
+  }
 
   def fingerprintCache: Long = {
     body.fingerprintCache
@@ -46,7 +51,7 @@ trait VertexHeader extends Vertex {
 }
 
 object VertexHeader {
-  def apply(body: VertexBody): VertexHeader = {
-    new LocalVertexHeader(body)
+  def apply(body: VertexBody, initID: ID = ID.nextLocalVertexID()): VertexHeader = {
+    new LocalVertexHeader(body, initID)
   }
 }

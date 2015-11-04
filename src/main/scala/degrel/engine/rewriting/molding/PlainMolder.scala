@@ -27,11 +27,11 @@ class PlainMolder(val mold: Vertex, val context: MoldingContext) extends Molder 
     if (mold.hasEdge(Label.E.others) || mold.hasEdge(Label.E.include)) {
       val plainEdges = mold.edges.filter(e => !e.isOthers && !e.isInclude)
       val builtEdges = importingEdges ++ moldEdges(plainEdges)
-      val vb = VertexBody(mold.label, mold.attributes, builtEdges.toSeq, ID.autoAssign)
+      val vb = VertexBody(mold.label, mold.attributes, builtEdges.toSeq, ID.NA)
       this.header.write(vb)
     } else {
       val builtEdges = moldEdges(mold.edges)
-      val vb = VertexBody(mold.label, mold.attributes, builtEdges.toSeq, ID.autoAssign)
+      val vb = VertexBody(mold.label, mold.attributes, builtEdges.toSeq, ID.NA)
       this.header.write(vb)
     }
   }

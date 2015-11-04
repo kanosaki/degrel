@@ -2,6 +2,7 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.core._
+import degrel.core.transformer.{CellLimiter, AquireOwnerVisitor, GraphVisitor}
 import degrel.engine.rewriting._
 import degrel.engine.sphere.Sphere
 import degrel.utils.PrettyPrintOptions
@@ -17,6 +18,10 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDri
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
   implicit val fp = Fingerprint.default
   var rewritee: RewriteeSet = new PlainRewriteeSet(this)
+  var acquireOwnerVisitor: GraphVisitor = GraphVisitor(
+    CellLimiter.default,
+    new AquireOwnerVisitor(this.header))
+  acquireOwnerVisitor.visit(header)
 
   override def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
@@ -121,14 +126,13 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDri
     * Send message vertex underlying cell
     */
   def send(msg: Vertex) = {
-    this.addRoot(this.cell, msg)
+    this.dispatchRoot(this.cell, msg)
   }
 
-  override def cell: CellBody = header.unhead[CellBody]
-
-  override def spawn(cell: Vertex): Vertex = {
-    this.children += cell -> chassis.createDriver(cell, this)
-    cell
+  override def spawn(cell: Vertex): Driver = {
+    val drv = chassis.createDriver(cell, this)
+    this.children += cell -> drv
+    drv
   }
 
   def cleanup(): Unit = {
@@ -181,6 +185,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDri
     if (target.target == this.header && this.parent != null) {
       this.parent.writeVertex(target, value)
     } else {
+      acquireOwnerVisitor.visit(value)
       this.rewritee.onWriteVertex(target, value)
       target.target.write(value)
     }
@@ -191,12 +196,24 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDri
     this.cell.removeRoot(v)
   }
 
-  override def addRoot(target: Cell, value: Vertex) = {
+  override def dispatchRoot(target: Cell, value: Vertex) = {
     if (value.isCell) {
       this.spawn(value.asCell)
     }
+    if (target == this.header) {
+      acquireOwnerVisitor.visit(value)
+    }
     this.rewritee.onAddRoot(target, value)
     target.addRoot(value)
+  }
+
+  override def addRoot(value: Vertex): Unit = {
+    if (value.isCell) {
+      this.spawn(value.asCell)
+    }
+    acquireOwnerVisitor.visit(value)
+    this.rewritee.onAddRoot(this.cell, value)
+    this.cell.addRoot(value)
   }
 
   override def binding: Binding = {
@@ -205,7 +222,6 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDri
     } else {
       Binding.empty()
     }
-
   }
 }
 

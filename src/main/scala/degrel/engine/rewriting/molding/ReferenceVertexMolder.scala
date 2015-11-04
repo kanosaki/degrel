@@ -63,7 +63,7 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
         .map(_.shallowCopy())
       val mergingEdges = moldEdges(unreferenceEdges)
       val builtEdges = unmatchedEdges ++ mergingEdges ++ othersEs
-      val vb = VertexBody(matchedV.label, matchedV.attributes, builtEdges.toSeq, ID.autoAssign)
+      val vb = VertexBody(matchedV.label, matchedV.attributes, builtEdges.toSeq, ID.NA)
       this.header.write(vb)
     }
   }

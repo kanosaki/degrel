@@ -12,15 +12,19 @@ trait Driver {
 
   def rewriters: Seq[Rewriter]
 
-  def cell: CellBody
+  def cell: CellBody = this.header.unhead[CellBody]
 
-  def spawn(cell: Vertex): Vertex
+  def header: Vertex
+
+  def spawn(cell: Vertex): Driver
 
   def writeVertex(target: RewritingTarget, value: Vertex): Unit
 
   def removeRoot(v: Vertex): Unit
 
-  def addRoot(target: Cell, value: Vertex)
+  def dispatchRoot(target: Cell, value: Vertex)
+
+  def addRoot(value: Vertex)
 
   def binding: Binding
 }

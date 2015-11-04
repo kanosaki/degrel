@@ -3,7 +3,9 @@ package degrel.engine.rewriting.molding
 import degrel.core.{Label, CellBody, VertexHeader, Vertex}
 import degrel.engine.rewriting.Binding
 
-class CellMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
+class CellMolder(val mold: Vertex, baseContext: MoldingContext) extends Molder {
+  val context: MoldingContext = CellMoldingContext(this, baseContext)
+
   override val header: VertexHeader = context.getHeader(mold)
 
   override def onPhase(ph: MoldPhase): Unit = ph match {
@@ -34,6 +36,7 @@ class CellMolder(val mold: Vertex, val context: MoldingContext) extends Molder {
       context.getMolder(v).header
     }
   }
+
 
   // Process only cell items
   override val children: Iterable[Molder] = {

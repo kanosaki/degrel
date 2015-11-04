@@ -1,7 +1,7 @@
 package degrel.core
 
-class RuleVertexHeader(bdy: VertexBody, override val id: ID = ID.autoAssign)
-  extends LocalVertexHeader(bdy, id) with Rule {
+class RuleVertexHeader(bdy: VertexBody, _initID: ID = ID.nextLocalVertexID())
+  extends LocalVertexHeader(bdy, _initID) with Rule {
 
   private def rBody: Rule = {
     if (_body == null) {

@@ -72,9 +72,9 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
   /**
    * @inheritdoc
    */
-  override val outerCell: CellBuilder = parent match {
+  override val ownerCell: CellBuilder = parent match {
     case cb: CellBuilder => cb
-    case _ => parent.outerCell
+    case _ => parent.ownerCell
   }
 
   /**
@@ -146,7 +146,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    * @param labelExpr 頂点のラベル
    */
   class PlainVertex(labelExpr: String) extends FBuilder {
-    val header = VertexHeader(null)
+    val header = VertexHeader(null, autoAssingID())
 
     override def concrete(): Unit = {
       this.header.write(
@@ -165,7 +165,7 @@ class FunctorBuilder(val parent: Primitive, val ast: AstFunctor) extends Builder
    */
   class ReferenceVertex(target: Primitive) extends FBuilder {
     val label = SpecialLabels.V_REFERENCE
-    val header = VertexHeader(null)
+    val header = VertexHeader(null, autoAssingID())
 
     def concrete() = {
       val refEdge = Edge(

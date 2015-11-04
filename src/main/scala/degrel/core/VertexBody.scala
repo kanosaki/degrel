@@ -65,6 +65,10 @@ trait VertexBody extends Vertex {
     this.headerRef = new WeakReference[VertexHeader](vh)
   }
 
-  override val id: ID = ID.autoAssign
+  override val id: ID = ID.NA
+
+  override def tryOwn(owner: Vertex): Boolean = {
+    throw new RuntimeException("Own only valid for VertexHeader")
+  }
 }
 

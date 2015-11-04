@@ -1,6 +1,6 @@
 package degrel.core
 
-class RemoteVertexHeader(override val id: ID) extends VertexHeader {
+class RemoteVertexHeader(_initID: ID) extends VertexHeader(_initID) {
   override def body: VertexBody = ???
 
   override def write(v: Vertex): Unit = ???

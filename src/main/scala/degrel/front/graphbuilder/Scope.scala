@@ -32,7 +32,7 @@ class Scope(val parent: Primitive) extends Primitive {
   /**
    * このグラフ要素を直接内包するCell
    */
-  override def outerCell: CellBuilder = parent.outerCell
+  override def ownerCell: CellBuilder = parent.ownerCell
 
   /**
    * このグラフ要素への参照用のヘッダ

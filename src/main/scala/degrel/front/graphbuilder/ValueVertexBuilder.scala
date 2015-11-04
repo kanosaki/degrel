@@ -10,7 +10,7 @@ class ValueVertexBuilder(val parent: Primitive, val ast: AstValueVertex[_]) exte
 
   override def doBuildPhase(phase: BuildPhase): Unit = {}
 
-  override def outerCell: CellBuilder = parent.outerCell
+  override def ownerCell: CellBuilder = parent.ownerCell
 
   override def header: Vertex = VertexHeader(ast.toVertex)
 

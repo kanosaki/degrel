@@ -25,7 +25,7 @@ trait MolderFactory {
   def getHeader(mold: Vertex, ctx: MoldingContext): VertexHeader = {
     mold.label match {
       case Label.V.cell => new CellHeader(null)
-      case _ => new LocalVertexHeader(null)
+      case _ => new LocalVertexHeader(null, ctx.ownerHeader.id)
     }
   }
 }

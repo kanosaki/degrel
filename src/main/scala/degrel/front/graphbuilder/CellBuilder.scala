@@ -45,7 +45,7 @@ class CellBuilder(val parent: Primitive,
 
   override def children = rootChildren ++ edgeChildren.map(_._2)
 
-  override def outerCell: CellBuilder = parent.outerCell
+  override def ownerCell: CellBuilder = this
 
   override def doBuildPhase(phase: BuildPhase): Unit = phase match {
     case MainPhase => {

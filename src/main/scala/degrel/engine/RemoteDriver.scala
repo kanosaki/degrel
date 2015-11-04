@@ -1,13 +1,17 @@
 package degrel.engine
 
-import degrel.core.{Cell, CellBody, Vertex}
+import akka.actor.ActorRef
+import degrel.core.{Cell, Vertex}
 import degrel.engine.rewriting.{Binding, Rewriter, RewritingTarget}
 import degrel.engine.sphere.Sphere
 
 class RemoteDriver extends Driver {
-  override def addRoot(target: Cell, value: Vertex): Unit = ???
+  // Contents: DriverContainer
+  private val ref: ActorRef = ???
 
-  override def spawn(cell: Vertex): Vertex = ???
+  override def dispatchRoot(target: Cell, value: Vertex): Unit = ???
+
+  override def spawn(cell: Vertex): Driver = ???
 
   override def isActive: Boolean = ???
 
@@ -17,11 +21,13 @@ class RemoteDriver extends Driver {
 
   override def stepUntilStop(limit: Int): Int = ???
 
-  override def cell: CellBody = ???
-
   override def binding: Binding = ???
 
   override def rewriters: Seq[Rewriter] = ???
 
   override def resource: Sphere = ???
+
+  override def header: Vertex = ???
+
+  override def addRoot(value: Vertex): Unit = ???
 }

@@ -25,7 +25,7 @@ package object molding {
    */
   def mold(mold: Vertex, binding: Binding, driver: Driver)
           (implicit molderFactory: MolderFactory = MolderFactory.default): Vertex = {
-    val context = new MoldingContext(binding, molderFactory, driver)
+    val context = new MoldingContextBase(binding, molderFactory, driver)
     val rootMolder = context.getMolder(mold)
     Molder.phases.foreach(rootMolder.process(_))
     rootMolder.header

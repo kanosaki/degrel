@@ -26,7 +26,7 @@ class ExprBuilder(val parent: Primitive, val ast: AstBinExpr) extends Builder[Ve
   /**
    * このグラフ要素への参照用のヘッダ
    */
-  override val header: Vertex = VertexHeader(null)
+  override val header: Vertex = VertexHeader(null, autoAssingID())
 
   override def typeLabel: Option[Label] = Some(ast.op.toLabel)
 
@@ -55,5 +55,5 @@ class ExprBuilder(val parent: Primitive, val ast: AstBinExpr) extends Builder[Ve
   /**
    * このグラフ要素を直接内包するCell
    */
-  override def outerCell: CellBuilder = parent.outerCell
+  override def ownerCell: CellBuilder = parent.ownerCell
 }

@@ -1,6 +1,6 @@
 package degrel.engine.rewriting.molding
 
-import degrel.core.{ValueVertex, VertexHeader, Vertex}
+import degrel.core.{Vertex, VertexHeader}
 
 /**
  * `ValueVertex`のための`Molder`
