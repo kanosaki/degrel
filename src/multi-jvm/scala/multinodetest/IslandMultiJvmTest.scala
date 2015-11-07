@@ -5,7 +5,7 @@ import akka.cluster.Cluster
 import akka.remote.testkit.{MultiNodeConfig, MultiNodeSpec}
 import akka.testkit.ImplicitSender
 import com.typesafe.config.ConfigFactory
-import degrel.cluster.{Engine, Island}
+import degrel.cluster.{Controller, Controller$, Island}
 import org.scalatest._
 
 import scala.concurrent.duration._
@@ -58,14 +58,14 @@ abstract class IslandTestBase extends MultiNodeSpec(IslandConfig)
 with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
 
   import IslandConfig._
-  import Engine.messages._
+  import Controller.messages._
 
   "Island" must {
     "setup" in {
 
       runOn(controller) {
         Cluster(system) join node(controller).address
-        system.actorOf(Props[Engine], name = "engine")
+        system.actorOf(Props[Controller], name = "engine")
       }
       enterBarrier("engine-ready")
 
@@ -81,7 +81,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
         val engine = system.actorSelection(s"akka://${system.name}/user/engine")
         val req = degrel.parseVertex("{fin a}").asCell
         val expected = degrel.parseVertex("a")
-        engine ! Rewrite(req)
+        engine ! Interpret(req)
         expectMsgPF() {
           case Result(msg) => {
             log.info(s"*** ${req.pp} ===> ${msg.pp}")

@@ -1,23 +1,12 @@
 package degrel.cluster
 
-import akka.actor.{Actor, ActorLogging, ActorSystem}
-import akka.cluster.Cluster
 import degrel.control.Interpreter
+import degrel.control.cluster.ControllerFacade
 import degrel.engine.Chassis
 
-class ClusterInterpreter(override val chassis: Chassis) extends Interpreter(chassis) with Actor with ActorLogging {
-  import degrel.cluster.messages._
-
-  val system = ActorSystem("degrel")
-  val cluster = Cluster(system)
-
+class ClusterInterpreter(override val chassis: Chassis, controller: ControllerFacade) extends Interpreter(chassis) {
   override def startProcess(): Long = {
+    controller.rewrite(chassis.main.header.asCell)
     0
-  }
-
-  override def receive: Receive = {
-    case Fin(result) => {
-      system.terminate()
-    }
   }
 }

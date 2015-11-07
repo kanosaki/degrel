@@ -4,6 +4,10 @@ import java.io.File
 
 case class BootArguments(script: Option[File] = None,
                          verbose: Boolean = false,
+                         cluster: Boolean = false,
+                         name: Option[String] = None,
+                         config: Option[String] = None,
+                         seeds: Seq[String] = Seq(),
                          cmd: CLICommand = CLICommand.Plain,
                          options: Map[String, String] = Map()) {
   def rewriteeSetName: String = {
@@ -16,19 +20,34 @@ case class BootArguments(script: Option[File] = None,
 }
 
 /**
- * 引数解析
- */
+  * 引数解析
+  */
 object BootArguments {
   /**
-   * --optionsで渡されるKey-Value pairをSystem.propertyへも上書きするかどうかを指定します
-   */
+    * --optionsで渡されるKey-Value pairをSystem.propertyへも上書きするかどうかを指定します
+    */
   val MIRROR_NAME_OPTS_TO_SYSPROP = true
 
   def parser() = {
     new scopt.OptionParser[BootArguments]("degrel") {
+      // -------------------------------------------------------------------------------
+      // Common options
+      // -------------------------------------------------------------------------------
       opt[Unit]("verbose").abbr("v").optional().action { (_, c) =>
         c.copy(verbose = true)
       }
+      opt[Unit]("cluster").optional().action { (_, c) =>
+        c.copy(cluster = true)
+      }
+      opt[String]("name").abbr("n").optional().action { (n, c) =>
+        c.copy(name = Some(n))
+      }
+      opt[String]("config").abbr("n").optional().action { (n, c) =>
+        c.copy(name = Some(n))
+      }
+      opt[Seq[String]]("seeds").abbr("s").valueName("host1,host2,...").action((x, c) => {
+        c.copy(seeds = x)
+      }).text("akka seed nodes")
       opt[Map[String, String]]("options").abbr("D").valueName("k1=v1,k2=v2,...").action((x, c) => {
         if (MIRROR_NAME_OPTS_TO_SYSPROP) {
           x.foreach(kv => {
@@ -40,9 +59,15 @@ object BootArguments {
       arg[File]("<file>").optional().action { (x, c) =>
         c.copy(script = Some(x))
       }.text("Input script")
+      // -------------------------------------------------------------------------------
+      // Parse subcommand
+      // -------------------------------------------------------------------------------
       cmd("parse").text("AST Parse").action((_, c) => {
         c.copy(cmd = CLICommand.Parse)
       })
+      // -------------------------------------------------------------------------------
+      // Benchmark subcommand
+      // -------------------------------------------------------------------------------
       cmd("bench").text("Benchmark subcommand").children({
         opt[String]("report").abbr("o").optional().action { (path, c) =>
           c.cmd match {
@@ -57,6 +82,12 @@ object BootArguments {
           }
         }
       })
+      // -------------------------------------------------------------------------------
+      // Cluster node subcommand
+      // -------------------------------------------------------------------------------
+      cmd("cluster").text("degrel Cluster").action { (_, c) =>
+        c.copy(cmd = CLICommand.Cluster())
+      }
     }
   }
 }

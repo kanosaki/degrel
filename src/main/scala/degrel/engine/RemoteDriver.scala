@@ -1,13 +1,12 @@
 package degrel.engine
 
 import akka.actor.ActorRef
+import degrel.cluster.LocalNode
 import degrel.core.{Cell, Vertex}
 import degrel.engine.rewriting.{Binding, Rewriter, RewritingTarget}
 import degrel.engine.sphere.Sphere
 
-class RemoteDriver extends Driver {
-  // Contents: DriverContainer
-  private val ref: ActorRef = ???
+class RemoteDriver(ref: ActorRef, node: LocalNode) extends Driver {
 
   override def dispatchRoot(target: Cell, value: Vertex): Unit = ???
 
@@ -30,4 +29,10 @@ class RemoteDriver extends Driver {
   override def header: Vertex = ???
 
   override def addRoot(value: Vertex): Unit = ???
+}
+
+object RemoteDriver{
+  def apply(ref: ActorRef, node: LocalNode) = {
+    new RemoteDriver(ref, node)
+  }
 }

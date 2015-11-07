@@ -9,11 +9,12 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 
 // Akka controller
-class Engine() extends Actor with ActorLogging {
+class Controller() extends Actor with ActorLogging {
+  val oceans = mutable.ListBuffer[ActorRef]() // should be 1 item, for now
   val islands = mutable.ListBuffer[ActorRef]()
   val node = new LocalNode(context.system.name, context.system.settings.config)
 
-  import Engine.messages._
+  import Controller.messages._
   import context.dispatcher
   import messages._
 
@@ -22,10 +23,10 @@ class Engine() extends Actor with ActorLogging {
       context.watch(sender())
       islands += sender()
     }
-    case Rewrite(cell) if islands.isEmpty => {
+    case Interpret(cell) if islands.isEmpty => {
       log.error("No islands!")
     }
-    case Rewrite(cell) if islands.nonEmpty => {
+    case Interpret(cell) if islands.nonEmpty => {
       val rootIsland = islands.head
       implicit val timeout = Timeout(10.hours)
       val packed = node.exchanger.packAll(cell)
@@ -40,12 +41,12 @@ class Engine() extends Actor with ActorLogging {
   }
 }
 
-object Engine {
+object Controller {
   val DEFAULT_ENGINE_NAME = "degrel"
 
   object messages {
 
-    case class Rewrite(cell: Cell)
+    case class Interpret(cell: Cell)
 
     case class Result(v: Vertex)
 

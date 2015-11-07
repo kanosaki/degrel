@@ -1,5 +1,6 @@
 package degrel.engine
 
+import degrel.cluster.LocalNode
 import degrel.core.{Cell, Label, Vertex}
 import degrel.engine.namespace.Repository
 import degrel.engine.sphere.Sphere
@@ -8,10 +9,10 @@ import org.json4s.JsonAST.JObject
 import org.json4s.JsonDSL._
 
 /**
- * 名前空間を管理し`Driver`のためのfactoryクラスとして動作します
- * @todo 冗長?
- * @param _repo 管理する名前空間
- */
+  * 名前空間を管理し`Driver`のためのfactoryクラスとして動作します
+  * @todo 冗長?
+  * @param _repo 管理する名前空間(Local or Remote)
+  */
 class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactory.default) {
   var sphere: Sphere = degrel.engine.sphere.default
   var verbose = false
@@ -100,6 +101,10 @@ class ProcedureSpan(val name: String) {
 }
 
 object Chassis {
+  def apply(repo: Repository, factory: DriverFactory): Chassis = {
+    new Chassis(repo, factory)
+  }
+
   def create(): Chassis = {
     this.create(Cell())
   }
@@ -107,13 +112,13 @@ object Chassis {
   def create(main: Cell): Chassis = {
     val repo = new Repository()
     val chassis = new Chassis(repo)
-    repo.register(Label.N.main, new LocalDriver(main, chassis))
+    repo.register(Label.N.main, new LocalDriver(main, chassis, LocalNode.current))
     chassis
   }
 
   def createWithMain(initRepo: Repository = null): Chassis = {
     val ch = Chassis.create(initRepo)
-    ch.repository.register(Label.N.main, new LocalDriver(Cell(Seq()), ch))
+    ch.repository.register(Label.N.main, new LocalDriver(Cell(Seq()), ch, LocalNode.current))
     ch
   }
 

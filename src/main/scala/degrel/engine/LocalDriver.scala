@@ -1,8 +1,9 @@
 package degrel.engine
 
 import degrel.DegrelException
+import degrel.cluster.LocalNode
 import degrel.core._
-import degrel.core.transformer.{CellLimiter, AquireOwnerVisitor, GraphVisitor}
+import degrel.core.transformer.{CellLimiter, AcquireOwnerVisitor, GraphVisitor}
 import degrel.engine.rewriting._
 import degrel.engine.sphere.Sphere
 import degrel.utils.PrettyPrintOptions
@@ -12,7 +13,7 @@ import scala.collection.mutable
 /**
   * Cellの実行をします
   */
-class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDriver = null) extends Reactor with Driver {
+class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode, val parent: Driver = null) extends Reactor with Driver {
   implicit val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, LocalDriver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
@@ -20,7 +21,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val parent: LocalDri
   var rewritee: RewriteeSet = new PlainRewriteeSet(this)
   var acquireOwnerVisitor: GraphVisitor = GraphVisitor(
     CellLimiter.default,
-    new AquireOwnerVisitor(this.header))
+    new AcquireOwnerVisitor(this.header))
   acquireOwnerVisitor.visit(header)
 
   override def isActive: Boolean = {
@@ -231,6 +232,6 @@ object LocalDriver {
   }
 
   def apply(cell: Cell): LocalDriver = {
-    new LocalDriver(cell, Chassis.create())
+    new LocalDriver(cell, Chassis.create(), LocalNode.current)
   }
 }

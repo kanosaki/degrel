@@ -39,7 +39,7 @@ class ConsoleHandle(val chassis: Chassis, commandSet: Option[Seq[ConsoleCommand]
     coms.handle(line.substring(commands.COMMAND_PREFIX.length), this)
   }
 
-  private def evalLine(line: String) = {
+  protected def evalLine(line: String) = {
     try {
       val input = degrel.parseVertex(line)
       this.current.send(input)

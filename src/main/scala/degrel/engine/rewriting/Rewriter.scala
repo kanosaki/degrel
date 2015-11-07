@@ -30,10 +30,6 @@ trait Rewriter extends Logger with PrettyPrintable {
    */
   def rewrite(rc: RewritingTarget): RewriteResult
 
-  def rewrite(target: VertexHeader, root: VertexHeader): RewriteResult = {
-    this.rewrite(new RewritingTarget(target, root, LocalDriver()))
-  }
-
   /**
    * 書き換え対象として，この規則を含むCellも有効になります
    */
