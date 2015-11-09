@@ -1,5 +1,6 @@
 package degrel.cluster
 
+import akka.actor.{ActorRef, Address}
 import degrel.core.ID
 
 object messages {
@@ -17,10 +18,12 @@ object messages {
 
 
   // control
-  case object IslandRegistration
+  case class WorkerRegistration(workerRef: ActorRef)
 
   // SessionManager -> Ocean
   case class NodeAllocateRequest()
+
+  case class NewSession()
 
   case class SendGraph(target: ID, graph: DGraph)
 
@@ -41,4 +44,5 @@ object messages {
   // Requests island to spawn ClusterNode and return it to Session Controller
   case class SpawnNode(id: NodeID)
 
+  case class TellLobby(addr: Address)
 }

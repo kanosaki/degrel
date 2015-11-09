@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import degrel.engine.Chassis
 
 class SessionNode(baseIsland: ActorRef, manager: ActorRef) extends Actor with ActorLogging {
-  val localNode = new LocalNode(context.system.name, context.system.settings.config)
+  val localNode = LocalNode(context.system)
   val driverFactory = ClusterDriverFactory(localNode)
   val repo = RemoteRepository(manager)
   val chassis = Chassis(repo, driverFactory)

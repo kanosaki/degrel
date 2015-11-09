@@ -2,10 +2,10 @@ package degrel.control
 
 import java.io.File
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, AddressFromURIString}
 import com.typesafe.config.{Config, ConfigFactory}
 import degrel.cluster.ClusterInterpreter
-import degrel.control.cluster.{IslandFacade, ClusterConsole, ControllerFacade, IslandDaemon}
+import degrel.control.cluster.{ClusterConsole, ControllerFacade, WorkerDaemon, WorkerFacade}
 import degrel.control.console.ConsoleHandle
 import degrel.core.{Cell, Label}
 import degrel.engine.namespace.Repository
@@ -75,7 +75,8 @@ class Bootstrapper(val args: BootArguments) {
 
   def createClusterController(): ControllerFacade = {
     val system = this.createActorSystem()
-    new ControllerFacade(system)
+    val lobbyAddr = AddressFromURIString(args.seeds.head)
+    ControllerFacade(system, lobbyAddr)
   }
 
   protected def initChassis(chassis: Chassis): Unit = {
@@ -115,10 +116,11 @@ class Bootstrapper(val args: BootArguments) {
     }
   }
 
-  def startIsland() = {
+  def startWorker() = {
+    val lobbyAddr = AddressFromURIString(args.seeds.head)
     val system = this.createActorSystem()
-    val facade = new IslandFacade(system)
-    val daemon = new IslandDaemon(facade)
+    val facade = WorkerFacade(system, lobbyAddr)
+    val daemon = WorkerDaemon(facade)
     daemon.start()
   }
 }

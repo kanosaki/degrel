@@ -11,7 +11,7 @@ import degrel.utils.TestUtils._
 class LocalNodeTest extends FlatSpec {
 
   def channelThrough(v: Vertex): Vertex = {
-    val node = new LocalNode("testnode", ConfigFactory.empty())
+    val node = LocalNode("testnode", ConfigFactory.empty())
     val exchanger = node.exchanger
     val dgraph = exchanger.packAll(v)
     val out = new ByteArrayOutputStream()

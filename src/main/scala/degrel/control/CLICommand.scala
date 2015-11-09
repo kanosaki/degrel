@@ -2,6 +2,7 @@ package degrel.control
 
 import java.nio.file.Paths
 
+import akka.actor.AddressFromURIString
 import degrel.misc.benchmark.FilesBenchmark
 import jline.console.ConsoleReader
 
@@ -70,7 +71,7 @@ object CLICommand {
     */
   case class Cluster() extends CLICommand {
     override def start(arg: BootArguments): Unit = {
-      Bootstrapper(arg).startIsland()
+      Bootstrapper(arg).startWorker()
     }
   }
 

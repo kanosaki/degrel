@@ -6,7 +6,7 @@ import degrel.engine.Chassis
 
 class ClusterInterpreter(override val chassis: Chassis, controller: ControllerFacade) extends Interpreter(chassis) {
   override def startProcess(): Long = {
-    controller.rewrite(chassis.main.header.asCell)
+    controller.interpret(chassis.main.header.asCell)
     0
   }
 }

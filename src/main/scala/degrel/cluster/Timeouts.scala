@@ -10,4 +10,6 @@ object Timeouts {
   val apiCall = short
 
   val infoGather = middle
+
+  val long = Timeout(1.hours)
 }

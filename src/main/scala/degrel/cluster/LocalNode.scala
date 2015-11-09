@@ -18,12 +18,11 @@ import scala.util.{Failure, Success}
   * One instance per JVM (= memory space)
   * Context class for Cluster
   */
-class LocalNode(val name: String, val config: Config) {
+class LocalNode(system: ActorSystem) {
   implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
   // Timeout for control messages
   implicit val defaultTimeout = Timeout(10.seconds)
   val info = NodeInfo.generate()
-  val system = ActorSystem(name, config)
   val exchanger = new SpaceExchanger()(this)
   val selfID: Int = 0
 
@@ -70,5 +69,13 @@ class LocalNode(val name: String, val config: Config) {
 }
 
 object LocalNode {
-  lazy val current = new LocalNode("degrel", ConfigFactory.load())
+  def apply(name: String, config: Config) = {
+    new LocalNode(ActorSystem(name, config))
+  }
+
+  def apply(sys: ActorSystem) = {
+    new LocalNode(sys)
+  }
+
+  lazy val current = LocalNode("degrel", ConfigFactory.load())
 }
