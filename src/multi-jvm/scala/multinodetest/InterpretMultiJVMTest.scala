@@ -2,11 +2,13 @@ package multinodetest
 
 import akka.remote.testkit.{MultiNodeConfig, MultiNodeSpec}
 import akka.testkit.ImplicitSender
-import degrel.cluster.Timeouts
+import degrel.cluster.Controller.messages.Result
+import degrel.cluster.{Controller, Timeouts}
 import degrel.utils.TestUtils._
 import com.typesafe.config.ConfigFactory
-import degrel.control.cluster.{ControllerFacade, LobbyDaemon, WorkerDaemon, WorkerFacade}
+import degrel.control.cluster._
 import degrel.core.Vertex
+import scala.concurrent.duration._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
@@ -72,18 +74,17 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
 
   "Interpret" must {
     "interpret data" in {
-      var lobbyDaemon: LobbyDaemon = null
-      var workerDaemon: WorkerDaemon = null
+      var lobbyFacade: LobbyFacade = null
+      var workerFacade: WorkerFacade = null
       runOn(lobby) {
-        lobbyDaemon = LobbyDaemon(system)
-        lobbyDaemon.start()
+        lobbyFacade = LobbyFacade(system)
+        lobbyFacade.start()
       }
       enterBarrier("lobby-ready")
 
       runOn(worker1, worker2) {
-        val workerFacade = WorkerFacade(system, node(lobby).address)
-        workerDaemon = WorkerDaemon(workerFacade)
-        workerDaemon.start()
+        workerFacade = WorkerFacade(system, node(lobby).address)
+        workerFacade.start()
       }
       enterBarrier("worker-ready")
 
@@ -91,8 +92,16 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
         val code = degrel.parseVertex("{fin foo}")
         val expected = degrel.parseVertex("foo")
         val controllerFacade = ControllerFacade(system, node(lobby).address)
-        Thread.sleep(1000)
-        val res = Await.result(controllerFacade.interpret(code.asCell), Timeouts.short.duration)
+        def waitForReady(): Unit = {
+          Thread.sleep(100)
+          val res = Await.result(controllerFacade.isReady, Timeouts.short.duration + 5.seconds)
+          if (!res) {
+            waitForReady()
+          }
+        }
+        waitForReady()
+        val fut = controllerFacade.interpret(code.asCell)
+        val res = Await.result(fut, Timeouts.short.duration)
         assert(res ===~ expected)
       }
       enterBarrier("finish")

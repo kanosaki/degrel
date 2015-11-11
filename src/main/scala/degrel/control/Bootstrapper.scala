@@ -5,7 +5,7 @@ import java.io.File
 import akka.actor.{ActorSystem, AddressFromURIString}
 import com.typesafe.config.{Config, ConfigFactory}
 import degrel.cluster.ClusterInterpreter
-import degrel.control.cluster.{ClusterConsole, ControllerFacade, WorkerDaemon, WorkerFacade}
+import degrel.control.cluster.{ClusterConsole, ControllerFacade, WorkerFacade}
 import degrel.control.console.ConsoleHandle
 import degrel.core.{Cell, Label}
 import degrel.engine.namespace.Repository
@@ -120,8 +120,7 @@ class Bootstrapper(val args: BootArguments) {
     val lobbyAddr = AddressFromURIString(args.seeds.head)
     val system = this.createActorSystem()
     val facade = WorkerFacade(system, lobbyAddr)
-    val daemon = WorkerDaemon(facade)
-    daemon.start()
+    facade.start()
   }
 }
 

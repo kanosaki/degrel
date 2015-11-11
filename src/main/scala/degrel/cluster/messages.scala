@@ -21,9 +21,16 @@ object messages {
   case class WorkerRegistration(workerRef: ActorRef)
 
   // SessionManager -> Ocean
-  case class NodeAllocateRequest()
+  case class NodeAllocateRequest(manager: ActorRef, param: NodeInitializeParam)
 
   case class NewSession()
+
+  // general request for status
+  case class QueryStatus()
+
+  case class LobbyState(active: Boolean)
+
+  case class ControllerState(active: Boolean)
 
   case class SendGraph(target: ID, graph: DGraph)
 
@@ -31,7 +38,7 @@ object messages {
 
 
   // Controller -> Session Manager
-  case class StartInterpret(cell: DGraph)
+  case class StartInterpret(cell: DGraph, ctrlr: ActorRef)
 
   case class Hello()
 
@@ -42,7 +49,7 @@ object messages {
 
   // Session Controller -> Island
   // Requests island to spawn ClusterNode and return it to Session Controller
-  case class SpawnNode(id: NodeID)
+  case class SpawnNode(manager: ActorRef, param: NodeInitializeParam)
 
   case class TellLobby(addr: Address)
 }

@@ -1,9 +1,11 @@
 package degrel.cluster
 
+import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
 import degrel.core.{Cell, Vertex}
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 // Akka controller
@@ -15,16 +17,28 @@ class Controller() extends MemberBase {
   import messages._
 
   override def receiveMsg = {
+    case QueryStatus() => {
+      sender() ! ControllerState(active = lobbies.nonEmpty)
+    }
     case Interpret(cell) if lobbies.isEmpty => {
       log.error("*********** No islands!")
     }
     case Interpret(cell) if lobbies.nonEmpty => {
-      log.info(s"************* Engine Start: ${cell.pp}")
-      val rootIsland = lobbies.head
       implicit val timeout = Timeout(10.hours)
+      log.info(s"************* Engine Start: ${cell.pp}")
+      val lobby = lobbies.head
       val packed = node.exchanger.packAll(cell)
       val origin = sender()
-      rootIsland ? Push(packed) onSuccess {
+      for {
+        session <- (lobby ? NewSession()) map {
+          case Right(ref: ActorRef) => ref
+          case Left(msg: Throwable) => {
+            log.error(msg, "Cannot allocate session")
+            throw msg
+          }
+        }
+        result <- session ? StartInterpret(packed, self)
+      } yield result match {
         case Fin(v) =>
           val unpacked = node.exchanger.unpack(v)
           log.info(s"************* Engine result: ${unpacked.pp}")

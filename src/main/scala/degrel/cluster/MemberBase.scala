@@ -3,17 +3,20 @@ package degrel.cluster
 import akka.actor._
 import akka.cluster.ClusterEvent._
 import akka.cluster.{Cluster, Member}
-import degrel.cluster.messages.{WorkerRegistration, TellLobby}
+import akka.util.Timeout
+import degrel.cluster.messages.{TellLobby, WorkerRegistration}
 
 import scala.collection.mutable
-import scala.collection.immutable
 
 trait MemberBase extends Actor with ActorLogging {
+
+  import MemberBase._
+  import context.dispatcher
+
   val cluster = Cluster(context.system)
-  println(s"CLUSTER BEGIN: ${cluster.selfUniqueAddress} ${cluster.selfAddress} roles: ${cluster.selfRoles}")
-  val controllers = mutable.ListBuffer[ActorSelection]()
-  val workers = mutable.ListBuffer[ActorSelection]()
-  val lobbies = mutable.ListBuffer[ActorSelection]()
+  val controllers = mutable.ListBuffer[ActorRef]()
+  val workers = mutable.ListBuffer[ActorRef]()
+  val lobbies = mutable.ListBuffer[ActorRef]()
 
 
   def joinLobby(addr: Address) = {
@@ -26,24 +29,23 @@ trait MemberBase extends Actor with ActorLogging {
 
   protected def onLobbyJoined(addr: Address) = {}
 
-  def register(member: Member): Unit = {
+  def register(member: Member)(implicit timeout: Timeout = Timeouts.short): Unit = {
     log.info(s"*************** Accept: ${member.address} roles: ${member.roles} members: ${Cluster.get(context.system).state.members.size}")
     if (member.hasRole(Roles.Controller.name)) {
-      val actors = context.actorSelection(actorPath(member.address, Roles.Controller))
-      controllers += actors
+      context.actorSelection(actorPath(member.address, Roles.Controller)).resolveOne() map { ref =>
+        controllers += ref
+      }
     }
     if (member.hasRole(Roles.Worker.name)) {
-      val actors = context.actorSelection(actorPath(member.address, Roles.Worker))
-      workers += actors
+      context.actorSelection(actorPath(member.address, Roles.Worker)).resolveOne() map { ref =>
+        workers += ref
+      }
     }
     if (member.hasRole(Roles.Lobby.name)) {
-      val actors = context.actorSelection(actorPath(member.address, Roles.Lobby))
-      lobbies += actors
+      context.actorSelection(actorPath(member.address, Roles.Lobby)).resolveOne() map { ref =>
+        lobbies += ref
+      }
     }
-  }
-
-  protected def actorPath(addr: Address, role: MemberRole) = {
-    RootActorPath(addr) / "user" / role.name
   }
 
   protected def actorOfRole(addr: Address, role: MemberRole) = {
@@ -64,7 +66,6 @@ trait MemberBase extends Actor with ActorLogging {
     case MemberUp(member) => this.register(member)
     case state: CurrentClusterState => {
       // initialize message
-      println(s"============== STATE: $state")
       state.members.foreach(this.register)
     }
     case UnreachableMember(member) =>
@@ -74,7 +75,20 @@ trait MemberBase extends Actor with ActorLogging {
     case e: MemberEvent => log.info(s"******************** MemberEvent: $e")
   }
 
+  def receiveUnhandled: Receive = {
+    case msg => {
+      log.warning(s"Unknown message: $msg")
+    }
+  }
+
   def receiveMsg: Receive
 
-  override def receive: Receive = receiveMsg.orElse(receiveMemberMsg)
+  override def receive: Receive = receiveMsg.orElse(receiveMemberMsg).orElse(receiveUnhandled)
+}
+
+object MemberBase {
+  def actorPath(addr: Address, role: MemberRole) = {
+    RootActorPath(addr) / "user" / role.name
+  }
+
 }
