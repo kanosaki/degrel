@@ -38,9 +38,10 @@ class Controller() extends MemberBase {
           }
         }
         result <- session ? StartInterpret(packed, self)
-      } yield result match {
-        case Fin(v) =>
+      } yield (result, session) match {
+        case (Fin(v), sess) =>
           val unpacked = node.exchanger.unpack(v)
+          lobby ! CloseSession(sess)
           log.info(s"************* Engine result: ${unpacked.pp}")
           origin ! Result(unpacked)
       }

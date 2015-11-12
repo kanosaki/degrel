@@ -10,7 +10,7 @@ class Worker extends MemberBase {
   import messages._
 
   def spawnNode(manager: ActorRef, param: NodeInitializeParam): ActorRef = {
-    context.actorOf(SessionNode.props(self, manager, param), name = "node")
+    context.actorOf(SessionNode.props(self, manager, param))
   }
 
   override def receiveMsg: Receive = {

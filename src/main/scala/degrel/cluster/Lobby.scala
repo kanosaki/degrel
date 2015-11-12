@@ -28,7 +28,7 @@ class Lobby extends MemberBase {
   }
 
   private def allocateSession(): ActorRef = {
-    val session = context.actorOf(SessionManager.props(self), name = "session")
+    val session = context.actorOf(SessionManager.props(self))
     sessions += session
     session
   }
@@ -45,6 +45,11 @@ class Lobby extends MemberBase {
       val newSession = allocateSession()
       println(s"================= New Session: $newSession")
       sender() ! Right(newSession)
+    }
+
+    case CloseSession(sess) => {
+      sessions -= sess
+      context.stop(sess)
     }
     case NodeAllocateRequest(manager, param) => {
       println(s"================= Allocating node for: $manager")

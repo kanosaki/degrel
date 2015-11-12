@@ -9,7 +9,6 @@ import degrel.utils.TestUtils._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
-import scala.concurrent.duration._
 
 object InterpretConfig extends MultiNodeConfig {
   val controller = role("controller")
@@ -68,6 +67,34 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
 
   import InterpretConfig._
 
+  val simpleCellScripts = Seq(
+    """{
+      | foo
+      | foo -> {
+      |   fin baz
+      | }
+      |}""".stripMargin ->
+      """{
+        | baz
+        | foo -> {
+        |   fin baz
+        | }
+        |}""".stripMargin,
+    """{
+      | foo(hoge)
+      | foo(@X) -> {
+      |   fin baz(X)
+      | }
+      |}""".stripMargin ->
+      """{
+        | baz(hoge)
+        | foo(@X) -> {
+        |   fin baz(X)
+        | }
+        |}""".stripMargin,
+    """{fin foo}""" -> """foo"""
+  )
+
   "Interpret" must {
     "interpret data" in {
       var lobbyFacade: LobbyFacade = null
@@ -83,13 +110,15 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
       }
 
       runOn(controller) {
-        val code = degrel.parseVertex("{fin foo}")
-        val expected = degrel.parseVertex("foo")
-        val controllerFacade = ControllerFacade(system, node(lobby).address)
-        controllerFacade.waitForReady()
-        val fut = controllerFacade.interpret(code.asCell)
-        val res = Await.result(fut, Timeouts.short.duration)
-        assert(res ===~ expected)
+        simpleCellScripts.foreach { case (srcStr, resStr) =>
+          val code = degrel.parseVertex(srcStr)
+          val expected = degrel.parseVertex(resStr)
+          val controllerFacade = ControllerFacade(system, node(lobby).address)
+          controllerFacade.waitForReady()
+          val fut = controllerFacade.interpret(code.asCell)
+          val res = Await.result(fut, Timeouts.short.duration)
+          assert(res ===~ expected)
+        }
       }
       enterBarrier("finish")
     }

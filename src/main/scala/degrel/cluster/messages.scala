@@ -25,6 +25,8 @@ object messages {
 
   case class NewSession()
 
+  case class CloseSession(sess: ActorRef)
+
   // general request for status
   case class QueryStatus()
 

@@ -18,7 +18,7 @@ class ControllerFacade(val system: ActorSystem, lobbyAddr: Address) {
   import system.dispatcher
   import Controller.messages._
 
-  val ctrlr = system.actorOf(Props[Controller], name = Roles.Controller.name)
+  val ctrlr = system.actorOf(Props[Controller])
   ctrlr ! TellLobby(lobbyAddr)
 
   val lobby = LobbyFacade(system)

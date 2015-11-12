@@ -20,11 +20,18 @@ class SessionManager(val lobby: ActorRef) extends Actor with ActorLogging {
   val controllers = mutable.Seq[ActorRef]()
   var currentId: NodeID = 0
 
+
+  @throws[Exception](classOf[Exception])
+  override def postStop(): Unit = {
+    nodes.foreach { case (_, ref) =>
+      context.stop(ref)
+    }
+  }
+
   def allocateInitialNode(newId: NodeID) = {
     implicit val timeout = Timeouts.apiCall
     (lobby ? NodeAllocateRequest(self, NodeInitializeParam(newId))) map {
-      case Right(newNode: ActorRef) =>
-      {
+      case Right(newNode: ActorRef) => {
         println("node allocated")
         newNode
       }
