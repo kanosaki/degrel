@@ -2,17 +2,14 @@ package multinodetest
 
 import akka.remote.testkit.{MultiNodeConfig, MultiNodeSpec}
 import akka.testkit.ImplicitSender
-import degrel.cluster.Controller.messages.Result
-import degrel.cluster.{Controller, Timeouts}
-import degrel.utils.TestUtils._
 import com.typesafe.config.ConfigFactory
+import degrel.cluster.Timeouts
 import degrel.control.cluster._
-import degrel.core.Vertex
-import scala.concurrent.duration._
+import degrel.utils.TestUtils._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.Await
-import scala.util.Success
+import scala.concurrent.duration._
 
 object InterpretConfig extends MultiNodeConfig {
   val controller = role("controller")
@@ -70,7 +67,6 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
   override def initialParticipants: Int = roles.size
 
   import InterpretConfig._
-  import system.dispatcher
 
   "Interpret" must {
     "interpret data" in {
@@ -80,26 +76,17 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
         lobbyFacade = LobbyFacade(system)
         lobbyFacade.start()
       }
-      enterBarrier("lobby-ready")
 
       runOn(worker1, worker2) {
         workerFacade = WorkerFacade(system, node(lobby).address)
         workerFacade.start()
       }
-      enterBarrier("worker-ready")
 
       runOn(controller) {
         val code = degrel.parseVertex("{fin foo}")
         val expected = degrel.parseVertex("foo")
         val controllerFacade = ControllerFacade(system, node(lobby).address)
-        def waitForReady(): Unit = {
-          Thread.sleep(100)
-          val res = Await.result(controllerFacade.isReady, Timeouts.short.duration + 5.seconds)
-          if (!res) {
-            waitForReady()
-          }
-        }
-        waitForReady()
+        controllerFacade.waitForReady()
         val fut = controllerFacade.interpret(code.asCell)
         val res = Await.result(fut, Timeouts.short.duration)
         assert(res ===~ expected)

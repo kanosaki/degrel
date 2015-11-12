@@ -7,7 +7,7 @@ import degrel.cluster.messages.{ControllerState, LobbyState, QueryStatus, TellLo
 import degrel.cluster.{Timeouts, Roles, Controller, Controller$}
 import degrel.core.{Cell, Vertex}
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -42,6 +42,14 @@ class ControllerFacade(val system: ActorSystem, lobbyAddr: Address) {
       cret <- this.isActive
 
     } yield lret && cret
+  }
+
+  def waitForReady(): Unit = {
+    val res = Await.result(this.isReady, Timeouts.short.duration + 5.seconds)
+    if (!res) {
+      Thread.sleep(100)
+      waitForReady()
+    }
   }
 }
 
