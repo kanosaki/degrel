@@ -8,7 +8,7 @@ import degrel.cluster.messages.{TellLobby, WorkerRegistration}
 
 import scala.collection.mutable
 
-trait MemberBase extends Actor with ActorLogging {
+trait MemberBase extends ActorBase {
 
   import MemberBase._
   import context.dispatcher

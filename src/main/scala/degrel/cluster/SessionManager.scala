@@ -10,15 +10,17 @@ import scala.concurrent.Future
   * Interpreter 1回の実行で使用するデータを保持します
   * 具体的にはIDやロードされたグラフを管理します．
   */
-class SessionManager(val lobby: ActorRef) extends Actor with ActorLogging {
+class SessionManager(val lobby: ActorRef) extends ActorBase {
 
   import context.dispatcher
   import messages._
 
   val nodes = mutable.HashMap[Int, ActorRef]()
+  val journals = mutable.ListBuffer[JournalPayload]()
   var ctrlr: ActorRef = null
   val controllers = mutable.Seq[ActorRef]()
   var currentId: NodeID = 0
+  var streamJournal = false
 
 
   @throws[Exception](classOf[Exception])
@@ -32,7 +34,6 @@ class SessionManager(val lobby: ActorRef) extends Actor with ActorLogging {
     implicit val timeout = Timeouts.apiCall
     (lobby ? NodeAllocateRequest(self, NodeInitializeParam(newId))) map {
       case Right(newNode: ActorRef) => {
-        println("node allocated")
         newNode
       }
     }
@@ -64,6 +65,16 @@ class SessionManager(val lobby: ActorRef) extends Actor with ActorLogging {
     }
     case Fin(msg) => {
       ctrlr ! Fin(msg)
+    }
+    case jp: JournalPayload => {
+      journals += jp
+      if (streamJournal) {
+        ctrlr ! jp
+      }
+    }
+    case FetchJournal(streamReq) => {
+      println(s"${sender()} $ctrlr")
+      sender() ! Right(journals.toVector)
     }
   }
 }

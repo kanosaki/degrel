@@ -42,6 +42,9 @@ object messages {
   // Controller -> Session Manager
   case class StartInterpret(cell: DGraph, ctrlr: ActorRef)
 
+  case class FetchJournal(streamReq: Boolean)
+
+
   case class Hello()
 
   // for Island

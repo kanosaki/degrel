@@ -16,12 +16,28 @@ class Controller() extends MemberBase {
   import context.dispatcher
   import messages._
 
+  def finalizeSession(sess: ActorRef, lobby: ActorRef): Future[Unit] = {
+    implicit val timeout = Timeouts.infoGather
+    println("=============== Finalizing")
+    (sess ? FetchJournal(false)) map {
+      case Right(jps: Vector[JournalPayload]) => {
+        println(jps)
+        JournalPrinter(jps).printTo(System.out)
+        lobby ! CloseSession(sess)
+      }
+      case v => {
+        println(s"************************************************** $v")
+        throw new RuntimeException("Invalid match")
+      }
+    }
+  }
+
   override def receiveMsg = {
     case QueryStatus() => {
       sender() ! ControllerState(active = lobbies.nonEmpty)
     }
     case Interpret(cell) if lobbies.isEmpty => {
-      log.error("*********** No islands!")
+      log.error("*********** No Lobby!!")
     }
     case Interpret(cell) if lobbies.nonEmpty => {
       implicit val timeout = Timeout(10.hours)
@@ -38,12 +54,14 @@ class Controller() extends MemberBase {
           }
         }
         result <- session ? StartInterpret(packed, self)
-      } yield (result, session) match {
-        case (Fin(v), sess) =>
-          val unpacked = node.exchanger.unpack(v)
-          lobby ! CloseSession(sess)
-          log.info(s"************* Engine result: ${unpacked.pp}")
-          origin ! Result(unpacked)
+      } yield {
+        result match {
+          case Fin(v) =>
+            val unpacked = node.exchanger.unpack(v)
+            origin ! Result(unpacked)
+            log.info(s"************* Engine result: ${unpacked.pp}")
+            finalizeSession(session, lobby)
+        }
       }
     }
   }

@@ -19,7 +19,7 @@ import scala.util.{Failure, Success}
   * Context class for Cluster
   */
 class LocalNode(system: ActorSystem) {
-  implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
+  import system.dispatcher
   // Timeout for control messages
   implicit val defaultTimeout = Timeout(10.seconds)
   val info = NodeInfo.generate()

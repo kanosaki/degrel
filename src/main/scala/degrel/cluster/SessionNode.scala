@@ -3,7 +3,8 @@ package degrel.cluster
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import degrel.engine.Chassis
 
-class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitializeParam) extends Actor with ActorLogging {
+class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitializeParam) extends JournalingActor {
+
   val localNode = LocalNode(context.system)
   val driverFactory = ClusterDriverFactory(localNode)
   val repo = RemoteRepository(manager)
@@ -14,7 +15,7 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
     case SendGraph(target, graph) => {
     }
     case Push(msg) => {
-      println(s"------------- Receive: $msg")
+      this.journal(Journal.Info("Push"))
       val unpacked = localNode.exchanger.unpack(msg)
       if (unpacked.isCell) {
         val driver = driverFactory.create(chassis, unpacked.asCell)
@@ -24,6 +25,10 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       }
     }
   }
+
+  override def nodeID: NodeID = param.id
+
+  override def journalCollector: ActorRef = manager
 }
 
 object SessionNode {

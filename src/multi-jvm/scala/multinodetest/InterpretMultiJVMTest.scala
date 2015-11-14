@@ -116,7 +116,7 @@ with WordSpecLike with Matchers with BeforeAndAfterAll with ImplicitSender {
           val controllerFacade = ControllerFacade(system, node(lobby).address)
           controllerFacade.waitForReady()
           val fut = controllerFacade.interpret(code.asCell)
-          val res = Await.result(fut, Timeouts.short.duration)
+          val res = Await.result(fut, Timeouts.middle.duration)
           assert(res ===~ expected)
         }
       }
