@@ -34,10 +34,6 @@ class Lobby extends MemberBase {
   }
 
   override def receiveMsg: Receive = {
-    case Push(graph) => {
-      println(s"ACCEPT: $graph")
-      sender() ! Fin(graph)
-    }
     case QueryStatus() => {
       sender() ! LobbyState(active = this.workers.nonEmpty)
     }
@@ -61,4 +57,6 @@ class Lobby extends MemberBase {
       }
     }
   }
+
+  override def role: MemberRole = Roles.Lobby
 }

@@ -10,11 +10,25 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
   val repo = RemoteRepository(manager)
   val chassis = Chassis(repo, driverFactory)
   import messages._
+  import context.dispatcher
 
   override def receive = {
-    case SendGraph(target, graph) => {
+    case QueryStatus() => {
+      sender() ! NodeState()
     }
-    case Push(msg) => {
+    case SendGraph(target, graph) => {
+      localNode.lookupOwner(target) map {
+        case Right(drv) => {
+        }
+        case Left(err) => {
+          sender() ! "Cannto send data"
+        }
+      }
+    }
+    case LookupDriver(id) => {
+
+    }
+    case Run(msg) => {
       this.journal(Journal.Info("Push"))
       val unpacked = localNode.exchanger.unpack(msg)
       if (unpacked.isCell) {

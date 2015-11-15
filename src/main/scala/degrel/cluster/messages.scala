@@ -7,9 +7,6 @@ object messages {
 
   trait Payload
 
-  // copy graph body, and move its owner
-  case class Push(graph: DGraph) extends Payload
-
   // cell has been stopped
   case class Fin(graph: DGraph) extends Payload
 
@@ -17,8 +14,6 @@ object messages {
   case class Container(destination: ID, msg: Payload)
 
 
-  // control
-  case class WorkerRegistration(workerRef: ActorRef)
 
   // SessionManager -> Ocean
   case class NodeAllocateRequest(manager: ActorRef, param: NodeInitializeParam)
@@ -31,6 +26,10 @@ object messages {
   case class QueryStatus()
 
   case class LobbyState(active: Boolean)
+
+  case class SessionState()
+
+  case class NodeState()
 
   case class ControllerState(active: Boolean)
 
@@ -57,4 +56,9 @@ object messages {
   case class SpawnNode(manager: ActorRef, param: NodeInitializeParam)
 
   case class TellLobby(addr: Address)
+
+  case class JoinLobby(lobby: ActorRef)
+
+  // control
+  case class MemberRegistration(role: MemberRole, ref: ActorRef)
 }

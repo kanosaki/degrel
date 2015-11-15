@@ -65,6 +65,8 @@ class Controller() extends MemberBase {
       }
     }
   }
+
+  override def role: MemberRole = Roles.Controller
 }
 
 object Controller {

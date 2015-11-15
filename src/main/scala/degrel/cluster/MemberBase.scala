@@ -4,7 +4,7 @@ import akka.actor._
 import akka.cluster.ClusterEvent._
 import akka.cluster.{Cluster, Member}
 import akka.util.Timeout
-import degrel.cluster.messages.{TellLobby, WorkerRegistration}
+import degrel.cluster.messages.{JoinLobby, TellLobby, MemberRegistration}
 
 import scala.collection.mutable
 
@@ -14,15 +14,15 @@ trait MemberBase extends ActorBase {
   import context.dispatcher
 
   val cluster = Cluster(context.system)
-  val controllers = mutable.ListBuffer[ActorRef]()
-  val workers = mutable.ListBuffer[ActorRef]()
-  val lobbies = mutable.ListBuffer[ActorRef]()
+  val controllers = mutable.HashSet[ActorRef]()
+  val workers = mutable.HashSet[ActorRef]()
+  val lobbies = mutable.HashSet[ActorRef]()
 
+  def role: MemberRole
 
   def joinLobby(addr: Address) = {
     //Cluster.get(context.system).joinSeedNodes(immutable.Seq(addr))
     cluster.join(addr)
-    actorOfRole(addr, Roles.Lobby) ! WorkerRegistration(self)
     this.onLobbyJoined(addr)
     log.info(s"*************** Joined to Lobby: $addr ${cluster.state}")
   }
@@ -63,6 +63,14 @@ trait MemberBase extends ActorBase {
 
   def receiveMemberMsg: Receive = {
     case TellLobby(addr) => this.joinLobby(addr)
+    case JoinLobby(lobby) => {
+      lobby ! MemberRegistration(this.role, self)
+    }
+    case MemberRegistration(role, ref) => role match {
+      case Roles.Controller => controllers += ref
+      case Roles.Lobby => lobbies += ref
+      case Roles.Worker => workers += ref
+    }
     case MemberUp(member) => this.register(member)
     case state: CurrentClusterState => {
       // initialize message

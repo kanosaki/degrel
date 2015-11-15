@@ -1,5 +1,6 @@
 package degrel.engine
-import degrel.core.{Cell, CellBody, Vertex}
+
+import degrel.core.{Cell, CellBody, ID, Vertex}
 import degrel.engine.rewriting.{Binding, Rewriter, RewritingTarget}
 import degrel.engine.sphere.Sphere
 
@@ -27,4 +28,6 @@ trait Driver {
   def addRoot(value: Vertex)
 
   def binding: Binding
+
+  def getVertex(id: ID): Option[Vertex]
 }

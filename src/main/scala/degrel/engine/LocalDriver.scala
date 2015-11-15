@@ -3,7 +3,7 @@ package degrel.engine
 import degrel.DegrelException
 import degrel.cluster.LocalNode
 import degrel.core._
-import degrel.core.transformer.{CellLimiter, AcquireOwnerVisitor, GraphVisitor}
+import degrel.core.transformer.{AcquireOwnerVisitor, CellLimiter, GraphVisitor}
 import degrel.engine.rewriting._
 import degrel.engine.sphere.Sphere
 import degrel.utils.PrettyPrintOptions
@@ -148,34 +148,25 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
   }
 
   private def execRewrite(rw: Rewriter, rc: RewritingTarget): Boolean = {
-    val fpCheck = chassis.diagnostics.fingerprintCheckSpan.enter {
-      val rwFp = rw.pattern.fingerprint
-      val tFp = rc.target.fingerprint
-      (rwFp & tFp) == rwFp
+    val res = chassis.diagnostics.rewriteSpan.enter {
+      rw.rewrite(rc)
     }
-    if (!fpCheck) {
-      false
-    } else {
-      val res = chassis.diagnostics.rewriteSpan.enter {
-        rw.rewrite(rc)
-      }
 
-      if (res.done) {
-        chassis.diagnostics.applySpan.enter {
-          res.exec(this)
-        }
-        if (chassis.verbose) {
-          System.err.print(Console.GREEN)
-          System.err.println("--- Apply ---")
-          System.err.println(rw.pp)
-          System.err.print(Console.BLUE)
-          System.err.println("--- Result ---")
-          System.err.println(this.header.pp)
-          System.err.println(Console.RESET)
-        }
+    if (res.done) {
+      chassis.diagnostics.applySpan.enter {
+        res.exec(this)
       }
-      res.done
+      if (chassis.verbose) {
+        System.err.print(Console.GREEN)
+        System.err.println("--- Apply ---")
+        System.err.println(rw.pp)
+        System.err.print(Console.BLUE)
+        System.err.println("--- Result ---")
+        System.err.println(this.header.pp)
+        System.err.println(Console.RESET)
+      }
     }
+    res.done
   }
 
   def addContinueRewriter(rw: ContinueRewriter) = {
@@ -223,6 +214,10 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
     } else {
       Binding.empty()
     }
+  }
+
+  override def getVertex(id: ID): Option[Vertex] = {
+    ???
   }
 }
 

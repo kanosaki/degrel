@@ -52,6 +52,9 @@ class SessionManager(val lobby: ActorRef) extends ActorBase {
   }
 
   override def receive: Receive = {
+    case QueryStatus() => {
+      sender() ! SessionState()
+    }
     case StartInterpret(msg, controller) if ctrlr != null => {
       log.error(s"Already occupied by $ctrlr")
     }
@@ -60,7 +63,7 @@ class SessionManager(val lobby: ActorRef) extends ActorBase {
       ctrlr = sender()
       prepareInitialNode() map { _ =>
         val (_, rootNode) = nodes.head
-        rootNode ! Push(msg)
+        rootNode ! Run(msg)
       }
     }
     case Fin(msg) => {

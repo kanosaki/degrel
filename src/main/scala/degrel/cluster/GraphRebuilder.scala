@@ -4,7 +4,7 @@ import degrel.core._
 
 import scala.collection.mutable
 
-class GraphRebuilder(val source: DGraph) {
+class GraphRebuilder(val source: DGraph, val node: LocalNode) {
 
   val headers = mutable.HashMap[ID, VertexHeader](source.vertices.map { dv =>
     dv.id -> mkHeader(dv)
@@ -39,7 +39,7 @@ class GraphRebuilder(val source: DGraph) {
   }
 
   def fetchHeader(id: ID): VertexHeader = {
-    headers.getOrElseUpdate(id, new RemoteVertexHeader(id))
+    headers.getOrElseUpdate(id, new RemoteVertexHeader(id, node))
   }
 
   def concreteEdges(de: DEdge): Edge = {

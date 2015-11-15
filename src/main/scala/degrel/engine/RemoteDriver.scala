@@ -2,7 +2,7 @@ package degrel.engine
 
 import akka.actor.ActorRef
 import degrel.cluster.LocalNode
-import degrel.core.{Cell, Vertex}
+import degrel.core.{ID, Cell, Vertex}
 import degrel.engine.rewriting.{Binding, Rewriter, RewritingTarget}
 import degrel.engine.sphere.Sphere
 
@@ -29,6 +29,8 @@ class RemoteDriver(ref: ActorRef, node: LocalNode) extends Driver {
   override def header: Vertex = ???
 
   override def addRoot(value: Vertex): Unit = ???
+
+  override def getVertex(id: ID): Option[Vertex] = ???
 }
 
 object RemoteDriver{

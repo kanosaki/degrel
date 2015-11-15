@@ -23,7 +23,7 @@ class SpaceExchanger(implicit val node: LocalNode) {
   }
 
   def unpack(graph: DGraph): Vertex = {
-    val gr = new GraphRebuilder(graph)
+    val gr = new GraphRebuilder(graph, node)
     val ret = gr.get(graph.root).get
     ret
   }

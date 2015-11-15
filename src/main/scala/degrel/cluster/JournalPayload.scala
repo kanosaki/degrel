@@ -23,7 +23,9 @@ object Journal {
   }
 
   case class CellSpawn(prototypeCell: ID, spawnAt: NodeID) extends Journal {
-
+    override def print(out: PrintStream): Unit = {
+      out.print(s"SPAWN $prototypeCell at $spawnAt")
+    }
   }
 
 }

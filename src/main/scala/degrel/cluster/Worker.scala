@@ -21,6 +21,8 @@ class Worker extends MemberBase {
 
   override protected def onLobbyJoined(addr: Address): Unit = {
   }
+
+  override def role: MemberRole = Roles.Worker
 }
 
 object Worker {

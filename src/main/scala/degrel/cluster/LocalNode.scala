@@ -4,7 +4,7 @@ import akka.actor.{ActorRef, ActorSystem}
 import akka.pattern._
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
-import degrel.core.ID
+import degrel.core.{Vertex, ID}
 import degrel.engine.{Driver, LocalDriver, RemoteDriver}
 
 import scala.collection.mutable
@@ -40,15 +40,27 @@ class LocalNode(system: ActorSystem) {
     neighborNodes += nodeID -> island
   }
 
-  def lookupOwner(id: ID): Future[Either[Throwable, Driver]] = {
-    import messages._
-    if (id.nodeID == 0 || id.nodeID == selfID) {
+  def isLocalId(id: ID): Boolean = {
+    id.nodeID == 0 || id.nodeID == selfID
+  }
+
+  def lookupOwnerLocal(id: ID): Future[Either[Throwable, Driver]] = {
+    if (isLocalId(id)) {
       Future {
         driverMapping.get(id.ownerID) match {
           case Some(drv) => Right(drv)
           case None => Left(null)
         }
       }
+    } else {
+      throw new RuntimeException(s"ID $id is not owned by this node, use lookupOwner.")
+    }
+  }
+
+  def lookupOwner(id: ID): Future[Either[Throwable, Driver]] = {
+    import messages._
+    if (isLocalId(id)) {
+      this.lookupOwnerLocal(id)
     } else {
       neighborNodes.get(id.nodeID) match {
         case None => Future {
@@ -64,6 +76,18 @@ class LocalNode(system: ActorSystem) {
           }
         }
       }
+    }
+  }
+
+  def lookup(id: ID): Future[Either[Throwable, Vertex]] = {
+    this.lookupOwner(id) map {
+      case Right(drv) => {
+        drv.getVertex(id) match {
+          case Some(v) => Right(v)
+          case None => Left(new RuntimeException("Owner foudn but vertex not found"))
+        }
+      }
+      case Left(msg) => Left(msg)
     }
   }
 }
