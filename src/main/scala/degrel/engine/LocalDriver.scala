@@ -13,7 +13,7 @@ import scala.collection.mutable
 /**
   * Cellの実行をします
   */
-class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode, val parent: Driver) extends Reactor with Driver {
+class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode, val parent: Driver) extends Reactor with Driver {1
   implicit val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()

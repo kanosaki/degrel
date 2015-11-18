@@ -21,7 +21,7 @@ class IDTest extends FlatSpec {
   "NotAssignedID" should "automatically assigned" in {
     val v = Vertex("foobar", Seq(), Map())
     val d1 = LocalDriver()
-    d1.addRoot(v)
+    d1.send(v)
     assert(v.id.ownerID == d1.header.id.ownerID)
   }
 

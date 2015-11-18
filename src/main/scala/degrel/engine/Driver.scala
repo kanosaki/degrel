@@ -23,10 +23,6 @@ trait Driver {
 
   def dispatch(target: Cell, value: Vertex)
 
-  def addRoot(value: Vertex) = {
-    this.dispatch(this.header.asCell, value)
-  }
-
   def binding: Binding
 
   def getVertex(id: ID): Option[Vertex]
@@ -39,7 +35,7 @@ trait Driver {
     * Send message vertex underlying cell
     */
   def send(msg: Vertex) = {
-    this.dispatch(this.cell, msg)
+    this.dispatch(this.header.asCell, msg)
   }
 
   def baseRewriters: Seq[Rewriter] = cell.bases.flatMap(_.rules.map(Rewriter(_)))
