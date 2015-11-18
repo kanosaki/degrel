@@ -31,8 +31,6 @@ trait Driver {
 
   def stepRecursive(): Boolean
 
-  def rewritee: RewriteeSet
-
   def rewriters: Seq[Rewriter]
 
   /**

@@ -11,7 +11,6 @@ class BenchmarkInterpreter(ch: Chassis, quiet: Boolean = false) extends Interpre
   var startTime: LocalDateTime = null
   var finishTime: LocalDateTime = null
   val initialSize = Traverser(chassis.main.header).size
-  val rewriteeSetName = ch.main.rewritee.name
   var elapsed: Long = -1
   var totalSteps: Long = -1
 

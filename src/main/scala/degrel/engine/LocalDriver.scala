@@ -17,7 +17,6 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
   implicit val printOption = PrettyPrintOptions(multiLine = true)
   private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
-  var rewritee: RewriteeSet = new PlainRewriteeSet(this)
   var tryOwnVisitor: GraphVisitor = GraphVisitor(
     CellLimiter.default,
     new TryOwnVisitor(this.header))
@@ -184,13 +183,11 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
       this.parent.writeVertex(target, value)
     } else {
       tryOwnVisitor.visit(value)
-      this.rewritee.onWriteVertex(target, value)
       target.target.write(value)
     }
   }
 
   override def removeRoot(v: Vertex): Unit = {
-    this.rewritee.onRemoveRoot(v)
     this.cell.removeRoot(v)
   }
 
@@ -201,7 +198,6 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
     if (target == this.header) {
       tryOwnVisitor.visit(value)
     }
-    this.rewritee.onAddRoot(target, value)
     target.addRoot(value)
   }
 
@@ -210,7 +206,6 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
       this.spawn(value.asCell)
     }
     tryOwnVisitor.visit(value)
-    this.rewritee.onAddRoot(this.cell, value)
     this.cell.addRoot(value)
   }
 

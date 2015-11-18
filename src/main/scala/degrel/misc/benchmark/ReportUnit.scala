@@ -16,7 +16,7 @@ class ReportUnit(name: String,
                  end: LocalDateTime,
                  initialMainSize: Long,
                  spans: Seq[ProcedureSpan],
-                 rewriteeSetName: String) {
+                 rewriteeSetName: String = "none") {
   val elapsed = ChronoUnit.MILLIS.between(begin, end)
   val rps = totalSteps.toFloat / (elapsed.toFloat / 1000)
   val datetimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss,SSS")

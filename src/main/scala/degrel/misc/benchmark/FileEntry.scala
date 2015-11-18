@@ -14,8 +14,7 @@ class FileEntry(bootstrapper: Bootstrapper, path: Path, quiet: Boolean) {
                    bi.startTime,
                    bi.finishTime,
                    bi.initialSize,
-                   chassis.diagnostics.spans,
-                   bi.rewriteeSetName)
+                   chassis.diagnostics.spans)
   }
 
   override def toString: String = {

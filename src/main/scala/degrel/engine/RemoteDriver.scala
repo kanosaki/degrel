@@ -57,8 +57,6 @@ class RemoteDriver(remoteNode: ActorRef, node: LocalNode)(implicit ec: Execution
 
   override def stepRecursive(): Boolean = false
 
-  override def rewritee: RewriteeSet = null
-
   override def rewriters: Seq[Rewriter] = ???
 }
 
