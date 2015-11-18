@@ -21,9 +21,11 @@ trait Driver {
 
   def removeRoot(v: Vertex): Unit
 
-  def dispatchRoot(target: Cell, value: Vertex)
+  def dispatch(target: Cell, value: Vertex)
 
-  def addRoot(value: Vertex)
+  def addRoot(value: Vertex) = {
+    this.dispatch(this.header.asCell, value)
+  }
 
   def binding: Binding
 
@@ -37,7 +39,7 @@ trait Driver {
     * Send message vertex underlying cell
     */
   def send(msg: Vertex) = {
-    this.dispatchRoot(this.cell, msg)
+    this.dispatch(this.cell, msg)
   }
 
   def baseRewriters: Seq[Rewriter] = cell.bases.flatMap(_.rules.map(Rewriter(_)))

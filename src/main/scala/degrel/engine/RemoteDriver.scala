@@ -14,7 +14,7 @@ import scala.concurrent.{ExecutionContext, Await}
 class RemoteDriver(remoteNode: ActorRef, node: LocalNode)(implicit ec: ExecutionContext) extends Driver {
   implicit val timeout = Timeouts.short
 
-  override def dispatchRoot(target: Cell, value: Vertex): Unit = {
+  override def dispatch(target: Cell, value: Vertex): Unit = {
     val dGraph = node.exchanger.packAll(value, move = true)
     remoteNode ! SendGraph(target.id, dGraph)
   }
@@ -46,11 +46,6 @@ class RemoteDriver(remoteNode: ActorRef, node: LocalNode)(implicit ec: Execution
 
   override val header: Vertex = {
     Await.result((remoteNode ? QueryHeader()).mapTo[Vertex], Timeouts.short.duration)
-  }
-
-  override def addRoot(value: Vertex): Unit = {
-    val v = node.exchanger.packAll(value, move = true)
-    remoteNode ! SendGraph(this.header.id, v)
   }
 
   override def getVertex(id: ID): Option[Vertex] = ???

@@ -191,7 +191,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
     this.cell.removeRoot(v)
   }
 
-  override def dispatchRoot(target: Cell, value: Vertex) = {
+  override def dispatch(target: Cell, value: Vertex) = {
     if (value.isCell) {
       this.spawn(value.asCell)
     }
@@ -199,14 +199,6 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
       tryOwnVisitor.visit(value)
     }
     target.addRoot(value)
-  }
-
-  override def addRoot(value: Vertex): Unit = {
-    if (value.isCell) {
-      this.spawn(value.asCell)
-    }
-    tryOwnVisitor.visit(value)
-    this.cell.addRoot(value)
   }
 
   override def binding: Binding = {

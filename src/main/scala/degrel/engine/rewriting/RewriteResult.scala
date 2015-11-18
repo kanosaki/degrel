@@ -33,7 +33,7 @@ object RewriteResult {
     override def done: Boolean = true
 
     override def exec(self: LocalDriver): Unit = {
-      self.dispatchRoot(target, value)
+      self.dispatch(target, value)
     }
   }
 
