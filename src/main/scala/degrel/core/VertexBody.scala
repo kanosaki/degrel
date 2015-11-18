@@ -70,5 +70,9 @@ trait VertexBody extends Vertex {
   override def tryOwn(owner: Vertex): Boolean = {
     throw new RuntimeException("Own only valid for VertexHeader")
   }
+
+  override def transferOwner(owner: Vertex): Unit = {
+    throw new RuntimeException("Own only valid for VertexHeader")
+  }
 }
 

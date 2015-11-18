@@ -2,6 +2,6 @@ package degrel.engine
 
 package object namespace {
   type Name = List[Symbol]
-  type Content = LocalDriver
+  type Content = Driver
   val NAME_DELIMITER = "."
 }

@@ -32,7 +32,7 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       this.journal(Journal.Info("Push"))
       val unpacked = localNode.exchanger.unpack(msg)
       if (unpacked.isCell) {
-        val driver = driverFactory.create(chassis, unpacked.asCell)
+        val driver = driverFactory.create(chassis, unpacked.asCell, null)
         driver.stepUntilStop()
         val packed = localNode.exchanger.packAll(driver.header)
         sender() ! messages.Fin(packed)

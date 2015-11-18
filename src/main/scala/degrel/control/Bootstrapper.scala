@@ -9,7 +9,7 @@ import degrel.control.cluster.{ClusterConsole, ControllerFacade, WorkerFacade}
 import degrel.control.console.ConsoleHandle
 import degrel.core.{Cell, Label}
 import degrel.engine.namespace.Repository
-import degrel.engine.{Chassis, DriverFactory, RootHashDriverFactory}
+import degrel.engine.{Chassis, DriverFactory}
 import org.apache.commons.io.FileUtils
 
 // TODO: DI?
@@ -20,7 +20,8 @@ class Bootstrapper(val args: BootArguments) {
 
   val driverFactory: DriverFactory = {
     args.rewriteeSetName match {
-      case "root_hash" => new RootHashDriverFactory()
+      //case "root_hash" => new RootHashDriverFactory()
+      case "root_hash" => DriverFactory.default
       case "plain" => {
         DriverFactory.default
       }

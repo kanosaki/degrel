@@ -1,40 +1,69 @@
 package degrel.engine
 
 import akka.actor.ActorRef
-import degrel.cluster.LocalNode
-import degrel.core.{ID, Cell, Vertex}
+import akka.pattern.ask
+import degrel.cluster.messages._
+import degrel.cluster.{LocalNode, Timeouts}
+import degrel.core.{Cell, ID, Vertex}
 import degrel.engine.rewriting.{Binding, Rewriter, RewritingTarget}
 import degrel.engine.sphere.Sphere
 
-class RemoteDriver(ref: ActorRef, node: LocalNode) extends Driver {
+import scala.concurrent.{ExecutionContext, Await}
 
-  override def dispatchRoot(target: Cell, value: Vertex): Unit = ???
+// note: remoteNode is not a single cell(or a driver) wrapper, it might contains several cells(also drivers)
+class RemoteDriver(remoteNode: ActorRef, node: LocalNode)(implicit ec: ExecutionContext) extends Driver {
+  implicit val timeout = Timeouts.short
 
-  override def spawn(cell: Vertex): Driver = ???
+  override def dispatchRoot(target: Cell, value: Vertex): Unit = {
+    val dGraph = node.exchanger.packAll(value, move = true)
+    remoteNode ! SendGraph(target.id, dGraph)
+  }
 
-  override def isActive: Boolean = ???
+  override def spawn(cell: Vertex): Driver = {
+    node.spawn(cell)
+  }
 
-  override def writeVertex(target: RewritingTarget, value: Vertex): Unit = ???
+  override def isActive: Boolean = {
+    // todo: should be future?
+    val fut = (remoteNode ? QueryStatus()).mapTo[DriverState].map(_.isActive)
+    Await.result(fut, Timeouts.short.duration)
+  }
 
-  override def removeRoot(v: Vertex): Unit = ???
+  override def writeVertex(target: RewritingTarget, value: Vertex): Unit = {
+    val dGraph = node.exchanger.pack(value)
+    remoteNode ! WriteVertex(target.target.id, dGraph)
+  }
 
-  override def stepUntilStop(limit: Int): Int = ???
+  override def removeRoot(v: Vertex): Unit = {
+    remoteNode ! RemoveRoot(v.id)
+  }
+
+  override def stepUntilStop(limit: Int): Int = 0
 
   override def binding: Binding = ???
 
-  override def rewriters: Seq[Rewriter] = ???
+  override val resource: Sphere = node.getSphere(this)
 
-  override def resource: Sphere = ???
+  override val header: Vertex = {
+    Await.result((remoteNode ? QueryHeader()).mapTo[Vertex], Timeouts.short.duration)
+  }
 
-  override def header: Vertex = ???
-
-  override def addRoot(value: Vertex): Unit = ???
+  override def addRoot(value: Vertex): Unit = {
+    val v = node.exchanger.packAll(value, move = true)
+    remoteNode ! SendGraph(this.header.id, v)
+  }
 
   override def getVertex(id: ID): Option[Vertex] = ???
+
+  override def stepRecursive(): Boolean = false
+
+  override def rewritee: RewriteeSet = null
+
+  override def rewriters: Seq[Rewriter] = ???
 }
 
-object RemoteDriver{
-  def apply(ref: ActorRef, node: LocalNode) = {
+object RemoteDriver {
+  def apply(ref: ActorRef, node: LocalNode)(implicit ec: ExecutionContext) = {
     new RemoteDriver(ref, node)
   }
 }

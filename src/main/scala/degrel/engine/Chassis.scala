@@ -1,11 +1,9 @@
 package degrel.engine
 
-import degrel.cluster.LocalNode
 import degrel.core.{Cell, Label, Vertex}
 import degrel.engine.namespace.Repository
 import degrel.engine.sphere.Sphere
 import org.json4s.JsonAST.JObject
-
 import org.json4s.JsonDSL._
 
 /**
@@ -17,47 +15,47 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
   var sphere: Sphere = degrel.engine.sphere.default
   var verbose = false
 
-  def getResourceFor(driver: LocalDriver): Sphere = sphere
+  def getResourceFor(driver: Driver): Sphere = sphere
 
   def normalizeName(name: String): List[Symbol] = {
     name.split(namespace.NAME_DELIMITER).map(Symbol(_)).toList
   }
 
-  def getDriver(name: String): Option[LocalDriver] = {
+  def getDriver(name: String): Option[Driver] = {
     val key = this.normalizeName(name)
     this.getDriver(key)
   }
 
-  def getDriver(name: List[Symbol]): Option[LocalDriver] = {
+  def getDriver(name: List[Symbol]): Option[Driver] = {
     this.repository.get(name)
   }
 
-  def createDriver(cell: Vertex, parent: LocalDriver = null): LocalDriver = {
+  def createDriver(cell: Vertex, parent: Driver = null): Driver = {
     driverFactory.create(this, cell, parent)
   }
 
-  def addDriver(name: List[Symbol], driver: LocalDriver): LocalDriver = {
+  def addDriver(name: List[Symbol], driver: Driver): Driver = {
     this.repository.register(name, driver)
     driver
   }
 
-  def registerCell(name: List[Symbol], cell: Vertex, parent: LocalDriver = null): LocalDriver = {
+  def registerCell(name: List[Symbol], cell: Vertex, parent: Driver = null): Driver = {
     val driver = this.driverFactory.create(this, cell, parent)
     this.addDriver(name, driver)
   }
 
-  def register(name: String, cell: Vertex, parent: LocalDriver = null): LocalDriver = {
+  def register(name: String, cell: Vertex, parent: Driver = null): Driver = {
     val normalizedName = this.normalizeName(name)
-    this.registerCell(this.normalizeName(name), cell: Vertex, parent: LocalDriver)
+    this.registerCell(this.normalizeName(name), cell: Vertex, parent: Driver)
   }
 
   def repository: namespace.Repository = _repo
 
-  def getName(drv: LocalDriver): String = {
+  def getName(drv: Driver): String = {
     this.repository.getName(drv).map(_.name).mkString(namespace.NAME_DELIMITER)
   }
 
-  def main: LocalDriver = {
+  def main: Driver = {
     repository.get(Label.N.main).get
   }
 
@@ -112,13 +110,13 @@ object Chassis {
   def create(main: Cell): Chassis = {
     val repo = new Repository()
     val chassis = new Chassis(repo)
-    repo.register(Label.N.main, new LocalDriver(main, chassis, LocalNode.current))
+    repo.register(Label.N.main, LocalDriver(main, chassis))
     chassis
   }
 
   def createWithMain(initRepo: Repository = null): Chassis = {
     val ch = Chassis.create(initRepo)
-    ch.repository.register(Label.N.main, new LocalDriver(Cell(Seq()), ch, LocalNode.current))
+    ch.repository.register(Label.N.main, LocalDriver(Cell(Seq()), ch))
     ch
   }
 

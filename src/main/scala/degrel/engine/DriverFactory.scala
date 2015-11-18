@@ -7,17 +7,21 @@ import degrel.core.Vertex
   * Driverを作成します．この段階では`Chassis`への登録は行われていません
   */
 trait DriverFactory {
-  def configurators: Seq[LocalDriver => Unit] = Seq()
+  def configurators: Seq[Driver => Unit] = Seq()
 
-  protected def createDriver(chassis: Chassis, cell: Vertex, parent: Driver = null): LocalDriver = {
-    new LocalDriver(cell, chassis, LocalNode.current, parent)
+  protected def createDriver(chassis: Chassis, cell: Vertex, parent: Driver): Driver = {
+    if (parent == null) {
+      new RootLocalDriver(cell, chassis, LocalNode.current)
+    } else {
+      new LocalDriver(cell, chassis, LocalNode.current, parent)
+    }
   }
 
-  protected def configureDriver(driver: LocalDriver): Unit = {
+  protected def configureDriver(driver: Driver): Unit = {
     configurators.foreach(_ (driver))
   }
 
-  def create(chassis: Chassis, cell: Vertex, parent: LocalDriver = null): LocalDriver = {
+  def create(chassis: Chassis, cell: Vertex, parent: Driver): Driver = {
     val driver = this.createDriver(chassis, cell, parent)
     this.configureDriver(driver)
     driver
@@ -25,16 +29,6 @@ trait DriverFactory {
 }
 
 class BasicDriverFactory extends DriverFactory {
-}
-
-class RootHashDriverFactory extends DriverFactory {
-  override val configurators = Seq(
-    addRewritee _
-  )
-
-  protected def addRewritee(driver: LocalDriver): Unit = {
-    driver.rewritee = new RootTableRewriteeSet(driver)
-  }
 }
 
 object DriverFactory {

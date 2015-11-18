@@ -20,7 +20,7 @@ case class Matcher(self: Vertex) {
     val matchCombinations = this.matchEdges(pattern, context, patVersion, selfVersion)
     if (matchCombinations.isEmpty) {
       NoMatching
-    } else if (matchCombinations.size == 1) {
+    } else if (matchCombinations.lengthCompare(1) == 0) { // length == 1
       matchCombinations.head
     } else {
       PolyVertexMatching(matchCombinations)

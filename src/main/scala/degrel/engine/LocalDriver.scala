@@ -3,7 +3,7 @@ package degrel.engine
 import degrel.DegrelException
 import degrel.cluster.LocalNode
 import degrel.core._
-import degrel.core.transformer.{AcquireOwnerVisitor, CellLimiter, GraphVisitor}
+import degrel.core.transformer.{CellLimiter, GraphVisitor, TryOwnVisitor}
 import degrel.engine.rewriting._
 import degrel.engine.sphere.Sphere
 import degrel.utils.PrettyPrintOptions
@@ -13,16 +13,14 @@ import scala.collection.mutable
 /**
   * Cellの実行をします
   */
-class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode, val parent: Driver = null) extends Reactor with Driver {
+class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode, val parent: Driver) extends Reactor with Driver {
   implicit val printOption = PrettyPrintOptions(multiLine = true)
-  private var children = new mutable.HashMap[Vertex, LocalDriver]()
+  private var children = new mutable.HashMap[Vertex, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
-  implicit val fp = Fingerprint.default
   var rewritee: RewriteeSet = new PlainRewriteeSet(this)
-  var acquireOwnerVisitor: GraphVisitor = GraphVisitor(
+  var tryOwnVisitor: GraphVisitor = GraphVisitor(
     CellLimiter.default,
-    new AcquireOwnerVisitor(this.header))
-  acquireOwnerVisitor.visit(header)
+    new TryOwnVisitor(this.header))
 
   override def isActive: Boolean = {
     header.isCell && this.cell.edges.nonEmpty
@@ -59,7 +57,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
     count
   }
 
-  def stepRecursive(): Boolean = {
+  override def stepRecursive(): Boolean = {
     if (!this.isActive) {
       return false
     }
@@ -90,28 +88,43 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
     * 3. 書き換えの実行
     */
   def step(): Boolean = {
-    contRewriters.find(this.stepFor) match {
-      case Some(rw) => {
-        this.cell.removeRoot(rw.tempVertex)
-        contRewriters -= rw
-        true
+    this.atoms.exists { atom =>
+      val stepFunc = this.stepFor(atom) _
+      contRewriters.find(stepFunc) match {
+        case Some(rw) => {
+          this.cell.removeRoot(rw.tempVertex)
+          contRewriters -= rw
+          true
+        }
+        case None => {
+          this.rewriters.exists(stepFunc)
+        }
       }
-      case None => {
-        this.rewriters.exists(this.stepFor)
-      }
+    } || this.rewriters.filter(_.isMeta).exists { rw =>
+      val target = RewritingTarget.alone(this.header, this)
+      this.execRewrite(rw, target)
     }
   }
 
-  def stepFor(rw: Rewriter): Boolean = {
-    val targets = this.rewritee.targetsFor(rw)
+  def stepFor(atom: Vertex)(rw: Rewriter) = {
+    val targets = if (rw.isPartial) {
+      CellTraverser(atom, this)
+    } else {
+      Seq(RewritingTarget.alone(atom, this))
+    }
     targets.exists { rc =>
       this.execRewrite(rw, rc)
     }
   }
 
-  def baseRewriters: Seq[Rewriter] = cell.bases.flatMap(_.rules.map(Rewriter(_)))
+  //def stepFor(rw: Rewriter): Boolean = {
+  //  val targets = this.rewritee.targetsFor(rw)
+  //  targets.exists { rc =>
+  //    this.execRewrite(rw, rc)
+  //  }
+  //}
 
-  override def rewriters: Seq[Rewriter] = cell.rules.map(Rewriter(_)) ++ baseRewriters ++ degrel.primitives.rewriter.default
+  override def rewriters: Seq[Rewriter] = selfRewriters ++ baseRewriters ++ parent.rewriters
 
   def atoms: Iterable[Vertex] = cell.roots
 
@@ -121,13 +134,6 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
 
   def rewriteTargets: Iterable[RewritingTarget] = {
     CellTraverser(this.cell, this)
-  }
-
-  /**
-    * Send message vertex underlying cell
-    */
-  def send(msg: Vertex) = {
-    this.dispatchRoot(this.cell, msg)
   }
 
   override def spawn(cell: Vertex): Driver = {
@@ -177,7 +183,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
     if (target.target == this.header && this.parent != null) {
       this.parent.writeVertex(target, value)
     } else {
-      acquireOwnerVisitor.visit(value)
+      tryOwnVisitor.visit(value)
       this.rewritee.onWriteVertex(target, value)
       target.target.write(value)
     }
@@ -193,7 +199,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
       this.spawn(value.asCell)
     }
     if (target == this.header) {
-      acquireOwnerVisitor.visit(value)
+      tryOwnVisitor.visit(value)
     }
     this.rewritee.onAddRoot(target, value)
     target.addRoot(value)
@@ -203,7 +209,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
     if (value.isCell) {
       this.spawn(value.asCell)
     }
-    acquireOwnerVisitor.visit(value)
+    tryOwnVisitor.visit(value)
     this.rewritee.onAddRoot(this.cell, value)
     this.cell.addRoot(value)
   }
@@ -217,7 +223,7 @@ class LocalDriver(val header: Vertex, val chassis: Chassis, val node: LocalNode,
   }
 
   override def getVertex(id: ID): Option[Vertex] = {
-    ???
+    CellTraverser(this.header, this).find(_.target.id == id).map(_.target)
   }
 }
 
@@ -226,7 +232,14 @@ object LocalDriver {
     LocalDriver(Cell())
   }
 
-  def apply(cell: Cell): LocalDriver = {
-    new LocalDriver(cell, Chassis.create(), LocalNode.current)
+  def apply(cell: Cell, chassis: Chassis = null): LocalDriver = {
+    val chas = if (chassis == null) Chassis.create() else chassis
+    val node = LocalNode.current
+    new RootLocalDriver(cell, chas, node)
   }
+
+}
+
+class RootLocalDriver(_header: Vertex, _chassis: Chassis, _node: LocalNode) extends LocalDriver(_header, _chassis, _node, null) {
+  override def rewriters: Seq[Rewriter] = selfRewriters ++ baseRewriters ++ degrel.primitives.rewriter.default
 }

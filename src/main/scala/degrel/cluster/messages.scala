@@ -1,7 +1,9 @@
 package degrel.cluster
 
 import akka.actor.{ActorRef, Address}
-import degrel.core.ID
+import degrel.core.{ID, VertexPin}
+
+import scala.concurrent.duration.Duration
 
 object messages {
 
@@ -10,10 +12,7 @@ object messages {
   // cell has been stopped
   case class Fin(graph: DGraph) extends Payload
 
-
   case class Container(destination: ID, msg: Payload)
-
-
 
   // SessionManager -> Ocean
   case class NodeAllocateRequest(manager: ActorRef, param: NodeInitializeParam)
@@ -31,9 +30,29 @@ object messages {
 
   case class NodeState()
 
+  case class DriverState(isActive: Boolean)
+
   case class ControllerState(active: Boolean)
 
+  case class SpawnDriver(graph: DGraph, binding: Seq[Seq[(VertexPin, VertexPin)]], returnTo: VertexPin)
+
   case class SendGraph(target: ID, graph: DGraph)
+
+  case class WriteVertex(id: ID, graph: DGraph)
+
+  case class RemoveRoot(target: ID)
+
+  case class QueryHeader()
+
+  case class DriverFin(returnTo: VertexPin, graph: DGraph)
+
+  // 2-phase commit
+  case class LockForPreCommit(lockingVertices: Seq[VertexPin], requestingTimeout: Duration)
+
+  case class LockResponse(commitId: Long, succeed: Boolean, acceptedTimeout: Duration)
+
+  case class ReleasePostCommit(commitId: Long)
+
 
   case class Run(graph: DGraph)
 
@@ -61,4 +80,5 @@ object messages {
 
   // control
   case class MemberRegistration(role: MemberRole, ref: ActorRef)
+
 }

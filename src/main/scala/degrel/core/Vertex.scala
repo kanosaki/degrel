@@ -187,6 +187,8 @@ trait Vertex extends Element with Comparable[Vertex] {
   def fingerprintCache_=(fp: Long): Unit
 
   def tryOwn(owner: Vertex): Boolean
+
+  def transferOwner(owner: Vertex): Unit
 }
 
 object Vertex {

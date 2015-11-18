@@ -34,11 +34,17 @@ abstract class VertexHeader(var id: ID = ID.NA) extends Vertex {
   }
 
   override def tryOwn(owner: Vertex): Boolean = {
-    val canOwn = this.id.canOwnBy(owner)
-    if (canOwn) {
-      id = id.withOwner(owner)
+    if (this.id.canOwnBy(owner)) {
+      this.transferOwner(owner)
+      true
+    } else {
+      false
     }
-    canOwn
+  }
+
+
+  override def transferOwner(owner: Vertex): Unit = {
+    id = id.withOwner(owner)
   }
 
   def fingerprintCache: Long = {

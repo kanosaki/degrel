@@ -5,6 +5,7 @@ import akka.pattern._
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
 import degrel.core.{Vertex, ID}
+import degrel.engine.sphere.Sphere
 import degrel.engine.{Driver, LocalDriver, RemoteDriver}
 
 import scala.collection.mutable
@@ -89,6 +90,15 @@ class LocalNode(system: ActorSystem) {
       }
       case Left(msg) => Left(msg)
     }
+  }
+
+  def getSphere(driver: Driver): Sphere = {
+    ???
+  }
+
+  // designates a node to spawn on, and executes spawning.
+  def spawn(cell: Vertex): Driver = {
+    ???
   }
 }
 
