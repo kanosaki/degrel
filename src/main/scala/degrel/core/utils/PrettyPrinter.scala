@@ -184,7 +184,7 @@ class PrettyPrinter(val root: Vertex)
           rhsPrinter.print(sb)
         }
         case Visited(trj) => {
-          ???
+          sb ++= s"<VISITED OP ${v.label.expr}>"
         }
       }
     }

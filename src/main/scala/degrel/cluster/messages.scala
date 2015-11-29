@@ -1,7 +1,8 @@
 package degrel.cluster
 
 import akka.actor.{ActorRef, Address}
-import degrel.core.{ID, VertexPin}
+import degrel.core.{DriverState, ID, VertexPin}
+import degrel.engine.rewriting.Binding
 
 import scala.concurrent.duration.Duration
 
@@ -26,11 +27,9 @@ object messages {
 
   case class LobbyState(active: Boolean)
 
-  case class SessionState()
+  case class SessionState(nodes: Seq[(NodeID, ActorRef)])
 
-  case class NodeState()
-
-  case class DriverState(isActive: Boolean)
+  case class NodeState(id: NodeID, manager: ActorRef)
 
   case class ControllerState(active: Boolean)
 
@@ -42,9 +41,23 @@ object messages {
 
   case class RemoveRoot(target: ID)
 
-  case class QueryHeader()
+  case class QueryGraph(id: ID, options: QueryOption = QueryOption.None)
 
-  case class DriverFin(returnTo: VertexPin, graph: DGraph)
+  case class LookupDriver(id: ID)
+
+  /**
+    * Driver initialization parameter
+    * It is permanent as long as hosted in same node.
+    */
+  case class DriverParameter(root: ID, binding: Binding, returnTo: Option[VertexPin], hostedOn: ActorRef)
+
+
+  /**
+    * Driver current status and statistics.
+    */
+  case class DriverInfo(origin: ID, state: DriverState)
+
+  case class TellDriverInfo(info: DriverInfo)
 
   // 2-phase commit
   case class LockForPreCommit(lockingVertices: Seq[VertexPin], requestingTimeout: Duration)
@@ -61,14 +74,6 @@ object messages {
   case class StartInterpret(cell: DGraph, ctrlr: ActorRef)
 
   case class FetchJournal(streamReq: Boolean)
-
-
-  case class Hello()
-
-  // for Island
-  // ID of Driver(and Cell)
-  // returns Option[ActorRef] (ActorRef == DriverContainer)
-  case class LookupDriver(id: ID)
 
   // Session Controller -> Island
   // Requests island to spawn ClusterNode and return it to Session Controller

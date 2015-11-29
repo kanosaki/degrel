@@ -35,7 +35,7 @@ class WorkerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSen
         awaitCond {
           node ! QueryStatus()
           expectMsgPF() {
-            case NodeState() => true
+            case NodeState(_, _) => true
             case _ => false
           }
         }

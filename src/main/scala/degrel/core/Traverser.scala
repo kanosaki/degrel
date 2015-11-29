@@ -122,10 +122,16 @@ class Traverser(val start: Vertex,
 
 }
 
-case class TraverserCutOff(isWall: Vertex => Boolean, region: TraverseRegion)
+case class TraverserCutOff(isWallFn: Vertex => Boolean, region: TraverseRegion, thruSet: Set[Vertex] = Set()) {
+  def isWall(v: Vertex): Boolean = {
+    isWallFn(v) && !thruSet.contains(v)
+  }
+}
 
 object TraverserCutOff {
   def default = TraverserCutOff(_ => false, TraverseRegion.AllArea)
+
+  def cell(root: Vertex) = TraverserCutOff(_.label == Label.V.cell, TraverseRegion.InnerOnly, Set(root))
 }
 
 object Traverser {
@@ -158,4 +164,5 @@ object Traverser {
     }
   }
 
+  def cell(root: Vertex) = Traverser(root, TraverserCutOff.cell(root))
 }

@@ -3,9 +3,11 @@ package degrel.core
 import org.scalatest.FlatSpec
 import degrel.engine.LocalDriver
 
-class IDTest extends FlatSpec {
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
-  def own(target: Vertex, owner: Vertex) = transformer.own(target, owner)
+class IDTest extends FlatSpec {
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   "ID" should "compare by value" in {
     val i1 = GlobalID(1, 2, 3)
@@ -21,7 +23,7 @@ class IDTest extends FlatSpec {
   "NotAssignedID" should "automatically assigned" in {
     val v = Vertex("foobar", Seq(), Map())
     val d1 = LocalDriver()
-    d1.send(v)
+    Await.result(d1.send(v), 5.seconds)
     assert(v.id.ownerID == d1.header.id.ownerID)
   }
 

@@ -9,6 +9,7 @@ class LocalVertexHeader(protected var _body: VertexBody, _initID: ID = ID.nextLo
       case vb: VertexBody => _body = vb
     }
     _body.header = this
+    logicalVersion += 1
   }
 
   def clearReverseFingerprint(depth: Int): Unit = {

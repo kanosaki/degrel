@@ -6,6 +6,7 @@ import scala.reflect.runtime.universe.TypeTag
 
 abstract class VertexHeader(var id: ID = ID.NA) extends Vertex {
   protected val reverse = WeakLinearSet[VertexBody]()
+  protected var logicalVersion = 0
 
   def body: VertexBody
 
@@ -42,9 +43,15 @@ abstract class VertexHeader(var id: ID = ID.NA) extends Vertex {
     }
   }
 
-
   override def transferOwner(owner: Vertex): Unit = {
+    val prevID = this.id
     id = id.withOwner(owner)
+    //println(s"TransferOwner ${this.pp} $prevID --(${owner.id})--> $id")
+  }
+
+  def updateID(newID: ID): Unit = {
+    //println(s"WriteOwner ${this.pp} $id --> $newID")
+    this.id = newID
   }
 
   def fingerprintCache: Long = {
@@ -53,6 +60,10 @@ abstract class VertexHeader(var id: ID = ID.NA) extends Vertex {
 
   def fingerprintCache_=(fp: Long): Unit = {
     body.fingerprintCache = fp
+  }
+
+  def pin: VertexPin = {
+    VertexPin(this.id, logicalVersion)
   }
 }
 

@@ -1,6 +1,7 @@
 package degrel.cluster
 
 import degrel.core._
+import degrel.engine.CellTraverser
 
 /** リモートに送信するために，シリアライズ可能な形式へ，ID等を調整しながら変換します
   *
@@ -20,6 +21,15 @@ class SpaceExchanger(implicit val node: LocalNode) {
    */
   def pack(root: Vertex, vertices: Iterable[Vertex] = Seq(), move: Boolean = false): DGraph = {
     DGraph(root.id.globalize, vertices.map(mapToDElement).toVector)
+  }
+
+  def packForQuery(root: Vertex, queryOption: QueryOption): DGraph = {
+    import QueryOption._
+    queryOption match {
+      case DepthHint(depth) => this.pack(root, Traverser(root, depth))
+      case WholeCell => this.pack(root, Traverser(root, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.InnerAndWall)))
+      case None => this.pack(root)
+    }
   }
 
   def unpack(graph: DGraph): Vertex = {

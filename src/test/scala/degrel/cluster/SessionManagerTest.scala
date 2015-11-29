@@ -2,16 +2,20 @@ package degrel.cluster
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
+import degrel.cluster.Journal.CellSpawn
 import degrel.cluster.messages._
 import degrel.utils.TestUtils._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import scala.concurrent.duration._
+
+import scala.concurrent.duration.Duration
 
 class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpecLike with Matchers with BeforeAndAfterAll {
   def this() = this(ActorSystem("SessionManagerTest"))
 
   "A empty SessionManager" must {
     "returns status (also tests ClusterTestUtils.newSession)" in {
-      val session = ClusterTestUtils.newSession
+      val session = ClusterTestUtils.newSession()
       session ! QueryStatus()
       expectMsgPF() {
         case _: SessionState =>
@@ -21,13 +25,13 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
 
   "SessionManager" must {
     "Interprets simple script" in {
-      val session = ClusterTestUtils.newSession
+      val session = ClusterTestUtils.newSession()
       val code = degrel.parseVertex("{fin a}")
       val expected = degrel.parseVertex("a")
       val node = LocalNode(system)
       val dCode = node.exchanger.packAll(code)
       session ! StartInterpret(dCode, self)
-      val packed = expectMsgPF() {
+      val packed = expectMsgPF(5.seconds) {
         case Fin(gr) => gr
       }
       val unpacked = node.exchanger.unpack(packed)
@@ -35,20 +39,20 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
     }
 
     "Interprets simple script with journal assertion" in {
-      val session = ClusterTestUtils.newSession
+      val session = ClusterTestUtils.newSession(2)
       val code = degrel.parseVertex(
         """{
-          | fin a
+          | a
           | a -> {
           |   fin b
           | }
           |}
         """.stripMargin)
-      val expected = degrel.parseVertex("b")
+      val expected = degrel.parseVertex("{b; a -> {fin b}}")
       val node = LocalNode(system)
       val dCode = node.exchanger.packAll(code)
       session ! StartInterpret(dCode, self)
-      val packed = expectMsgPF() {
+      val packed = expectMsgPF(7.seconds) {
         case Fin(gr) => gr
       }
       val unpacked = node.exchanger.unpack(packed)
@@ -58,7 +62,10 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       val journals = expectMsgPF() {
         case Right(js) => js.asInstanceOf[Vector[JournalPayload]]
       }
-      println(journals) // assert journal here
+      val spawns = journals.map(_.item).collect {
+        case cs: CellSpawn => cs
+      }
+      assert(spawns(0).spawnAt != spawns(1).spawnAt)
     }
   }
 }

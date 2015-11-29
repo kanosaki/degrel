@@ -1,7 +1,10 @@
 package degrel.engine.rewriting
 
-import degrel.core.{Cell, Rule, Vertex}
+import degrel.core._
 import degrel.engine.LocalDriver
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 trait RewriteResult {
   def done: Boolean
@@ -11,7 +14,7 @@ trait RewriteResult {
 
 object RewriteResult {
 
-  case class Write(target: RewritingTarget, value: Vertex) extends RewriteResult {
+  case class Write(target: VertexHeader, value: Vertex) extends RewriteResult {
     override def done: Boolean = true
 
     override def exec(self: LocalDriver): Unit = {
@@ -29,11 +32,12 @@ object RewriteResult {
     }
   }
 
-  case class AddRoot(target: Cell, value: Vertex) extends RewriteResult {
+  case class AddRoot(target: VertexHeader, value: Vertex) extends RewriteResult {
     override def done: Boolean = true
 
     override def exec(self: LocalDriver): Unit = {
-      self.dispatch(target, value)
+      import scala.concurrent.ExecutionContext.Implicits.global
+      Await.result(self.dispatch(target, value), 10.seconds)
     }
   }
 

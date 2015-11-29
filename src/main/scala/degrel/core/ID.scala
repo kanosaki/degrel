@@ -54,19 +54,15 @@ trait ID extends Comparable[ID] with Serializable {
   }
 
   def withOwner(owner: Vertex): ID = {
-    if (this.hasSameOwner(owner.id)) {
-      this
-    } else {
-      GlobalID(owner.id.nodeID, owner.id.ownerID, this.localID)
-    }
+    GlobalID(owner.id.nodeID, owner.id.ownerID, this.localID)
   }
 
   def isFree: Boolean = {
-    this.nodeID == 0 && this.ownerID == 0
+    this.nodeID == 0 || this.ownerID == 0
   }
 
   def canOwnBy(v: Vertex): Boolean = {
-    this.isFree || (v.id.nodeID == this.nodeID && v.id.ownerID == this.ownerID)
+    (this.nodeID == 0 || v.id.nodeID == this.nodeID) && (this.ownerID == 0 || v.id.ownerID == this.ownerID)
   }
 }
 
@@ -125,7 +121,7 @@ case class FreeID(localID: Int) extends ID {
 
   override def nodeID: Int = 0
 
-  override def globalize(implicit node: LocalNode): GlobalID = GlobalID(0, 0, localID)
+  override def globalize(implicit node: LocalNode): GlobalID = GlobalID(node.selfID, 0, localID)
 }
 
 object GlobalID {
@@ -136,13 +132,19 @@ object GlobalID {
 case class GlobalID(nodeID: Int, ownerID: Int, localID: Int) extends ID {
   override protected def squeeze: Int = localID
 
-  override def globalize(implicit node: LocalNode): GlobalID = this
+  override def globalize(implicit node: LocalNode): GlobalID = {
+    if (node.selfID == this.nodeID) {
+      this
+    } else {
+      GlobalID(node.selfID, this.ownerID, this.localID)
+    }
+  }
 }
 
 case class LocalID(ownerID: Int, localID: Int) extends ID {
   def squeeze: Int = localID
 
-  override def globalize(implicit node: LocalNode): GlobalID = GlobalID(node.info.nodeID, this.ownerID, this.localID)
+  override def globalize(implicit node: LocalNode): GlobalID = GlobalID(node.selfID, this.ownerID, this.localID)
 
   override def nodeID: Int = 0
 }

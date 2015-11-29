@@ -6,6 +6,9 @@ import degrel.engine.Chassis
 import degrel.utils.PrettyPrintOptions
 import jline.console.ConsoleReader
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 class ConsoleHandle(val chassis: Chassis, commandSet: Option[Seq[ConsoleCommand]] = None) extends HandleBase {
   private var isQuitting = false
   val coms = new CommandsManager(commandSet.getOrElse(commands.default))
@@ -40,9 +43,10 @@ class ConsoleHandle(val chassis: Chassis, commandSet: Option[Seq[ConsoleCommand]
   }
 
   protected def evalLine(line: String) = {
+    import scala.concurrent.ExecutionContext.Implicits.global
     try {
       val input = degrel.parseVertex(line)
-      this.current.send(input)
+      Await.result(this.current.send(input), 10.seconds)
     } catch {
       case e: Throwable => console.println(e.toString)
     }

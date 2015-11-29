@@ -31,7 +31,7 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
   }
 
   def createDriver(cell: Vertex, parent: Driver = null): Driver = {
-    driverFactory.create(this, cell, parent)
+    driverFactory.create(this, cell.asHeader, parent)
   }
 
   def addDriver(name: List[Symbol], driver: Driver): Driver = {
@@ -40,7 +40,7 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
   }
 
   def registerCell(name: List[Symbol], cell: Vertex, parent: Driver = null): Driver = {
-    val driver = this.driverFactory.create(this, cell, parent)
+    val driver = this.driverFactory.create(this, cell.asHeader, parent)
     this.addDriver(name, driver)
   }
 

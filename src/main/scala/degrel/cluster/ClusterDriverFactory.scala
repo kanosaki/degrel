@@ -1,6 +1,6 @@
 package degrel.cluster
 
-import degrel.core.Vertex
+import degrel.core.{VertexHeader, Vertex}
 import degrel.engine._
 
 /**
@@ -8,9 +8,10 @@ import degrel.engine._
   * DriverFactoryです
   */
 class ClusterDriverFactory(node: LocalNode) extends DriverFactory {
-  override protected def createDriver(chassis: Chassis, cell: Vertex, parent: Driver): Driver = {
+  override protected def createDriver(chassis: Chassis, cell: VertexHeader, parent: Driver): Driver = {
     val localDriver = this.createLocalDriver(chassis, cell, node, parent)
     // TODO: designate which node to spawn on.
+    node.registerDriver(localDriver.id.ownerID, localDriver)
     localDriver
   }
 }

@@ -7,6 +7,7 @@ import degrel.core.{Cell, Vertex}
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.async.Async.{async, await}
 
 // Akka controller
 class Controller() extends MemberBase {
@@ -16,10 +17,11 @@ class Controller() extends MemberBase {
   import context.dispatcher
   import messages._
 
-  def finalizeSession(sess: ActorRef, lobby: ActorRef): Future[Unit] = {
+  def finalizeSession(sess: ActorRef, lobby: ActorRef): Future[Unit] = async {
     implicit val timeout = Timeouts.infoGather
     println("=============== Finalizing")
-    (sess ? FetchJournal(false)) map {
+    val journalRes = await(sess ? FetchJournal(streamReq = false))
+    journalRes match {
       case Right(jps: Vector[JournalPayload]) => {
         println(jps)
         JournalPrinter(jps).printTo(System.out)

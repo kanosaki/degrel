@@ -68,4 +68,10 @@ class TraverserTest extends FlatSpec {
     val traversed = Traverser(graph, _.label.expr.startsWith("foo"), TraverseRegion.WallOnly).toSeq
     assert(traversed.map(_.label.expr).toSet === Set("foo1", "foo2", "foo3"))
   }
+
+  it should "traverse all cell contents" in {
+    val graph = parse("{foo; bar(hoge, {fuga}); baz {hoge; fuga}}")
+    val traversed = Traverser(graph, TraverserCutOff.cell(graph)).toSeq
+    assert(traversed.map(_.label.expr).toSet === Set("__cell__", "foo", "bar", "baz", "hoge"))
+  }
 }

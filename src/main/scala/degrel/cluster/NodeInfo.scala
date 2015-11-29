@@ -3,7 +3,7 @@ package degrel.cluster
 import java.security.SecureRandom
 
 
-case class NodeInfo(nodeID: Int)
+case class NodeInfo(nodeID: NodeID)
 
 object NodeInfo {
   def generate(): NodeInfo = {

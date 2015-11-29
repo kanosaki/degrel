@@ -15,9 +15,8 @@ class SendMessage extends Rewriter {
       val rhs = target.thru(Label.E.rhs).headOption
       (lhs, rhs) match {
         case ((Some(l), Some(r))) if l.isCell => {
-          val targetCell = l.unhead[CellBody]
-          multi(addRoot(targetCell, r),
-                write(rt, targetCell))
+          multi(addRoot(l.asHeader, r),
+                write(rt, l))
         }
         case _ => nop
       }

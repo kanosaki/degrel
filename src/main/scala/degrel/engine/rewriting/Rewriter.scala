@@ -48,7 +48,7 @@ trait Rewriter extends Logger with PrettyPrintable {
 
   def parse(s: String): Vertex = degrel.parseVertex(s)
 
-  def write(target: RewritingTarget, value: Vertex): RewriteResult = {
+  def write(target: VertexHeader, value: Vertex): RewriteResult = {
     RewriteResult.Write(target, value)
   }
 
@@ -60,7 +60,7 @@ trait Rewriter extends Logger with PrettyPrintable {
     RewriteResult.Multi(results)
   }
 
-  def addRoot(target: Cell, value: Vertex): RewriteResult = {
+  def addRoot(target: VertexHeader, value: Vertex): RewriteResult = {
     RewriteResult.AddRoot(target, value)
   }
 

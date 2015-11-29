@@ -197,7 +197,7 @@ object Vertex {
             attributes: Map[Label, String] = Map(),
             id: ID = ID.NA): Vertex = {
     val body = VertexBody(Label(label), attributes, edges.toSeq, id)
-    new LocalVertexHeader(body)
+    VertexHeader(body, id)
   }
 
   /**

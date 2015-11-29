@@ -4,7 +4,7 @@ import java.io.File
 
 import akka.actor.{ActorSystem, AddressFromURIString}
 import com.typesafe.config.{Config, ConfigFactory}
-import degrel.cluster.ClusterInterpreter
+import degrel.cluster.{LocalNode, ClusterInterpreter}
 import degrel.control.cluster.{ClusterConsole, ControllerFacade, WorkerFacade}
 import degrel.control.console.ConsoleHandle
 import degrel.core.{Cell, Label}

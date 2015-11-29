@@ -8,7 +8,7 @@ import degrel.engine.LocalDriver
  * @param root root of target vertex
  * @param self owner of target vertex
  */
-case class RewritingTarget(target: VertexHeader, root: VertexHeader, self: LocalDriver) extends VertexHeader {
+case class RewritingTarget(target: VertexHeader, root: VertexHeader, self: LocalDriver) extends VertexHeader(target.id) {
   override def body: VertexBody = target.body
 
   override def write(v: Vertex): Unit = target.write(v)

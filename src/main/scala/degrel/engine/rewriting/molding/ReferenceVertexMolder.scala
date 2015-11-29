@@ -27,7 +27,7 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
 
   val matchedVertex = this.context.matchedVertexExact(this.referenceTarget)
 
-  override val header: VertexHeader = new LocalVertexHeader(null)
+  override val header: VertexHeader = context.getHeader(matchedVertex)
 
   override def onPhase(ph: MoldPhase): Unit = ph match {
     case MoldPhase.Mold => {

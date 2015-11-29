@@ -16,14 +16,28 @@ import scala.concurrent.Future
 class Lobby extends MemberBase {
   val sessions = mutable.ListBuffer[ActorRef]()
 
-  import messages._
-  import context.dispatcher
+  // mapping: Worker -> SessionManager
+  val allocationMapping = mutable.HashMap[ActorRef, ActorRef]()
 
-  private def allocateNode(manager: ActorRef, param: NodeInitializeParam): Future[ActorRef] = {
+  import context.dispatcher
+  import messages._
+
+  private def allocateNode(manager: ActorRef, param: NodeInitializeParam): Future[Option[ActorRef]] = {
     implicit val timeout = Timeouts.short
-    val worker = workers.head
-    (worker ? SpawnNode(manager, param)) map {
-      case Right(node: ActorRef) => node
+    workers.find(w => !allocationMapping.contains(w)) match {
+      case Some(worker) => {
+        (worker ? SpawnNode(manager, param)) map {
+          case Right(node: ActorRef) => {
+            allocationMapping += worker -> manager
+            Some(node)
+          }
+        }
+      }
+      case None => {
+        Future {
+          None
+        }
+      }
     }
   }
 
@@ -48,11 +62,14 @@ class Lobby extends MemberBase {
       context.stop(sess)
     }
     case NodeAllocateRequest(manager, param) => {
-      println(s"================= Allocating node for: $manager")
+      println(s"================= Allocating node for: $manager param: $param")
       val origin = sender()
       allocateNode(manager, param).onSuccess {
-        case node: ActorRef => {
+        case Some(node) => {
           origin ! Right(node)
+        }
+        case None => {
+          origin ! Left(new RuntimeException("No free worker!"))
         }
       }
     }

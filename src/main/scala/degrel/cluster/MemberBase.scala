@@ -83,15 +83,9 @@ trait MemberBase extends ActorBase {
     case e: MemberEvent => log.info(s"******************** MemberEvent: $e")
   }
 
-  def receiveUnhandled: Receive = {
-    case msg => {
-      log.warning(s"Unknown message: $msg")
-    }
-  }
-
   def receiveMsg: Receive
 
-  override def receive: Receive = receiveMsg.orElse(receiveMemberMsg).orElse(receiveUnhandled)
+  override def receiveBody: Receive = receiveMsg.orElse(receiveMemberMsg)
 }
 
 object MemberBase {
