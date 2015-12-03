@@ -91,6 +91,10 @@ class RemoteDriver(id: ID, remoteNode: ActorRef, node: LocalNode, val binding: B
   override def onChildStateUpdated(childID: ID, childState: DriverState): Unit = {
     remoteNode ! TellDriverInfo(DriverInfo(childID, childState))
   }
+
+  override def toString: String = {
+    s"<RemoteDriver ID: $id on: ${node.selfID} state: $state parent: ${parent.map(_.id)}|${header.pp}>"
+  }
 }
 
 object RemoteDriver {

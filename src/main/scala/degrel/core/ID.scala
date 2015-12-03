@@ -29,7 +29,7 @@ trait ID extends Comparable[ID] with Serializable {
   def globalize(implicit node: LocalNode): GlobalID
 
   def hasSameOwner(other: ID): Boolean = {
-    other.nodeID == this.nodeID && other.ownerID == this.ownerID
+    (other.nodeID == 0 || other.nodeID == this.nodeID) && other.ownerID == this.ownerID
   }
 
   override def equals(obj: scala.Any): Boolean = {

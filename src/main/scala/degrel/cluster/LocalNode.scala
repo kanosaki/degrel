@@ -37,7 +37,9 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
   private val neighborNodes = mutable.HashMap[Int, RemoteNode]()
 
   def registerDriver(ownerID: Int, driver: LocalDriver) = {
-    println(s"Registering Driver on $selfID ID: ${driver.id} cell: ${driver.header.pp}")
+    if (chassis.verbose) {
+      println(s"Registering Driver on $selfID ID: ${driver.id} cell: ${driver.header.pp}")
+    }
     driverMapping += ownerID -> driver
   }
 
@@ -53,7 +55,7 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     if (isLocalId(id)) {
       driverMapping.get(id.ownerID) match {
         case Some(drv) => Right(drv)
-        case None => Left(new RuntimeException(s"Lookup failed for $id No such driver in $selfID"))
+        case None => Left(new RuntimeException(s"Lookup failed for $id No such driver in $selfID(drivers: ${driverMapping.values}"))
       }
     } else {
       Left(new RuntimeException("not local id!"))
@@ -92,7 +94,9 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
   }
 
   def lookup(id: ID): Future[Either[Throwable, Vertex]] = async {
-    println(s"Lookup on: $selfID for $id")
+    if (chassis.verbose) {
+      println(s"Lookup on: $selfID for $id")
+    }
     await(this.lookupOwner(id)) match {
       case Right(drv) => {
         drv.getVertex(id) match {
@@ -113,7 +117,9 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
 
   // designates a node to spawn on, and executes spawning.
   def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, Driver]] = {
-    println(s"spawnSomewhere on: $selfID $cell")
+    if (chassis.verbose) {
+      println(s"spawnSomewhere on: $selfID $cell")
+    }
     if (neighborNodes.isEmpty) {
       async {
         Right(this.spawnLocally(cell, binding, returnTo, parent))
@@ -128,12 +134,18 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
   def spawnLocally(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Driver = {
     journal(Journal.CellSpawn(cell.id, selfID))
     val drv = chassis.createDriver(cell, parent)
-    println(s"LOCAL SPAWN on: $selfID $cell $binding $returnTo $parent ID: ${drv.id}")
+    if (chassis.verbose) {
+      println(s"LOCAL SPAWN on: $selfID $cell $binding $returnTo $parent ID: ${drv.id}")
+    }
     drv
   }
 
   def nextCellID(): ID = {
     ID.nextLocalCellID().globalize(this)
+  }
+
+  override def toString: String = {
+    s"<LocalNode ID: $selfID drivers: ${driverMapping.size} neighbors: ${neighborNodes.size}>"
   }
 }
 

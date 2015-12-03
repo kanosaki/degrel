@@ -16,7 +16,7 @@ class RemoteNode(val selfID: NodeID, val ref: ActorRef, hostedOn: LocalNode)(imp
     * Confirms the driver exists.
     */
   def lookupOwner(id: ID): Future[Either[Throwable, Driver]] = async {
-    println(s"LookupOwner(Remote) $id  --> $selfID")
+    println(s"LookupOwner(Remote) on: ${hostedOn.selfID} for $id --> $selfID")
     implicit val timeout = Timeouts.short
     await(ref ? LookupDriver(id)) match {
       case Right(info: DriverParameter) => {
@@ -43,6 +43,10 @@ class RemoteNode(val selfID: NodeID, val ref: ActorRef, hostedOn: LocalNode)(imp
       case Right(info: DriverParameter) => Right(RemoteDriver.fromDriverInfo(info, hostedOn))
       case Left(msg: Throwable) => Left(msg)
     }
+  }
+
+  override def toString: String = {
+    s"<RemoteNode ID: $selfID on: ${hostedOn.selfID} remote: $ref>"
   }
 }
 

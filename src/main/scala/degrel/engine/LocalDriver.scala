@@ -39,7 +39,6 @@ class LocalDriver(val header: VertexHeader,
       throw new RuntimeException("Already stopped!")
     }
     var count = 0
-    chassis.verbose = true
     if (chassis.verbose) {
       println(s"$id (on: ${node.selfID})>>>>>")
       println(s"DRIVER_START: $id >>>>>")
@@ -82,9 +81,12 @@ class LocalDriver(val header: VertexHeader,
 
   def init(): Unit = {
     this.cleanup()
+    //this.header.updateID(node.nextCellID())
     node.registerDriver(this.id.ownerID, this)
-    println(s"CELL (on: ${node.selfID})>>> ${this.header.pp(PrettyPrintOptions(showAllId = true, multiLine = true))}")
-    val fixIDVisitor = GraphVisitor(Traverser.cell _, new TransferOwnerVisitor(this.header))
+    if (chassis.verbose) {
+      println(s"CELL (on: ${node.selfID})>>> ${this.header.pp(PrettyPrintOptions(showAllId = true, multiLine = true))}")
+    }
+    val fixIDVisitor = GraphVisitor(Traverser.apply(_), new TransferOwnerVisitor(this.header))
     this.header.edgesWith(Label.E.cellItem).map(_.dst).foreach(fixIDVisitor.visit)
     this.header.edgesWith(Label.E.cellRule).map(_.dst).foreach(fixIDVisitor.visit)
     this.prepare()
@@ -179,7 +181,7 @@ class LocalDriver(val header: VertexHeader,
   override def spawn(cell: Vertex): Driver = {
     val spawningHeader = cell.asHeader
     spawningHeader.updateID(node.nextCellID())
-    val fut = node.spawnSomewhere(cell, this.binding, VertexPin(spawningHeader.id, 0), this)
+    val fut = node.spawnSomewhere(cell, this.binding, VertexPin(this.header.id, 0), this)
     Await.result(fut, Timeouts.short.duration) match {
       case Right(drv: Driver) => {
         this.children += drv.id -> drv
@@ -228,7 +230,9 @@ class LocalDriver(val header: VertexHeader,
   }
 
   override def writeVertex(target: VertexHeader, value: Vertex): Unit = {
-    println(s"WRITE(on: $id) $target(${target.id}) <= $value ")
+    if (chassis.verbose) {
+      println(s"WRITE(on: $id) $target(${target.id}) <= $value ")
+    }
     if (target.id == this.header.id) {
       state = DriverState.Finished(value)
       this.parent match {
@@ -260,17 +264,22 @@ class LocalDriver(val header: VertexHeader,
       }
       this.cell.addRoot(value)
       Future {}
-    } else {
-      async {
-        await(node.lookupOwner(target.id)) match {
-          case Right(drv) => {
-            await(drv.dispatch(target, value))
-          }
-          case Left(th) => {
-            logger.warn(s"Ignoreing Ownership! at $id")
-            if (target.isCell) {
-              target.asCell.addRoot(value)
-            }
+    } else if (target.id.hasSameOwner(this.id)) async {
+      if (target.isCell) {
+        target.asCell.addRoot(value)
+      }
+    } else async {
+      await(node.lookupOwner(target.id)) match {
+        case Right(drv) => {
+          await(drv.dispatch(target, value))
+        }
+        case Left(th) => {
+          logger.warn(s"Ignoreing Ownership! at $id != ${target.id}")
+          if (target.isCell) {
+            target.asCell.addRoot(value)
+          } else {
+            logger.error("Cannot add vertex to non-cell vertex")
+            throw new RuntimeException("Cannot add vertex to non-cell vertex")
           }
         }
       }
@@ -293,6 +302,10 @@ class LocalDriver(val header: VertexHeader,
     if (this.isPaused && this.children.values.forall(_.isStopped)) {
       this.state = DriverState.Stopped()
     }
+  }
+
+  override def toString: String = {
+    s"<LocalDriver $id on: ${node.selfID} state: $state parent: ${parent.map(_.id)}>"
   }
 }
 

@@ -108,7 +108,9 @@ class SessionManager(val lobby: ActorRef) extends ActorBase {
       }
     }
     case LookupDriver(id) => {
-      println(s"LookupDriver on ${localNode.selfID}(Manager) $id")
+      if (chassis.verbose) {
+        println(s"LookupDriver on ${localNode.selfID}(Manager) $id")
+      }
       val origin = sender()
       localNode.lookupOwnerLocal(id) match {
         case Right(drv) => origin ! Right(drv.param(self))
@@ -133,7 +135,9 @@ class SessionManager(val lobby: ActorRef) extends ActorBase {
       }
     }
     case TellDriverInfo(info: DriverInfo) => {
-      println(s"TellDriverInfo $info")
+      if (chassis.verbose) {
+        println(s"TellDriverInfo $info")
+      }
       // Remote driver state is updated.
       localNode.lookupOwnerLocal(info.origin) match {
         case Right(drv: RemoteDriver) => {

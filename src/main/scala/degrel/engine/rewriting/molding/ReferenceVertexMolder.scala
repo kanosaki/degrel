@@ -48,6 +48,7 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
     if (unreferenceEdges.isEmpty) {
       // マッチした頂点への参照を保ってbuildします
       val h = matchedV.asInstanceOf[VertexHeader]
+      // TODO: IDの変更を通知？
       this.header.write(h.body)
     } else {
       val othersEs = this.importingEdges.toSet
@@ -64,6 +65,7 @@ class ReferenceVertexMolder(val mold: Vertex, val context: MoldingContext) exten
       val mergingEdges = moldEdges(unreferenceEdges)
       val builtEdges = unmatchedEdges ++ mergingEdges ++ othersEs
       val vb = VertexBody(matchedV.label, matchedV.attributes, builtEdges.toSeq, ID.NA)
+      // TODO: IDの変更を通知？
       this.header.write(vb)
     }
   }

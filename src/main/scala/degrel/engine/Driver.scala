@@ -20,7 +20,7 @@ trait Driver {
   def state_=(state: DriverState): Unit = {
     require(state != null)
     if (stateVar == state || stateVar.isStopped) return
-    println(s"STATE UPDATE: $id $stateVar --> $state")
+    //println(s"STATE UPDATE: $id $stateVar --> $state")
     val old = this.stateVar
     this.stateVar = state
     this.onStageChanged(old, state)
@@ -49,7 +49,7 @@ trait Driver {
   }
 
   def onFinished(value: Vertex): Unit = {
-    println(s"CELL_FINISH: cell: $cell ($id) value: $value")
+    //println(s"CELL_FINISH: cell: $cell ($id) value: $value")
     finValue.success(value)
   }
 

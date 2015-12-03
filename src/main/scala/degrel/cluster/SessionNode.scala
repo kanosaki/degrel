@@ -83,7 +83,9 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       }
     }
     case SendGraph(target, graph) => {
-      println(s"SendGraph on: ${localNode.selfID} $target $graph")
+      if (chassis.verbose) {
+        println(s"SendGraph on: ${localNode.selfID} $target $graph")
+      }
       localNode.lookupOwner(target) map {
         case Right(drv) => {
         }
@@ -93,7 +95,9 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       }
     }
     case LookupDriver(id) => {
-      println(s"LookupDriver on ${localNode.selfID} $id")
+      if (chassis.verbose) {
+        println(s"LookupDriver on ${localNode.selfID} $id")
+      }
       val origin = sender()
       localNode.lookupOwnerLocal(id) match {
         case Right(drv) => origin ! Right(drv.param(self))
@@ -101,8 +105,10 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       }
     }
     case SpawnDriver(graph, binding, returnTo) => {
-      println(s"SpawnDriver on: ${localNode.selfID}")
-      println(graph.pp)
+      if (chassis.verbose) {
+        println(s"SpawnDriver on: ${localNode.selfID}")
+        println(graph.pp)
+      }
       val origin = sender()
       async {
         await(localNode.lookupOwner(returnTo.id)) match {
@@ -120,7 +126,9 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       }
     }
     case TellDriverInfo(info: DriverInfo) => {
-      println(s"TellDriverInfo $info")
+      if (chassis.verbose) {
+        println(s"TellDriverInfo $info")
+      }
       // Remote driver state is updated.
       localNode.lookupOwnerLocal(info.origin) match {
         case Right(drv: RemoteDriver) => {
@@ -132,8 +140,10 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       }
     }
     case Run(msg) => {
-      println("Running:")
-      println(msg.pp)
+      if (chassis.verbose) {
+        println("Running:")
+        println(msg.pp)
+      }
       val origin = sender()
       this.updateNeighbors() map { _ =>
         val driver = this.spawnDriver(msg, Binding.empty(), null, null)
