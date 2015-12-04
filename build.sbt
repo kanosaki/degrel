@@ -16,6 +16,8 @@ lazy val coreLibs = {
   val scalazVersion = "7.1.3"
   val sprayVersion = "1.3.3"
   Seq(
+    "org.scala-lang.modules" %% "scala-async" % "0.9.5",
+    "com.chuusai" %% "shapeless" % "2.2.5",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
     "ch.qos.logback" % "logback-classic" % "1.1.2",
     "com.github.scopt" %% "scopt" % "3.3.0",
