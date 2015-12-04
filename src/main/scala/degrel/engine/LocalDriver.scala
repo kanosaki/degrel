@@ -22,6 +22,7 @@ class LocalDriver(val header: VertexHeader,
   implicit val printOption = PrettyPrintOptions(multiLine = true, showAllId = true)
   private var children = new mutable.HashMap[ID, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
+  chassis.verbose = true
   this.init()
 
   def isValid: Boolean = {

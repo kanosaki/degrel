@@ -2,6 +2,7 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, ActorSystem}
 import akka.util.Timeout
+import degrel.Logger
 import degrel.core.{ID, Label, Vertex, VertexPin}
 import degrel.engine.namespace.Repository
 import degrel.engine.rewriting.Binding
@@ -19,7 +20,7 @@ import scala.language.postfixOps
   * One instance per JVM (= memory space)
   * Context class for Cluster
   */
-class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) {
+class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) extends Logger {
 
   implicit val dispatcher = system.dispatcher
 
@@ -34,6 +35,11 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
   var selfID: NodeID = 0
 
   private val driverMapping = mutable.HashMap[Int, LocalDriver]()
+
+  /**
+    * Neighbor nodes. Node 1 is `SessionManager`, and others are `SessionNode`.
+    * And self node won't contain.
+    */
   private val neighborNodes = mutable.HashMap[Int, RemoteNode]()
 
   def registerDriver(ownerID: Int, driver: LocalDriver) = {
@@ -51,6 +57,10 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     id.nodeID == 0 || id.nodeID == selfID
   }
 
+  /**
+    * Lookup a driver from local node.
+    * @param id A local ID of Driver which looking up for.
+    */
   def lookupOwnerLocal(id: ID): Either[Throwable, Driver] = {
     if (isLocalId(id)) {
       driverMapping.get(id.ownerID) match {
@@ -62,7 +72,15 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     }
   }
 
+  /**
+    * Lookups a Driver from session space.
+    * @param id ID of driver wihch looking up for. ID can be local or remote.
+    * @return A Driver(might be RemoteDriver) if found, or Throwable if some problem occurs.
+    */
   def lookupOwner(id: ID): Future[Either[Throwable, Driver]] = {
+    if (id.ownerID == 0) {
+      logger.warn(s"Looking up Anonymous node vertex ID: $id")
+    }
     //println(s"LookupOwner on: $selfID $id")
     if (isLocalId(id)) {
       async {
@@ -93,7 +111,15 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     }
   }
 
+  /**
+    * Lookup a vertex from session space.
+    * @param id ID of looking up for. ID can be local or remote.
+    * @return A Vertex(might be RemoteVertex) or Throwable if some problem occurs.
+    */
   def lookup(id: ID): Future[Either[Throwable, Vertex]] = async {
+    if (id.ownerID == 0) {
+      logger.warn(s"Looking up Anonymous node vertex ID: $id")
+    }
     if (chassis.verbose) {
       println(s"Lookup on: $selfID for $id")
     }
@@ -116,6 +142,14 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
   }
 
   // designates a node to spawn on, and executes spawning.
+  /**
+    * Spawns a driver somewhere else, spawning node will be designated by cluster driver.
+    * @param cell A cell to spawn.
+    * @param binding Binding environment of spawning cell.
+    * @param returnTo A return point of spawning cell.
+    * @param parent A primary parent of spawning driver.
+    * @return A Driver reference of spawned driver, or Throwable when some problem occurs.
+    */
   def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, Driver]] = {
     if (chassis.verbose) {
       println(s"spawnSomewhere on: $selfID $cell")
@@ -131,6 +165,9 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     }
   }
 
+  /**
+    * Spawns a driver in this node.
+    */
   def spawnLocally(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Driver = {
     journal(Journal.CellSpawn(cell.id, selfID))
     val drv = chassis.createDriver(cell, parent)
@@ -140,6 +177,9 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     drv
   }
 
+  /**
+    * Returns a ID for new cell.
+    */
   def nextCellID(): ID = {
     ID.nextLocalCellID().globalize(this)
   }
@@ -152,6 +192,10 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
 object LocalNode {
   private lazy val debugSys = ActorSystem("DebugSys")
 
+  /**
+    * __Debugging Overload!__ <br />
+    * Creates a new LcoalNode with "DebugSys" `ActorSystem` and a logging `JournalAdapter`
+    */
   def apply() = {
     new LocalNode(debugSys, JournalAdapter.loggingAdapter(0), Repository())
   }
@@ -160,6 +204,10 @@ object LocalNode {
     new LocalNode(sys, journal, repo)
   }
 
+  /**
+    * __Debugging Overload!__ <br />
+    * Creates a new LcoalNode with given `ActorSystem` and a logging `JournalAdapter`
+    */
   def apply(sys: ActorSystem) = {
     new LocalNode(sys, JournalAdapter.loggingAdapter(0), Repository())
   }
