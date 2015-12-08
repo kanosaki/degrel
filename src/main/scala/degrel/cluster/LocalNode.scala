@@ -3,24 +3,25 @@ package degrel.cluster
 import akka.actor.{ActorRef, ActorSystem}
 import akka.util.Timeout
 import degrel.Logger
-import degrel.core.{ID, Label, Vertex, VertexPin}
+import degrel.core._
 import degrel.engine.namespace.Repository
 import degrel.engine.rewriting.Binding
 import degrel.engine.sphere.Sphere
-import degrel.engine.{Chassis, Driver, LocalDriver}
+import degrel.engine.{RemoteDriver, Chassis, Driver, LocalDriver}
 
 import scala.async.Async.{async, await}
 import scala.collection.mutable
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.Success
 
 
 /**
   * One instance per JVM (= memory space)
   * Context class for Cluster
   */
-class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) extends Logger {
+class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository, idSpace: NodeIDSpace) extends Logger {
 
   implicit val dispatcher = system.dispatcher
 
@@ -32,9 +33,10 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
 
   val driverCache = mutable.HashMap[ID, Driver]()
 
-  var selfID: NodeID = 0
+  val selfID: NodeID = idSpace.nodeID
 
-  private val driverMapping = mutable.HashMap[Int, LocalDriver]()
+  val driverMapping = mutable.HashMap[Int, LocalDriver]()
+  val remoteMapping = mutable.HashMap[ID, RemoteDriver]()
 
   /**
     * Neighbor nodes. Node 1 is `SessionManager`, and others are `SessionNode`.
@@ -43,9 +45,7 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
   private val neighborNodes = mutable.HashMap[Int, RemoteNode]()
 
   def registerDriver(ownerID: Int, driver: LocalDriver) = {
-    if (chassis.verbose) {
-      println(s"Registering Driver on $selfID ID: ${driver.id} cell: ${driver.header.pp}")
-    }
+    logger.debug(s"Registering Driver on $selfID ID: ${driver.id} cell: ${driver.header.pp}")
     driverMapping += ownerID -> driver
   }
 
@@ -63,12 +63,12 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     */
   def lookupOwnerLocal(id: ID): Either[Throwable, Driver] = {
     if (isLocalId(id)) {
-      driverMapping.get(id.ownerID) match {
+      driverMapping.get(id.ownerID).orElse(remoteMapping.get(id)) match {
         case Some(drv) => Right(drv)
         case None => Left(new RuntimeException(s"Lookup failed for $id No such driver in $selfID(drivers: ${driverMapping.values}"))
       }
     } else {
-      Left(new RuntimeException("not local id!"))
+      Left(new RuntimeException(s"$id is not local id! (on $selfID)"))
     }
   }
 
@@ -81,7 +81,7 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     if (id.ownerID == 0) {
       logger.warn(s"Looking up Anonymous node vertex ID: $id")
     }
-    //println(s"LookupOwner on: $selfID $id")
+    logger.debug(s"LookupOwner on: $selfID $id")
     if (isLocalId(id)) {
       async {
         this.lookupOwnerLocal(id)
@@ -120,9 +120,7 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     if (id.ownerID == 0) {
       logger.warn(s"Looking up Anonymous node vertex ID: $id")
     }
-    if (chassis.verbose) {
-      println(s"Lookup on: $selfID for $id")
-    }
+    logger.debug(s"Lookup on: $selfID for $id")
     await(this.lookupOwner(id)) match {
       case Right(drv) => {
         drv.getVertex(id) match {
@@ -151,17 +149,21 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     * @return A Driver reference of spawned driver, or Throwable when some problem occurs.
     */
   def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, Driver]] = {
-    if (chassis.verbose) {
-      println(s"spawnSomewhere on: $selfID $cell")
-    }
+    logger.debug(s"spawnSomewhere on: $selfID $cell")
     if (neighborNodes.isEmpty) {
       async {
         Right(this.spawnLocally(cell, binding, returnTo, parent))
       }
     } else {
-      println(neighborNodes)
       val (_, spawnNode) = neighborNodes.filter(_._1 > 1).head
-      spawnNode.spawn(cell, binding, returnTo)
+      spawnNode.spawn(cell, binding, returnTo, parent) andThen {
+        case Success(Right(drv)) => {
+          remoteMapping += cell.id -> drv
+        }
+        case other => {
+          throw new RuntimeException(other.toString)
+        }
+      }
     }
   }
 
@@ -170,18 +172,16 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository) 
     */
   def spawnLocally(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Driver = {
     journal(Journal.CellSpawn(cell.id, selfID))
-    val drv = chassis.createDriver(cell, parent)
-    if (chassis.verbose) {
-      println(s"LOCAL SPAWN on: $selfID $cell $binding $returnTo $parent ID: ${drv.id}")
-    }
+    val drv = chassis.createDriver(cell, returnTo, parent)
+    logger.debug(s"LOCAL SPAWN on: $selfID $cell $binding $returnTo $parent ID: ${drv.id}")
     drv
   }
 
   /**
     * Returns a ID for new cell.
     */
-  def nextCellID(): ID = {
-    ID.nextLocalCellID().globalize(this)
+  def nextIDSpace(): DriverIDSpace = {
+    idSpace.next()
   }
 
   override def toString: String = {
@@ -197,11 +197,11 @@ object LocalNode {
     * Creates a new LcoalNode with "DebugSys" `ActorSystem` and a logging `JournalAdapter`
     */
   def apply() = {
-    new LocalNode(debugSys, JournalAdapter.loggingAdapter(0), Repository())
+    new LocalNode(debugSys, JournalAdapter.loggingAdapter(0), Repository(), NodeIDSpace.global)
   }
 
-  def apply(sys: ActorSystem, journal: JournalAdapter, repo: Repository) = {
-    new LocalNode(sys, journal, repo)
+  def apply(sys: ActorSystem, journal: JournalAdapter, repo: Repository, space: NodeIDSpace) = {
+    new LocalNode(sys, journal, repo, space)
   }
 
   /**
@@ -209,6 +209,6 @@ object LocalNode {
     * Creates a new LcoalNode with given `ActorSystem` and a logging `JournalAdapter`
     */
   def apply(sys: ActorSystem) = {
-    new LocalNode(sys, JournalAdapter.loggingAdapter(0), Repository())
+    new LocalNode(sys, JournalAdapter.loggingAdapter(0), Repository(), NodeIDSpace.global)
   }
 }

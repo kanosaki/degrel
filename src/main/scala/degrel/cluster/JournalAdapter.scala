@@ -4,6 +4,7 @@ import java.util.Calendar
 
 import akka.actor.ActorRef
 import degrel.Logger
+import degrel.core.NodeID
 
 import scala.concurrent.stm
 import scala.concurrent.stm.{InTxn, atomic}

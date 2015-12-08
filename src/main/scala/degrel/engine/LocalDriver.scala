@@ -3,7 +3,7 @@ package degrel.engine
 import degrel.DegrelException
 import degrel.cluster.{LocalNode, Timeouts}
 import degrel.core._
-import degrel.core.transformer.{GraphVisitor, TransferOwnerVisitor, TryOwnVisitor}
+import degrel.core.transformer.{FixIDVisitor, GraphVisitor, TransferOwnerVisitor}
 import degrel.engine.rewriting._
 import degrel.engine.sphere.Sphere
 import degrel.utils.PrettyPrintOptions
@@ -18,10 +18,12 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 class LocalDriver(val header: VertexHeader,
                   val chassis: Chassis,
                   val node: LocalNode,
+                  val returnTo: VertexPin,
                   val parent: Option[Driver]) extends Reactor with Driver {
   implicit val printOption = PrettyPrintOptions(multiLine = true, showAllId = true)
   private var children = new mutable.HashMap[ID, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
+  val idSpace = node.nextIDSpace()
   chassis.verbose = true
   this.init()
 
@@ -50,9 +52,10 @@ class LocalDriver(val header: VertexHeader,
       //  System.err.println(rw.pp)
       //}
     }
-    while (true) {
+    while (!state.isStopped) {
       if (chassis.verbose) {
         print(Console.RED)
+        println(s"ID: $id steps: $count")
         println("--- Graph ---")
         println(this.header.pp)
         print(Console.YELLOW)
@@ -82,12 +85,9 @@ class LocalDriver(val header: VertexHeader,
 
   def init(): Unit = {
     this.cleanup()
-    //this.header.updateID(node.nextCellID())
+    this.header.updateID(idSpace.next())
     node.registerDriver(this.id.ownerID, this)
-    if (chassis.verbose) {
-      println(s"CELL (on: ${node.selfID})>>> ${this.header.pp(PrettyPrintOptions(showAllId = true, multiLine = true))}")
-    }
-    val fixIDVisitor = GraphVisitor(Traverser.apply(_), new TransferOwnerVisitor(this.header))
+    val fixIDVisitor = GraphVisitor(Traverser.apply(_), new FixIDVisitor(idSpace))
     this.header.edgesWith(Label.E.cellItem).map(_.dst).foreach(fixIDVisitor.visit)
     this.header.edgesWith(Label.E.cellRule).map(_.dst).foreach(fixIDVisitor.visit)
     this.prepare()
@@ -181,8 +181,7 @@ class LocalDriver(val header: VertexHeader,
 
   override def spawn(cell: Vertex): Driver = {
     val spawningHeader = cell.asHeader
-    spawningHeader.updateID(node.nextCellID())
-    val fut = node.spawnSomewhere(cell, this.binding, VertexPin(this.header.id, 0), this)
+    val fut = node.spawnSomewhere(cell, this.binding, VertexPin(spawningHeader.id, 0), this)
     Await.result(fut, Timeouts.short.duration) match {
       case Right(drv: Driver) => {
         this.children += drv.id -> drv
@@ -231,22 +230,24 @@ class LocalDriver(val header: VertexHeader,
   }
 
   override def writeVertex(target: VertexHeader, value: Vertex): Unit = {
-    if (chassis.verbose) {
-      println(s"WRITE(on: $id) $target(${target.id}) <= $value ")
-    }
+    println(s"WRITE(on: $id) $target(${target.id}) <= ${value.pp} ")
     if (target.id == this.header.id) {
-      state = DriverState.Finished(value)
+      state = DriverState.Finished(this.returnTo, value)
       this.parent match {
-        case Some(drv) => {
+        case Some(drv: LocalDriver) => {
           // fin!
           drv.writeVertex(target, value)
+        }
+        case Some(drv: RemoteDriver) => {
+          // fin!
+          drv.writeTo(returnTo.id, value)
         }
         case _ => {
           this.header.write(value)
         }
       }
     } else {
-      val tryOwn = GraphVisitor(Traverser.cell _, new TryOwnVisitor(this.header))
+      val tryOwn = GraphVisitor(new TransferOwnerVisitor(this.header))
       tryOwn.visit(value)
       target.write(value)
     }
@@ -296,10 +297,11 @@ class LocalDriver(val header: VertexHeader,
   }
 
   override def getVertex(id: ID): Option[Vertex] = {
-    Traverser(this.header, TraverserCutOff.cell(this.header)).find(_.id == id)
+    //Traverser(this.header, TraverserCutOff.cell(this.header)).find(_.id == id)
+    Traverser(this.header).find(_.id == id)
   }
 
-  override def onChildStateUpdated(id: ID, state: DriverState): Unit = {
+  override def onChildStateUpdated(childReturnTo: VertexPin, id: ID, state: DriverState): Unit = {
     if (this.isPaused && this.children.values.forall(_.isStopped)) {
       this.state = DriverState.Stopped()
     }
@@ -322,5 +324,5 @@ object LocalDriver {
   }
 }
 
-class RootLocalDriver(_header: VertexHeader, _chassis: Chassis, _node: LocalNode) extends LocalDriver(_header, _chassis, _node, None) {
+class RootLocalDriver(_header: VertexHeader, _chassis: Chassis, _node: LocalNode) extends LocalDriver(_header, _chassis, _node, _header.pin, None) {
 }

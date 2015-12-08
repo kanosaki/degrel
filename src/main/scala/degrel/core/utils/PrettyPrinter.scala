@@ -22,6 +22,7 @@ class PrettyPrinter(val root: Vertex)
   protected def createPrinter(root: Vertex, parent: Printer): Printer = {
     root match {
       case null => new ConstantPrinter("<NULL>", parent)
+      case rh: RemoteVertexHeader => new RemoteHeaderPrinter(rh, parent)
       case vh: VertexHeader if vh.body == null => {
         new HeaderOnlyPrinter(vh, parent)
       }
@@ -168,6 +169,17 @@ class PrettyPrinter(val root: Vertex)
         }
       }
     }
+  }
+
+  protected class RemoteHeaderPrinter(val root: Vertex, val parent: Printer) extends Printer {
+    val rRemote = root.asInstanceOf[RemoteVertexHeader]
+
+    override def print(sb: StringBuilder)(implicit traj: Trajectory): Unit = {
+      sb ++= s"<Remote ${rRemote.id}>"
+    }
+
+    // do nothing
+    override def scan()(implicit traj: Trajectory): Unit = {}
   }
 
   protected class BinOpPrinter(val root: Vertex, val parent: Printer) extends Printer {

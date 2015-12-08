@@ -20,13 +20,7 @@ trait Builder[+T <: Vertex] {
     */
   def ownerCell: CellBuilder
 
-  def autoAssingID(): ID = {
-    if (ownerCell != null) {
-      ID.autoAssign(ownerCell.header)
-    } else {
-      ID.nextLocalVertexID()
-    }
-  }
+  def autoAssingID(): ID = ID.nextLocalID()
 
   /**
     * 親となるGraphBuilder
@@ -105,7 +99,7 @@ class BuilderRoot extends Primitive {
 
   override def parent = null
 
-  override def header: Vertex = VertexHeader(null)
+  override def header: Vertex = VertexHeader(null, ID.nextLocalID())
 
   override def children: Iterable[Primitive] = Seq()
 

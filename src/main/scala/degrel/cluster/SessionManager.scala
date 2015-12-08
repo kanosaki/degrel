@@ -2,11 +2,12 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern._
-import degrel.core.Label
+import degrel.core.{NodeIDSpace, NodeID, Label}
 import degrel.engine.namespace.Repository
 import degrel.engine.rewriting.Binding
-import degrel.engine.{RemoteDriver, Chassis, LocalDriver}
+import degrel.engine.{Chassis, LocalDriver}
 
+import scala.async.Async.{async, await}
 import scala.collection.mutable
 import scala.concurrent.Future
 
@@ -14,7 +15,7 @@ import scala.concurrent.Future
   * Interpreter 1回の実行で使用するデータを保持します
   * 具体的にはIDやロードされたグラフを管理します．
   */
-class SessionManager(val lobby: ActorRef) extends ActorBase {
+class SessionManager(val lobby: ActorRef) extends SessionMember {
 
   import context.dispatcher
   import messages._
@@ -30,8 +31,7 @@ class SessionManager(val lobby: ActorRef) extends ActorBase {
   val journal = JournalAdapter(self, self, 1)
   var repo = Repository()
   var chassis: Chassis = null
-  val localNode = LocalNode(context.system, journal, repo)
-  localNode.selfID = 1
+  val localNode = LocalNode(context.system, journal, repo, NodeIDSpace(1))
 
 
   @throws[Exception](classOf[Exception])
@@ -85,67 +85,25 @@ class SessionManager(val lobby: ActorRef) extends ActorBase {
     }
   }
 
-  override def receiveBody: Receive = {
+  override def receiveMsg: Receive = {
     case QueryStatus() => {
       sender() ! SessionState(nodes.toSeq)
-    }
-    case QueryGraph(id, options) => {
-      val origin = sender()
-      localNode.lookupOwnerLocal(id) match {
-        case Right(drv) => {
-          drv.getVertex(id) match {
-            case Some(v) => {
-              val dGraph = localNode.exchanger.packForQuery(v, options)
-              origin ! Right(dGraph)
-            }
-            case None => origin ! Left(new RuntimeException(s"Graph not found for $id"))
-          }
-        }
-        case Left(msg) => {
-          println("Cannot find owner! please select proper node.")
-          origin ! Left(msg)
-        }
-      }
-    }
-    case LookupDriver(id) => {
-      if (chassis.verbose) {
-        println(s"LookupDriver on ${localNode.selfID}(Manager) $id")
-      }
-      val origin = sender()
-      localNode.lookupOwnerLocal(id) match {
-        case Right(drv) => origin ! Right(drv.param(self))
-        case Left(msg) => origin ! Left(msg)
-      }
     }
     case StartInterpret(msg, controller) if ctrlr != null => {
       log.error(s"Already occupied by $ctrlr")
     }
     case StartInterpret(msg, controller) => {
       ctrlr = sender()
-      val unpacked = localNode.exchanger.unpack(msg)
-      // own vertices as program
-      repo.register(Label.N.main, localNode.spawnLocally(unpacked, Binding.empty(), null, null))
-      chassis = Chassis.create(repo)
-      localNode.registerDriver(chassis.main.header.id.ownerID, chassis.main.asInstanceOf[LocalDriver])
-      val packed = localNode.exchanger.packAll(unpacked, move = true)
-
-      allocateMaxNodes() map { _ =>
+      async {
+        val unpacked = localNode.exchanger.unpack(msg)
+        // own vertices as program
+        repo.register(Label.N.main, localNode.spawnLocally(unpacked, Binding.empty(), null, null))
+        chassis = Chassis.create(repo)
+        localNode.registerDriver(chassis.main.header.id.ownerID, chassis.main.asInstanceOf[LocalDriver])
+        val packed = localNode.exchanger.packAll(unpacked, move = true)
+        await(allocateMaxNodes())
         val (_, rootNode) = nodes.head
         rootNode ! Run(packed)
-      }
-    }
-    case TellDriverInfo(info: DriverInfo) => {
-      if (chassis.verbose) {
-        println(s"TellDriverInfo $info")
-      }
-      // Remote driver state is updated.
-      localNode.lookupOwnerLocal(info.origin) match {
-        case Right(drv: RemoteDriver) => {
-          drv.remoteUpdated(info)
-        }
-        case _ => {
-          log.warning(s"Cannot update info $info")
-        }
       }
     }
     case Fin(msg) => {

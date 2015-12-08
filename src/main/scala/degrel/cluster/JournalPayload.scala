@@ -4,7 +4,7 @@ import java.io.PrintStream
 import java.util.Calendar
 
 import akka.actor.ActorRef
-import degrel.core.ID
+import degrel.core.{NodeID, ID}
 
 case class JournalPayload(acotr: ActorRef, origin: NodeID, nodeTs: Calendar, nodeTick: Long, item: Journal) {
 

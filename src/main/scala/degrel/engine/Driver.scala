@@ -1,6 +1,7 @@
 package degrel.engine
 
 import akka.actor.ActorRef
+import degrel.Logger
 import degrel.cluster.messages.{DriverInfo, DriverParameter}
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
@@ -9,7 +10,7 @@ import degrel.engine.sphere.Sphere
 import scala.async.Async.async
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
-trait Driver {
+trait Driver extends Logger {
   var activeThread: Future[Int] = null
   val finValue: Promise[Vertex] = Promise[Vertex]()
 
@@ -20,21 +21,16 @@ trait Driver {
   def state_=(state: DriverState): Unit = {
     require(state != null)
     if (stateVar == state || stateVar.isStopped) return
-    //println(s"STATE UPDATE: $id $stateVar --> $state")
+    logger.info(s"STATE UPDATE: $id $stateVar --> $state")
     val old = this.stateVar
     this.stateVar = state
     this.onStageChanged(old, state)
-    this.parent match {
-      case Some(parentDriver) => {
-        parentDriver.onChildStateUpdated(this.id, this.state)
-      }
-      case _ =>
-    }
     import DriverState._
     state match {
       case Active() => this.onActive()
       case Paused(steps) => this.onPause(steps)
-      case Finished(v) => this.onFinished(v)
+      case Finished(pin, v) => this.onFinished(pin, v)
+      case Stopped() => this.onStopped()
       case Dead(ex) => this.onDead(ex)
     }
   }
@@ -42,15 +38,19 @@ trait Driver {
   def onStageChanged(oldState: DriverState, newState: DriverState): Unit = {
     this.parent match {
       case Some(parentDriver) => {
-        parentDriver.onChildStateUpdated(this.id, newState)
+        parentDriver.onChildStateUpdated(this.returnTo, this.id, newState)
       }
       case _ =>
     }
   }
 
-  def onFinished(value: Vertex): Unit = {
+  def onFinished(returnTo: VertexPin, value: Vertex): Unit = {
     //println(s"CELL_FINISH: cell: $cell ($id) value: $value")
     finValue.success(value)
+  }
+
+  def onStopped(): Unit = {
+    this.finValue.success(this.header)
   }
 
   def onActive(): Unit = {}
@@ -88,7 +88,7 @@ trait Driver {
 
   def cell: CellBody = this.header.unhead[CellBody]
 
-  def onChildStateUpdated(id: ID, state: DriverState): Unit
+  def onChildStateUpdated(childReturnTo: VertexPin, id: ID, state: DriverState): Unit
 
   /**
     * Send message vertex underlying cell
@@ -106,10 +106,12 @@ trait Driver {
   }
 
   def param(whereIsHere: ActorRef): DriverParameter = {
-    DriverParameter(this.id, this.binding, this.parent.map(_.header.pin), whereIsHere)
+    DriverParameter(this.id, this.binding, this.returnTo, this.parent.map(_.header.pin), whereIsHere)
   }
 
-  def info: DriverInfo = DriverInfo(this.header.id, this.state)
+  def info: DriverInfo = DriverInfo(this.returnTo, this.header.id, this.state)
+
+  def returnTo: VertexPin
 
   /**
     * Returns true if the cell is stopped (no longer active)

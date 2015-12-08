@@ -53,16 +53,15 @@ class Lobby extends MemberBase {
     }
     case NewSession() => {
       val newSession = allocateSession()
-      println(s"================= New Session: $newSession")
+      log.info(s"New Session: $newSession")
       sender() ! Right(newSession)
     }
-
     case CloseSession(sess) => {
       sessions -= sess
       context.stop(sess)
     }
     case NodeAllocateRequest(manager, param) => {
-      println(s"================= Allocating node for: $manager param: $param")
+      log.debug(s"Allocating node for: $manager param: $param")
       val origin = sender()
       allocateNode(manager, param).onSuccess {
         case Some(node) => {

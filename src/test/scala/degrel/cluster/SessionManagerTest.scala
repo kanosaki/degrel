@@ -65,7 +65,43 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
       }
-      assert(spawns(0).spawnAt != spawns(1).spawnAt)
+      println(spawns)
+      assert(spawns(0).spawnAt != spawns(1).spawnAt) // manager spawn != first spawn
+      assert(spawns(1).spawnAt != spawns(2).spawnAt) // first spawn != child spawn
+    }
+
+    "Interprets simple script with journal assertion multi step" in {
+      val session = ClusterTestUtils.newSession(2)
+      val code = degrel.parseVertex(
+        """{
+          | a
+          | a -> {
+          |   fin b
+          | }
+          | b -> {
+          |   fin c
+          | }
+          |}
+        """.stripMargin)
+      val expected = degrel.parseVertex("{c; a -> {fin b}; b -> {fin c}}")
+      val node = LocalNode(system)
+      val dCode = node.exchanger.packAll(code)
+      session ! StartInterpret(dCode, self)
+      val packed = expectMsgPF(7.seconds) {
+        case Fin(gr) => gr
+      }
+      val unpacked = node.exchanger.unpack(packed)
+      assert(expected ===~ unpacked)
+
+      session ! FetchJournal(false)
+      val journals = expectMsgPF() {
+        case Right(js) => js.asInstanceOf[Vector[JournalPayload]]
+      }
+      val spawns = journals.map(_.item).collect {
+        case cs: CellSpawn => cs
+      }
+      assert(spawns(0).spawnAt != spawns(1).spawnAt) // manager spawn != first spawn
+      assert(spawns(1).spawnAt != spawns(2).spawnAt) // first spawn != child spawn
     }
   }
 }

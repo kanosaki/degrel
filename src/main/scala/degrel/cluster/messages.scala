@@ -1,7 +1,7 @@
 package degrel.cluster
 
 import akka.actor.{ActorRef, Address}
-import degrel.core.{DriverState, ID, VertexPin}
+import degrel.core.{NodeID, DriverState, ID, VertexPin}
 import degrel.engine.rewriting.Binding
 
 import scala.concurrent.duration.Duration
@@ -33,7 +33,7 @@ object messages {
 
   case class ControllerState(active: Boolean)
 
-  case class SpawnDriver(graph: DGraph, binding: Seq[Seq[(VertexPin, VertexPin)]], returnTo: VertexPin)
+  case class SpawnDriver(graph: DGraph, binding: Seq[Seq[(VertexPin, VertexPin)]], returnTo: VertexPin, parent: VertexPin)
 
   case class SendGraph(target: ID, graph: DGraph)
 
@@ -49,13 +49,13 @@ object messages {
     * Driver initialization parameter
     * It is permanent as long as hosted in same node.
     */
-  case class DriverParameter(root: ID, binding: Binding, returnTo: Option[VertexPin], hostedOn: ActorRef)
+  case class DriverParameter(root: ID, binding: Binding, returnTo: VertexPin, parentPin: Option[VertexPin], hostedOn: ActorRef)
 
 
   /**
     * Driver current status and statistics.
     */
-  case class DriverInfo(origin: ID, state: DriverState)
+  case class DriverInfo(originPin: VertexPin, actualID: ID, state: DriverState)
 
   case class TellDriverInfo(info: DriverInfo)
 

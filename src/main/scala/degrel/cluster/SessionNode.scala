@@ -2,19 +2,19 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
-import degrel.core.VertexPin
+import degrel.core.transformer.{GraphVisitor, TransferOwnerVisitor}
+import degrel.core.{NodeIDSpace, ID, Vertex, VertexPin}
+import degrel.engine.Driver
 import degrel.engine.rewriting.Binding
-import degrel.engine.{Driver, RemoteDriver}
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
 
-class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitializeParam) extends ActorBase {
+class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitializeParam) extends SessionMember {
 
   val repo = RemoteRepository(manager)
   val journal = JournalAdapter(manager, self, param.id)
-  val localNode = LocalNode(context.system, journal, repo)
-  localNode.selfID = param.id
+  val localNode = LocalNode(context.system, journal, repo, NodeIDSpace(param.id))
 
   def driverFactory = localNode.driverFactory
 
@@ -44,8 +44,7 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
     this.updateNeighbors()
   }
 
-  def spawnDriver(dCell: DGraph, binding: Binding, returnTo: VertexPin, parent: Driver) = {
-    val unpacked = localNode.exchanger.unpack(dCell)
+  def spawnDriver(unpacked: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver) = {
     if (unpacked.isCell) {
       localNode.spawnLocally(unpacked, binding, returnTo, parent)
     } else {
@@ -53,7 +52,7 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
     }
   }
 
-  override def receiveBody = {
+  override def receiveMsg: Receive = {
     case QueryStatus() => {
       sender() ! NodeState(localNode.selfID, manager)
     }
@@ -64,56 +63,15 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
         }
       }
     }
-    case QueryGraph(id, options) => {
-      val origin = sender()
-      localNode.lookupOwnerLocal(id) match {
-        case Right(drv) => {
-          drv.getVertex(id) match {
-            case Some(v) => {
-              val dGraph = localNode.exchanger.packForQuery(v, options)
-              origin ! Right(dGraph)
-            }
-            case None => origin ! Left(new RuntimeException(s"Graph not found for $id in $drv (${drv.id})"))
-          }
-        }
-        case Left(msg) => {
-          println("Cannot find owner! please select proper node.")
-          origin ! Left(msg)
-        }
-      }
-    }
-    case SendGraph(target, graph) => {
-      if (chassis.verbose) {
-        println(s"SendGraph on: ${localNode.selfID} $target $graph")
-      }
-      localNode.lookupOwner(target) map {
-        case Right(drv) => {
-        }
-        case Left(err) => {
-          sender() ! "Cannto send data"
-        }
-      }
-    }
-    case LookupDriver(id) => {
-      if (chassis.verbose) {
-        println(s"LookupDriver on ${localNode.selfID} $id")
-      }
-      val origin = sender()
-      localNode.lookupOwnerLocal(id) match {
-        case Right(drv) => origin ! Right(drv.param(self))
-        case Left(msg) => origin ! Left(msg)
-      }
-    }
-    case SpawnDriver(graph, binding, returnTo) => {
-      if (chassis.verbose) {
-        println(s"SpawnDriver on: ${localNode.selfID}")
-        println(graph.pp)
-      }
+    case SpawnDriver(graph, binding, returnTo, parent) => {
+      log.debug(s"SpawnDriver on: ${localNode.selfID}")
+      log.debug(graph.pp)
       val origin = sender()
       async {
-        await(localNode.lookupOwner(returnTo.id)) match {
-          case Right(parent) => {
-            val driver = this.spawnDriver(graph, Binding.empty(), returnTo, parent)
+        await(localNode.lookupOwner(parent.id)) match {
+          case Right(par) => {
+            val unpacked = localNode.exchanger.unpack(graph)
+            val driver = this.spawnDriver(unpacked, Binding.empty(), returnTo, par)
             driver.start()
             origin ! Right(driver.param(self))
           }
@@ -125,31 +83,16 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
         }
       }
     }
-    case TellDriverInfo(info: DriverInfo) => {
-      if (chassis.verbose) {
-        println(s"TellDriverInfo $info")
-      }
-      // Remote driver state is updated.
-      localNode.lookupOwnerLocal(info.origin) match {
-        case Right(drv: RemoteDriver) => {
-          drv.remoteUpdated(info)
-        }
-        case _ => {
-          log.warning(s"Cannot update info $info")
-        }
-      }
-    }
     case Run(msg) => {
-      if (chassis.verbose) {
-        println("Running:")
-        println(msg.pp)
-      }
+      log.debug(s"Running: ${msg.pp}")
       val origin = sender()
       this.updateNeighbors() map { _ =>
-        val driver = this.spawnDriver(msg, Binding.empty(), null, null)
+        val unpacked = localNode.exchanger.unpack(msg)
+        val driver = this.spawnDriver(unpacked, Binding.empty(), null, null)
         driver.start()
         async {
           val result = await(driver.finValue.future)
+          log.info(s"RUNNING FINISHED: $result")
           val packed = localNode.exchanger.packAll(result)
           origin ! messages.Fin(packed)
         }

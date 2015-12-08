@@ -13,6 +13,7 @@ class RemoteVertexHeader(_initID: ID, node: LocalNode) extends VertexHeader(_ini
   override def body: VertexBody = {
     if (bodyCache == null) {
       val fut = async {
+        println(s"Fetching on: ${node.selfID} for: ${_initID}")
         await(node.lookup(_initID)) match {
           case Right(v) => v.unhead[VertexBody]
           case Left(msg) => throw msg

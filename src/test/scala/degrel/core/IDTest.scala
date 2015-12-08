@@ -16,8 +16,8 @@ class IDTest extends FlatSpec {
   }
 
   it should "generated uniquely" in {
-    assert(ID.nextLocalVertexID() != ID.nextLocalVertexID())
-    assert(ID.nextLocalCellID() != ID.nextLocalCellID())
+    assert(ID.nextLocalID() != ID.nextLocalID())
+    assert(ID.nextLocalID() != ID.nextLocalID())
   }
 
   "NotAssignedID" should "automatically assigned" in {

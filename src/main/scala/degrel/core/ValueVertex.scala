@@ -28,6 +28,6 @@ class ValueVertex[T: TypeTag](val get: T) extends VertexBody {
 
 object ValueVertex {
   def apply[T: TypeTag](value: T): VertexHeader = {
-    VertexHeader(new ValueVertex[T](value))
+    VertexHeader(new ValueVertex[T](value), ID.nextLocalID())
   }
 }

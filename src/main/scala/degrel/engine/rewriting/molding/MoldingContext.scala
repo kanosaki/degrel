@@ -1,6 +1,6 @@
 package degrel.engine.rewriting.molding
 
-import degrel.core.{Edge, VertexHeader, Vertex}
+import degrel.core.{DriverIDSpace, Edge, VertexHeader, Vertex}
 import degrel.engine.Driver
 import degrel.engine.rewriting.Binding
 

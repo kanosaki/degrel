@@ -77,19 +77,19 @@ object ID {
     }
   }
 
-  def nextLocalCellID(): ID = {
-    stm.atomic { implicit txn =>
-      cellIdCounter.transform(_ + 1)
-      idCounter.transform(_ + 1)
-      LocalID(cellIdCounter.get, idCounter.get)
-    }
-  }
+//  def nextLocalCellID(): ID = {
+//    stm.atomic { implicit txn =>
+//      cellIdCounter.transform(_ + 1)
+//      idCounter.transform(_ + 1)
+//      LocalID(cellIdCounter.get, idCounter.get)
+//    }
+//  }
 
   def NA: ID = NotAssignedID
 
-  def autoAssign(owner: Vertex): ID = this.nextID(owner.id.ownerID)
+//  def autoAssign(owner: Vertex): ID = this.nextID(owner.id.ownerID)
 
-  def nextLocalVertexID(): ID = {
+  def nextLocalID(): ID = {
     stm.atomic { implicit txn =>
       idCounter.transform(_ + 1)
       FreeID(idCounter.get)
@@ -110,7 +110,7 @@ case object NotAssignedID extends ID {
 
   override def equals(obj: scala.Any): Boolean = false
 
-  override def withOwner(owner: Vertex): ID = ID.autoAssign(owner)
+  override def withOwner(owner: Vertex): ID = ID.nextLocalID().withOwner(owner)
 
 }
 

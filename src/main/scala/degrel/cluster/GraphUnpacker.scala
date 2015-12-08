@@ -4,16 +4,21 @@ import degrel.core._
 
 import scala.collection.mutable
 
-class GraphRebuilder(val source: DGraph, val node: LocalNode) {
+class GraphUnpacker(val source: DGraph, val node: LocalNode, idSpace: IDSpace) {
+  val originalIDMap = source.idMap.toMap
 
-  val headers = mutable.HashMap[ID, VertexHeader](source.vertices.map { dv =>
+  def assignID(did: DID): ID = {
+    originalIDMap.getOrElse(did, idSpace.next())
+  }
+
+  val headers = mutable.HashMap[DID, VertexHeader](source.vertices.map { dv =>
     dv.id -> mkHeader(dv)
   }: _*)
 
   def mkHeader(dv: DVertex): VertexHeader = dv match {
-    case _: DCell => new CellHeader(null, dv.id)
-    case _: DRule => new RuleVertexHeader(null, dv.id)
-    case _ => new LocalVertexHeader(null, dv.id)
+    case _: DCell => new CellHeader(null, assignID(dv.id))
+    case _: DRule => new RuleVertexHeader(null, assignID(dv.id))
+    case _ => new LocalVertexHeader(null, assignID(dv.id))
   }
 
   def mkBody(dv: DVertex): VertexBody = {
@@ -38,8 +43,8 @@ class GraphRebuilder(val source: DGraph, val node: LocalNode) {
     }
   }
 
-  def fetchHeader(id: ID): VertexHeader = {
-    headers.getOrElseUpdate(id, new RemoteVertexHeader(id, node))
+  def fetchHeader(id: DID): VertexHeader = {
+    headers.getOrElseUpdate(id, new RemoteVertexHeader(assignID(id), node))
   }
 
   def concreteEdges(de: DEdge): Edge = {
@@ -51,11 +56,13 @@ class GraphRebuilder(val source: DGraph, val node: LocalNode) {
     headers(dv.id).write(mkBody(dv))
   }
 
-  def get(id: ID): Option[Vertex] = {
+  def get(id: DID): Option[Vertex] = {
     headers.get(id)
   }
+
+  def root: VertexHeader = headers(0)
 }
 
-object GraphRebuilder {
+object GraphUnpacker {
   private val CELL_LABEL = SpecialLabels.V_CELL.name
 }

@@ -32,7 +32,7 @@ object DriverState {
     * Because fin statement is detected.
     * So sending messages to this driver causes nothing.
     */
-  case class Finished(result: Vertex) extends DriverState {
+  case class Finished(returnTo: VertexPin, result: Vertex) extends DriverState {
     override def isStopped: Boolean = true
   }
 

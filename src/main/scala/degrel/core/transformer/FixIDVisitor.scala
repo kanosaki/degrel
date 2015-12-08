@@ -1,10 +1,10 @@
 package degrel.core.transformer
 
 import degrel.cluster.LocalNode
-import degrel.core.{Vertex, VertexHeader}
+import degrel.core.{DriverIDSpace, Vertex, VertexHeader}
 
-class FixIDVisitor(owner: VertexHeader, node: LocalNode) extends VisitModule {
+class FixIDVisitor(idSpace: DriverIDSpace) extends VisitModule {
   override def visit(v: Vertex, visitor: GraphVisitor): Unit = {
-    v.tryOwn(owner)
+    v.asHeader.updateID(idSpace.next())
   }
 }

@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import degrel.cluster.messages._
 import degrel.cluster.{DGraph, LocalNode, QueryOption, Timeouts}
+import degrel.core.DriverState.Finished
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
 import degrel.engine.sphere.Sphere
@@ -12,13 +13,13 @@ import scala.async.Async.{async, await}
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 // note: remoteNode is not a single cell(or a driver) wrapper, it might contains several cells(also drivers)
-class RemoteDriver(id: ID, remoteNode: ActorRef, node: LocalNode, val binding: Binding, val returnTo: Option[VertexPin])(implicit ec: ExecutionContext) extends Driver {
+class RemoteDriver(override val header: VertexHeader, remoteNode: ActorRef, node: LocalNode, val binding: Binding, val returnTo: VertexPin, val parentPin: Option[VertexPin])(implicit ec: ExecutionContext) extends Driver {
   implicit val timeout = Timeouts.short
   // すぐにlookupすると，まだ登録されていないためエラーになる
   private lazy val _parent = async {
-    this.returnTo match {
-      case Some(retTo) => {
-        await(node.lookupOwner(retTo.id)) match {
+    this.parentPin match {
+      case Some(pPin) => {
+        await(node.lookupOwner(pPin.id)) match {
           case Right(drv) => Some(drv)
           case Left(msg) => throw msg
         }
@@ -40,8 +41,15 @@ class RemoteDriver(id: ID, remoteNode: ActorRef, node: LocalNode, val binding: B
   }
 
   override def writeVertex(target: VertexHeader, value: Vertex): Unit = {
-    val dGraph = node.exchanger.pack(value)
+    logger.info(s"WRITE(to Remote($returnTo))")
+    val dGraph = node.exchanger.packAll(value)
     remoteNode ! WriteVertex(target.id, dGraph)
+  }
+
+  def writeTo(targetID: ID, value: Vertex): Unit = {
+    logger.info(s"WRITE(to RemoteID($returnTo)) value: ${value.pp}")
+    val dGraph = node.exchanger.packAll(value)
+    remoteNode ! WriteVertex(targetID, dGraph)
   }
 
   override def removeRoot(v: Vertex): Unit = {
@@ -51,8 +59,6 @@ class RemoteDriver(id: ID, remoteNode: ActorRef, node: LocalNode, val binding: B
   override def stepUntilStop(limit: Int): Int = 0
 
   override def resource: Sphere = node.getSphere(this)
-
-  override val header: VertexHeader = RemoteVertexHeader(id, node)
 
   override def getVertex(id: ID): Option[Vertex] = {
     val fut = async {
@@ -84,12 +90,19 @@ class RemoteDriver(id: ID, remoteNode: ActorRef, node: LocalNode, val binding: B
 
   // receive from remote driver
   def remoteUpdated(info: DriverInfo) = {
+    info.state match {
+      case Finished(pin, value) => {
+        if (pin.id == this.id) {
+          this.header.write(value)
+        }
+      }
+    }
     this.state = info.state
   }
 
   // proxy to remote driver
-  override def onChildStateUpdated(childID: ID, childState: DriverState): Unit = {
-    remoteNode ! TellDriverInfo(DriverInfo(childID, childState))
+  override def onChildStateUpdated(childReturnTo: VertexPin, childID: ID, childState: DriverState): Unit = {
+    remoteNode ! TellDriverInfo(DriverInfo(childReturnTo, childID, childState))
   }
 
   override def toString: String = {
@@ -98,7 +111,16 @@ class RemoteDriver(id: ID, remoteNode: ActorRef, node: LocalNode, val binding: B
 }
 
 object RemoteDriver {
-  def fromDriverInfo(info: DriverParameter, node: LocalNode)(implicit ec: ExecutionContext): RemoteDriver = {
-    new RemoteDriver(info.root, info.hostedOn, node, info.binding, info.returnTo)
+  def remoteDriver(info: DriverParameter, node: LocalNode)(implicit ec: ExecutionContext): RemoteDriver = {
+    localPhantom(RemoteVertexHeader(info.root, node), info, node)
   }
+
+  def localPhantom(root: VertexHeader, info: DriverParameter, node: LocalNode)(implicit ec: ExecutionContext): RemoteDriver = {
+    localPhantom(root, info.hostedOn, node, info.binding, info.returnTo, info.parentPin)
+  }
+
+  def localPhantom(root: VertexHeader, hostedOn: ActorRef, node: LocalNode, binding: Binding, returnTo: VertexPin, parentPin: Option[VertexPin])(implicit ec: ExecutionContext): RemoteDriver = {
+    new RemoteDriver(root, hostedOn, node, binding, returnTo, parentPin)
+  }
+
 }

@@ -2,7 +2,7 @@ package degrel.cluster
 
 import degrel.core.{ID, Label}
 
-case class DGraph(root: ID, vertices: Seq[DVertex]) {
+case class DGraph(root: DID, vertices: Vector[DVertex], idMap: Vector[(DID, ID)]) {
 
   def pp: String = {
     val idMap = vertices.map(v => v.id -> v).toMap
@@ -19,10 +19,10 @@ case class DGraph(root: ID, vertices: Seq[DVertex]) {
   }
 }
 
-case class DEdge(label: String, dst: ID)
+case class DEdge(label: String, dst: DID)
 
 trait DVertex {
-  def id: ID
+  def id: DID
 
   def label: String
 
@@ -31,15 +31,15 @@ trait DVertex {
   def edges: Seq[DEdge]
 }
 
-case class DPlainVertex(id: ID,
+case class DPlainVertex(id: DID,
                         label: String,
                         attributes: Seq[(String, String)],
                         edges: Seq[DEdge]) extends DVertex
 
-case class DRule(id: ID,
-                 lhs: ID,
-                 rhs: ID,
-                 preds: Seq[ID],
+case class DRule(id: DID,
+                 lhs: DID,
+                 rhs: DID,
+                 preds: Seq[DID],
                  pragmaEdges: Seq[DEdge],
                  attributes: Seq[(String, String)]) extends DVertex {
 
@@ -50,7 +50,7 @@ case class DRule(id: ID,
     DEdge(Label.E.rhs.expr, this.rhs)) ++ pragmaEdges
 }
 
-case class DCell(id: ID,
+case class DCell(id: DID,
                  attributes: Seq[(String, String)],
                  edges: Seq[DEdge],
                  binding: Seq[(ID, ID)]) extends DVertex {

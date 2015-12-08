@@ -2,27 +2,28 @@ package degrel.cluster
 
 import akka.actor.ActorRef
 import akka.pattern.ask
+import degrel.Logger
 import degrel.cluster.messages.{DriverParameter, LookupDriver, SpawnDriver}
-import degrel.core.{ID, Vertex, VertexPin}
+import degrel.core.{NodeID, ID, Vertex, VertexPin}
 import degrel.engine.rewriting.Binding
 import degrel.engine.{Driver, RemoteDriver}
 
-import scala.concurrent.{ExecutionContext, Future}
 import scala.async.Async.{async, await}
+import scala.concurrent.{ExecutionContext, Future}
 
-class RemoteNode(val selfID: NodeID, val ref: ActorRef, hostedOn: LocalNode)(implicit ec: ExecutionContext) {
+class RemoteNode(val selfID: NodeID, val ref: ActorRef, hostedOn: LocalNode)(implicit ec: ExecutionContext) extends Logger {
   // TODO: Cache remote drivers
   /**
     * Confirms the driver exists.
     */
   def lookupOwner(id: ID): Future[Either[Throwable, Driver]] = async {
-    println(s"LookupOwner(Remote) on: ${hostedOn.selfID} for $id --> $selfID")
+    logger.debug(s"LookupOwner(Remote) on: ${hostedOn.selfID} for $id --> $selfID")
     implicit val timeout = Timeouts.short
     await(ref ? LookupDriver(id)) match {
       case Right(info: DriverParameter) => {
-        println(s"Lookup for $id Done on: $selfID remote: $info")
+        logger.debug(s"Lookup for $id Done on: $selfID remote: $info")
         try {
-          val i = RemoteDriver.fromDriverInfo(info, hostedOn)
+          val i = RemoteDriver.remoteDriver(info, hostedOn)
           Right(i)
         } catch {
           case e: Throwable => Left(e)
@@ -32,15 +33,17 @@ class RemoteNode(val selfID: NodeID, val ref: ActorRef, hostedOn: LocalNode)(imp
     }
   }
 
-  def spawn(cell: Vertex, binding: Binding, returnTo: VertexPin): Future[Either[Throwable, Driver]] = async {
-    println(s"REMOTE SPAWN $cell $binding --> $selfID")
+  def spawn(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, RemoteDriver]] = async {
+    logger.debug(s"REMOTE SPAWN $cell $binding --> $selfID")
     implicit val timeout = Timeouts.short
     val graph = hostedOn.exchanger.packAll(cell, move = true)
-
-    val res = await(ref ? SpawnDriver(graph, Seq(), returnTo))
-    println(s"REMOTE SPAWN DONE $res")
+    val res = await(ref ? SpawnDriver(graph, Seq(), returnTo, parent.header.pin))
+    logger.debug(s"REMOTE SPAWN DONE $res")
     res match {
-      case Right(info: DriverParameter) => Right(RemoteDriver.fromDriverInfo(info, hostedOn))
+      case Right(info: DriverParameter) => {
+        val drv = RemoteDriver.localPhantom(cell.asHeader, info, hostedOn)
+        Right(drv)
+      }
       case Left(msg: Throwable) => Left(msg)
     }
   }

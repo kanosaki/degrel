@@ -68,7 +68,7 @@ abstract class VertexHeader(var id: ID = ID.NA) extends Vertex {
 }
 
 object VertexHeader {
-  def apply(body: VertexBody, initID: ID = ID.nextLocalVertexID()): VertexHeader = {
+  def apply(body: VertexBody, initID: ID = ID.nextLocalID()): VertexHeader = {
     new LocalVertexHeader(body, initID)
   }
 }

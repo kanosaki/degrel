@@ -1,6 +1,6 @@
 package degrel.engine
 
-import degrel.core.{Cell, Label, Vertex}
+import degrel.core.{Cell, Label, Vertex, VertexPin}
 import degrel.engine.namespace.Repository
 import degrel.engine.sphere.Sphere
 import org.json4s.JsonAST.JObject
@@ -30,8 +30,8 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
     this.repository.get(name)
   }
 
-  def createDriver(cell: Vertex, parent: Driver = null): Driver = {
-    driverFactory.create(this, cell.asHeader, parent)
+  def createDriver(cell: Vertex, returnTo: VertexPin, parent: Driver = null): Driver = {
+    driverFactory.create(this, cell.asHeader, returnTo, parent)
   }
 
   def addDriver(name: List[Symbol], driver: Driver): Driver = {
@@ -40,13 +40,8 @@ class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactor
   }
 
   def registerCell(name: List[Symbol], cell: Vertex, parent: Driver = null): Driver = {
-    val driver = this.driverFactory.create(this, cell.asHeader, parent)
+    val driver = this.driverFactory.create(this, cell.asHeader, cell.asHeader.pin, parent)
     this.addDriver(name, driver)
-  }
-
-  def register(name: String, cell: Vertex, parent: Driver = null): Driver = {
-    val normalizedName = this.normalizeName(name)
-    this.registerCell(this.normalizeName(name), cell: Vertex, parent: Driver)
   }
 
   def repository: namespace.Repository = _repo
