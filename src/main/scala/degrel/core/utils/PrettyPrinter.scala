@@ -22,7 +22,7 @@ class PrettyPrinter(val root: Vertex)
   protected def createPrinter(root: Vertex, parent: Printer): Printer = {
     root match {
       case null => new ConstantPrinter("<NULL>", parent)
-      case rh: RemoteVertexHeader => new RemoteHeaderPrinter(rh, parent)
+      case rh: RemoteVertexHeader if !rh.isBodyCached => new RemoteHeaderPrinter(rh, parent)
       case vh: VertexHeader if vh.body == null => {
         new HeaderOnlyPrinter(vh, parent)
       }

@@ -24,9 +24,7 @@ trait DriverFactory {
   }
 }
 
-class BasicDriverFactory extends DriverFactory {
-  val node = LocalNode()
-
+class BasicDriverFactory(node: LocalNode) extends DriverFactory {
   protected override def createDriver(chassis: Chassis, cell: VertexHeader, reutrnTo: VertexPin, parent: Driver): Driver = {
     this.createLocalDriver(chassis, cell, node, reutrnTo, parent)
   }
@@ -34,5 +32,5 @@ class BasicDriverFactory extends DriverFactory {
 }
 
 object DriverFactory {
-  val default = new BasicDriverFactory()
+  def default(node: LocalNode) = new BasicDriverFactory(node)
 }

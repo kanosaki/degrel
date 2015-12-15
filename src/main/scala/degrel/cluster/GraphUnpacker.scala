@@ -44,7 +44,9 @@ class GraphUnpacker(val source: DGraph, val node: LocalNode, idSpace: IDSpace) {
   }
 
   def fetchHeader(id: DID): VertexHeader = {
-    headers.getOrElseUpdate(id, new RemoteVertexHeader(assignID(id), node))
+    // do not use `assignID` here, `assignID` might assign new local ID. but
+    // `RemoteVertexHeader` should have valid remote ID!
+    headers.getOrElseUpdate(id, new RemoteVertexHeader(originalIDMap(id), node))
   }
 
   def concreteEdges(de: DEdge): Edge = {

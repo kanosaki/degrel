@@ -13,7 +13,7 @@ import scala.async.Async.{async, await}
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 // note: remoteNode is not a single cell(or a driver) wrapper, it might contains several cells(also drivers)
-class RemoteDriver(override val header: VertexHeader, remoteNode: ActorRef, node: LocalNode, val binding: Binding, val returnTo: VertexPin, val parentPin: Option[VertexPin])(implicit ec: ExecutionContext) extends Driver {
+class RemoteDriver(override val header: VertexHeader, remoteNode: ActorRef, val node: LocalNode, val binding: Binding, val returnTo: VertexPin, val parentPin: Option[VertexPin])(implicit ec: ExecutionContext) extends Driver {
   implicit val timeout = Timeouts.short
   // すぐにlookupすると，まだ登録されていないためエラーになる
   private lazy val _parent = async {
@@ -96,6 +96,7 @@ class RemoteDriver(override val header: VertexHeader, remoteNode: ActorRef, node
           this.header.write(value)
         }
       }
+      case _ =>
     }
     this.state = info.state
   }

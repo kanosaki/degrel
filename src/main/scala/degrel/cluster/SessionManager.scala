@@ -98,10 +98,11 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
         val unpacked = localNode.exchanger.unpack(msg)
         // own vertices as program
         repo.register(Label.N.main, localNode.spawnLocally(unpacked, Binding.empty(), null, null))
-        chassis = Chassis.create(repo)
+        chassis = Chassis.create(repo, localNode)
         localNode.registerDriver(chassis.main.header.id.ownerID, chassis.main.asInstanceOf[LocalDriver])
         val packed = localNode.exchanger.packAll(unpacked, move = true)
         await(allocateMaxNodes())
+        this.logSessionStatus()
         val (_, rootNode) = nodes.head
         rootNode ! Run(packed)
       }
@@ -111,14 +112,24 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
     }
     case jp: JournalPayload => {
       journals += jp
+      log.info(jp.item.repr)
       if (streamJournal) {
         ctrlr ! jp
       }
     }
     case FetchJournal(streamReq) => {
-      println(s"${sender()} $ctrlr")
+      streamJournal = streamReq
       sender() ! Right(journals.toVector)
     }
+  }
+  def logSessionStatus(): Unit = {
+    log.info("------------- Session Status Report ----------------")
+    log.info("Nodes:")
+    log.info(s"1(Manager): $self")
+    nodes.foreach { case (id, ref) =>
+      log.info(s"$id: $ref")
+    }
+    log.info("----------------------------------------------------")
   }
 }
 

@@ -43,8 +43,7 @@ class LocalDriver(val header: VertexHeader,
     }
     var count = 0
     if (chassis.verbose) {
-      println(s"$id (on: ${node.selfID})>>>>>")
-      println(s"DRIVER_START: $id >>>>>")
+      println(s"DRIVER_START: $id(on: ${node.selfID})>>>>>")
       println("--- Parent ---")
       println(s"$parent")
       //System.err.println("--- Rewriters ---")
@@ -55,7 +54,7 @@ class LocalDriver(val header: VertexHeader,
     while (!state.isStopped) {
       if (chassis.verbose) {
         print(Console.RED)
-        println(s"ID: $id steps: $count")
+        println(s"ID: $id(on: ${node.selfID}) steps: $count")
         println("--- Graph ---")
         println(this.header.pp)
         print(Console.YELLOW)
@@ -73,7 +72,10 @@ class LocalDriver(val header: VertexHeader,
       this.cleanup()
       count += 1
       if (!rewrote) {
-        state = DriverState.Paused(count)
+        state = this.state match {
+          case DriverState.Stopping() => DriverState.Stopped()
+          case _ => DriverState.Paused(count)
+        }
         return count
       }
       if (limit > 0 && count > limit) {
@@ -213,6 +215,7 @@ class LocalDriver(val header: VertexHeader,
       }
       if (chassis.verbose) {
         print(Console.GREEN)
+        println(s"Step Result: ID: $id(on: ${node.selfID})")
         println("--- Apply ---")
         println(rw.pp)
         println(res)
@@ -230,7 +233,7 @@ class LocalDriver(val header: VertexHeader,
   }
 
   override def writeVertex(target: VertexHeader, value: Vertex): Unit = {
-    println(s"WRITE(on: $id) $target(${target.id}) <= ${value.pp} ")
+    logger.debug(s"WRITE(on: $id) $target(${target.id}) <= ${value.pp} ")
     if (target.id == this.header.id) {
       state = DriverState.Finished(this.returnTo, value)
       this.parent match {
@@ -303,7 +306,7 @@ class LocalDriver(val header: VertexHeader,
 
   override def onChildStateUpdated(childReturnTo: VertexPin, id: ID, state: DriverState): Unit = {
     if (this.isPaused && this.children.values.forall(_.isStopped)) {
-      this.state = DriverState.Stopped()
+      this.state = DriverState.Stopping()
     }
   }
 

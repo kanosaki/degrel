@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import akka.pattern.ask
 import degrel.Logger
 import degrel.cluster.messages.{DriverParameter, LookupDriver, SpawnDriver}
-import degrel.core.{NodeID, ID, Vertex, VertexPin}
+import degrel.core._
 import degrel.engine.rewriting.Binding
 import degrel.engine.{Driver, RemoteDriver}
 
@@ -33,18 +33,20 @@ class RemoteNode(val selfID: NodeID, val ref: ActorRef, hostedOn: LocalNode)(imp
     }
   }
 
-  def spawn(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, RemoteDriver]] = async {
+  def spawn(cell: VertexHeader, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, RemoteDriver]] = async {
     logger.debug(s"REMOTE SPAWN $cell $binding --> $selfID")
     implicit val timeout = Timeouts.short
-    val graph = hostedOn.exchanger.packAll(cell, move = true)
+    val graph = hostedOn.exchanger.packAll(cell, move = true) // TODO: Pack only cell value
     val res = await(ref ? SpawnDriver(graph, Seq(), returnTo, parent.header.pin))
-    logger.debug(s"REMOTE SPAWN DONE $res")
     res match {
       case Right(info: DriverParameter) => {
-        val drv = RemoteDriver.localPhantom(cell.asHeader, info, hostedOn)
+        logger.debug(s"REMOTE SPAWN DONE $info")
+        val drv = RemoteDriver.localPhantom(cell, info, hostedOn)
         Right(drv)
       }
-      case Left(msg: Throwable) => Left(msg)
+      case Left(msg: Throwable) => {
+        Left(msg)
+      }
     }
   }
 

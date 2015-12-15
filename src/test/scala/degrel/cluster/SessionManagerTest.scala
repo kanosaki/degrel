@@ -38,7 +38,7 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       assert(expected ===~ unpacked)
     }
 
-    "Interprets simple script with journal assertion" in {
+    "Interprets script (a spawn) with journal assertion" in {
       val session = ClusterTestUtils.newSession(2)
       val code = degrel.parseVertex(
         """{
@@ -70,7 +70,7 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       assert(spawns(1).spawnAt != spawns(2).spawnAt) // first spawn != child spawn
     }
 
-    "Interprets simple script with journal assertion multi step" in {
+    "Interprets script (multi spawns) with journal assertion" in {
       val session = ClusterTestUtils.newSession(2)
       val code = degrel.parseVertex(
         """{
@@ -84,6 +84,40 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
           |}
         """.stripMargin)
       val expected = degrel.parseVertex("{c; a -> {fin b}; b -> {fin c}}")
+      val node = LocalNode(system)
+      val dCode = node.exchanger.packAll(code)
+      session ! StartInterpret(dCode, self)
+      val packed = expectMsgPF(7.seconds) {
+        case Fin(gr) => gr
+      }
+      val unpacked = node.exchanger.unpack(packed)
+      assert(expected ===~ unpacked)
+
+      session ! FetchJournal(false)
+      val journals = expectMsgPF() {
+        case Right(js) => js.asInstanceOf[Vector[JournalPayload]]
+      }
+      val spawns = journals.map(_.item).collect {
+        case cs: CellSpawn => cs
+      }
+      assert(spawns(0).spawnAt != spawns(1).spawnAt) // manager spawn != first spawn
+      assert(spawns(1).spawnAt != spawns(2).spawnAt) // first spawn != child spawn
+    }
+
+    "Interprets script (multi spawns, binding) with journal assertion" in {
+      val session = ClusterTestUtils.newSession(2)
+      val code = degrel.parseVertex(
+        """{
+          | a(hoge)
+          | a(@X) -> {
+          |   fin b(X)
+          | }
+          | b(@X) -> {
+          |   fin c(X)
+          | }
+          |}
+        """.stripMargin)
+      val expected = degrel.parseVertex("{c(hoge); a -> {fin b}; b -> {fin c}}")
       val node = LocalNode(system)
       val dCode = node.exchanger.packAll(code)
       session ! StartInterpret(dCode, self)

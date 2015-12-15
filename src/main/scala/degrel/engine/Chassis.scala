@@ -1,5 +1,6 @@
 package degrel.engine
 
+import degrel.cluster.LocalNode
 import degrel.core.{Cell, Label, Vertex, VertexPin}
 import degrel.engine.namespace.Repository
 import degrel.engine.sphere.Sphere
@@ -11,7 +12,7 @@ import org.json4s.JsonDSL._
   * @todo 冗長?
   * @param _repo 管理する名前空間(Local or Remote)
   */
-class Chassis(_repo: Repository, var driverFactory: DriverFactory = DriverFactory.default) {
+class Chassis(_repo: Repository, var driverFactory: DriverFactory) {
   var sphere: Sphere = degrel.engine.sphere.default
   var verbose = false
 
@@ -94,6 +95,7 @@ class ProcedureSpan(val name: String) {
 }
 
 object Chassis {
+  private lazy val standalone = LocalNode()
   def apply(repo: Repository, factory: DriverFactory): Chassis = {
     new Chassis(repo, factory)
   }
@@ -104,23 +106,23 @@ object Chassis {
 
   def create(main: Cell): Chassis = {
     val repo = new Repository()
-    val chassis = new Chassis(repo)
-    repo.register(Label.N.main, LocalDriver(main, chassis))
+    val chassis = new Chassis(repo, DriverFactory.default(standalone))
+    chassis.registerCell(Label.N.main, main)
     chassis
   }
 
-  def createWithMain(initRepo: Repository = null): Chassis = {
-    val ch = Chassis.create(initRepo)
+  def createWithMain(initRepo: Repository = null, node: LocalNode = standalone): Chassis = {
+    val ch = Chassis.create(initRepo, node)
     ch.repository.register(Label.N.main, LocalDriver(Cell(Seq()), ch))
     ch
   }
 
-  def create(initRepo: Repository): Chassis = {
+  def create(initRepo: Repository, node: LocalNode): Chassis = {
     val repo = if (initRepo == null) {
       new Repository()
     } else {
       initRepo
     }
-    new Chassis(repo)
+    new Chassis(repo, DriverFactory.default(node))
   }
 }

@@ -5,13 +5,14 @@ import degrel.core.{ID, Label}
 case class DGraph(root: DID, vertices: Vector[DVertex], idMap: Vector[(DID, ID)]) {
 
   def pp: String = {
-    val idMap = vertices.map(v => v.id -> v).toMap
+    val bodyMap = vertices.map(v => v.id -> v).toMap
+    val headMap = idMap.toMap
     val sb = new StringBuilder()
     sb ++= s"Root: $root\n"
     vertices.foreach { v =>
-      sb ++= f"${v.id} ${v.label}\n"
+      sb ++= f"${v.id} ${v.label} ${headMap.get(v.id).map { i => s"($i)" }.getOrElse("")}\n"
       v.edges.foreach { e =>
-        val dstLabel = idMap.get(e.dst).map(_.label).getOrElse("--")
+        val dstLabel = bodyMap.get(e.dst).map(_.label).getOrElse("--")
         sb ++= f"  | ${e.label} --> ${e.dst}($dstLabel)\n"
       }
     }

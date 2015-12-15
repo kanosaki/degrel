@@ -2,6 +2,7 @@ package degrel.engine
 
 import akka.actor.ActorRef
 import degrel.Logger
+import degrel.cluster.{Journal, LocalNode}
 import degrel.cluster.messages.{DriverInfo, DriverParameter}
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
@@ -21,8 +22,8 @@ trait Driver extends Logger {
   def state_=(state: DriverState): Unit = {
     require(state != null)
     if (stateVar == state || stateVar.isStopped) return
-    logger.info(s"STATE UPDATE: $id $stateVar --> $state")
     val old = this.stateVar
+    node.journal(Journal.DriverStateUpdate(this.id, old, state))
     this.stateVar = state
     this.onStageChanged(old, state)
     import DriverState._
@@ -31,6 +32,7 @@ trait Driver extends Logger {
       case Paused(steps) => this.onPause(steps)
       case Finished(pin, v) => this.onFinished(pin, v)
       case Stopped() => this.onStopped()
+      case Stopping() => this.onStopping()
       case Dead(ex) => this.onDead(ex)
     }
   }
@@ -49,6 +51,10 @@ trait Driver extends Logger {
     finValue.success(value)
   }
 
+  def onStopping(): Unit = {
+    this.finValue.success(this.header)
+  }
+
   def onStopped(): Unit = {
     this.finValue.success(this.header)
   }
@@ -63,6 +69,8 @@ trait Driver extends Logger {
     case DriverState.Active() => true
     case _ => false
   }
+
+  def node: LocalNode
 
   def resource: Sphere
 

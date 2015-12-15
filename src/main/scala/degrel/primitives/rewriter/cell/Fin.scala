@@ -15,7 +15,11 @@ class Fin extends Rewriter {
       target.thru(Label.E.cellItem).find(_.label == finLabel) match {
         case Some(finV) => {
           val finValue = finV.thru(0).headOption.getOrElse(Cell())
-          write(rt, finValue)
+          if (finValue.label.expr != "__locked__") {
+            write(rt, finValue)
+          } else {
+            nop
+          }
         }
         case None => nop
       }

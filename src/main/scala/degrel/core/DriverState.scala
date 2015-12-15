@@ -37,6 +37,15 @@ object DriverState {
   }
 
   /**
+    * Child drivers are stopped.
+    * But effects from child drivers haven't been checked.
+    * So waiting for re-check.
+    */
+  case class Stopping() extends DriverState {
+    override def isStopped: Boolean = false
+  }
+
+  /**
     * Stopped by automatic halting.
     * (When the system detects that this cell never will be active in future,
     * it will be automatically mark the cell as Stopped.)

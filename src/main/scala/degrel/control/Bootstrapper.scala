@@ -17,18 +17,6 @@ import org.apache.commons.io.FileUtils
   * Chassisをアプリケーション引数などから初期化します
   */
 class Bootstrapper(val args: BootArguments) {
-
-  val driverFactory: DriverFactory = {
-    args.rewriteeSetName match {
-      //case "root_hash" => new RootHashDriverFactory()
-      case "root_hash" => DriverFactory.default
-      case "plain" => {
-        DriverFactory.default
-      }
-
-    }
-  }
-
   protected def loadMain(mainFile: File): Cell = {
     val src = FileUtils.readFileToString(mainFile)
     degrel.parseCell(src)
@@ -50,8 +38,7 @@ class Bootstrapper(val args: BootArguments) {
   }
 
   def createChassis(main: Cell): Chassis = {
-    val chassis = new Chassis(new Repository(), this.driverFactory)
-    chassis.registerCell(Label.N.main, main)
+    val chassis = Chassis.create(main)
     this.initChassis(chassis)
     chassis
   }

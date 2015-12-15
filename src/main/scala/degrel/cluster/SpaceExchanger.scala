@@ -28,7 +28,7 @@ class SpaceExchanger(implicit val node: LocalNode) {
     import QueryOption._
     queryOption match {
       case DepthHint(depth) => this.pack(root, Traverser(root, depth))
-      case WholeCell => this.pack(root, Traverser(root, TraverserCutOff(_.label == Label.V.cell, TraverseRegion.InnerAndWall)))
+      case WholeCell => this.pack(root, Traverser(root))
       case None => this.pack(root)
     }
   }

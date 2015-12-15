@@ -3,12 +3,12 @@ package degrel.core
 import scala.collection.mutable
 
 /**
- * グラフを幅優先で探索する
- * @param start 起点となる頂点
- * @param maxHops 最大ホップ数
- * @param edgePred 頂点をトラバースする際に，この条件を満たさないエッジはトラバースされません
- * @todo マルチスレッド化?
- */
+  * グラフを幅優先で探索する
+  * @param start 起点となる頂点
+  * @param maxHops 最大ホップ数
+  * @param edgePred 頂点をトラバースする際に，この条件を満たさないエッジはトラバースされません
+  * @todo マルチスレッド化?
+  */
 class Traverser(val start: Vertex,
                 val maxHops: Option[Int],
                 val cutOff: TraverserCutOff) extends Iterable[Vertex] {
@@ -165,4 +165,6 @@ object Traverser {
   }
 
   def cell(root: Vertex) = Traverser(root, TraverserCutOff.cell(root))
+
+  def sameOwner(origin: Vertex) = Traverser(origin, v => origin.id.hasSameOwner(v.id), TraverseRegion.InnerOnly)
 }

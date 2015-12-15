@@ -21,7 +21,7 @@ import scala.util.Success
   * One instance per JVM (= memory space)
   * Context class for Cluster
   */
-class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository, idSpace: NodeIDSpace) extends Logger {
+class LocalNode(system: ActorSystem, val journal: JournalAdapter, repo: Repository, idSpace: NodeIDSpace) extends Logger {
 
   implicit val dispatcher = system.dispatcher
 
@@ -156,7 +156,7 @@ class LocalNode(system: ActorSystem, journal: JournalAdapter, repo: Repository, 
       }
     } else {
       val (_, spawnNode) = neighborNodes.filter(_._1 > 1).head
-      spawnNode.spawn(cell, binding, returnTo, parent) andThen {
+      spawnNode.spawn(cell.asHeader, binding, returnTo, parent) andThen {
         case Success(Right(drv)) => {
           remoteMapping += cell.id -> drv
         }
