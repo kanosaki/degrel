@@ -85,7 +85,7 @@ class RewriterTest extends FlatSpec {
         val targetV = vertex(target)
         val rw = rewriter(rule)
         val expectedV = vertex(expected)
-        val rc = RewritingTarget.alone(targetV)
+        val rc = RewritingTarget.alone(targetV, null)
         rw.rewrite(rc) match {
           case RewriteResult.Write(_, v) => {
             assert(v ===~ expectedV)

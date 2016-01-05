@@ -2,6 +2,7 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.cluster.{LocalNode, Timeouts}
+import degrel.core.DriverState.Active
 import degrel.core._
 import degrel.core.transformer.{FixIDVisitor, GraphVisitor, TransferOwnerVisitor}
 import degrel.engine.rewriting._
@@ -19,7 +20,8 @@ class LocalDriver(val header: VertexHeader,
                   val chassis: Chassis,
                   val node: LocalNode,
                   val returnTo: VertexPin,
-                  val parent: Option[Driver]) extends Reactor with Driver {
+                  val parent: Option[Driver])
+                 (implicit val executionContext: ExecutionContext) extends Reactor with Driver {
   implicit val printOption = PrettyPrintOptions(multiLine = true, showAllId = true)
   private var children = new mutable.HashMap[ID, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
@@ -74,6 +76,7 @@ class LocalDriver(val header: VertexHeader,
       if (!rewrote) {
         state = this.state match {
           case DriverState.Stopping() => DriverState.Stopped()
+          case _ if !this.hasActiveChild => DriverState.Stopped()
           case _ => DriverState.Paused(count)
         }
         return count
@@ -260,7 +263,7 @@ class LocalDriver(val header: VertexHeader,
     this.cell.removeRoot(v)
   }
 
-  override def dispatch(target: VertexHeader, value: Vertex)(implicit ec: ExecutionContext): Future[Unit] = {
+  override def dispatch(target: VertexHeader, value: Vertex): Future[Unit] = {
     if (target.id == this.header.id) {
       val transfer = GraphVisitor(Traverser.cell _, new TransferOwnerVisitor(this.header))
       transfer.visit(value)
@@ -305,27 +308,30 @@ class LocalDriver(val header: VertexHeader,
   }
 
   override def onChildStateUpdated(childReturnTo: VertexPin, id: ID, state: DriverState): Unit = {
-    if (this.isPaused && this.children.values.forall(_.isStopped)) {
+    if (!this.isActive && !this.hasActiveChild) {
       this.state = DriverState.Stopping()
     }
+    logger.info(s"CHILD_STATE_UPDATE: $childReturnTo $id $state on ${this.id} ${this.children.get(id)}")
   }
 
   override def toString: String = {
     s"<LocalDriver $id on: ${node.selfID} state: $state parent: ${parent.map(_.id)}>"
   }
+
+  def hasActiveChild: Boolean = children.values.exists(!_.state.isStopped)
 }
 
 object LocalDriver {
-  def apply(): LocalDriver = {
+  def apply()(implicit ec: ExecutionContext): LocalDriver = {
     LocalDriver(Cell())
   }
 
-  def apply(cell: Cell, chassis: Chassis = null): LocalDriver = {
+  def apply(cell: Cell, chassis: Chassis = null)(implicit ec: ExecutionContext): LocalDriver = {
     val chas = if (chassis == null) Chassis.create() else chassis
     val node = LocalNode()
     new RootLocalDriver(cell.asHeader, chas, node)
   }
 }
 
-class RootLocalDriver(_header: VertexHeader, _chassis: Chassis, _node: LocalNode) extends LocalDriver(_header, _chassis, _node, _header.pin, None) {
+class RootLocalDriver(_header: VertexHeader, _chassis: Chassis, _node: LocalNode)(implicit executionContext: ExecutionContext) extends LocalDriver(_header, _chassis, _node, _header.pin, None) {
 }

@@ -6,7 +6,10 @@ import degrel.engine.rewriting.RewritingTarget
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
+import scala.concurrent.ExecutionContext
+
 class CellTest extends FlatSpec {
+  implicit val context = ExecutionContext.Implicits.global
   val MAX_STEP = 100
 
   def vertex(s: String) = degrel.parseVertex(s).asHeader

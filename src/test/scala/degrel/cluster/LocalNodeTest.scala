@@ -8,7 +8,10 @@ import degrel.engine.LocalDriver
 import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
 
+import scala.concurrent.ExecutionContext
+
 class LocalNodeTest extends FlatSpec {
+  implicit val context = ExecutionContext.Implicits.global
 
   def channelThrough(v: Vertex): Vertex = {
     val node = LocalNode()

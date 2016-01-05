@@ -4,10 +4,14 @@ import degrel.core.Cell
 import degrel.dgspec.{NextPiece, SpecContext, SpecPiece}
 import degrel.engine.LocalDriver
 
+import scala.concurrent.ExecutionContext
+
 /**
  * 現在のコンテキストで書き換えを実行します
  */
 case class RewriteSpecPiece() extends SpecPiece {
+  implicit val context = ExecutionContext.Implicits.global
+
   override def evaluate(ctx: SpecContext): NextPiece = {
     ctx.root match {
       case ctxCell: Cell => {

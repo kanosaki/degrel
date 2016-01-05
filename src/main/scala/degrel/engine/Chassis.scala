@@ -112,6 +112,7 @@ object Chassis {
   }
 
   def createWithMain(initRepo: Repository = null, node: LocalNode = standalone): Chassis = {
+    implicit val context = node.dispatcher
     val ch = Chassis.create(initRepo, node)
     ch.repository.register(Label.N.main, LocalDriver(Cell(Seq()), ch))
     ch

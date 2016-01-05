@@ -23,7 +23,7 @@ object ClusterTestUtils {
     implicit val timeout = Timeouts.apiCall
     import system.dispatcher
     val lobby = system.actorOf(Props[Lobby])
-    (0 to workerNum).foreach { i =>
+    (0 to workerNum).foreach { i => // plus one for master node
       val worker = system.actorOf(Props[Worker])
       worker ! JoinLobby(lobby)
     }

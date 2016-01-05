@@ -3,11 +3,12 @@ package degrel.cluster
 import akka.actor.{ActorRef, ActorSystem}
 import akka.util.Timeout
 import degrel.Logger
+import degrel.cluster.journal.{Journal, JournalCollector}
 import degrel.core._
 import degrel.engine.namespace.Repository
 import degrel.engine.rewriting.Binding
 import degrel.engine.sphere.Sphere
-import degrel.engine.{RemoteDriver, Chassis, Driver, LocalDriver}
+import degrel.engine.{Chassis, Driver, LocalDriver, RemoteDriver}
 
 import scala.async.Async.{async, await}
 import scala.collection.mutable
@@ -21,7 +22,7 @@ import scala.util.Success
   * One instance per JVM (= memory space)
   * Context class for Cluster
   */
-class LocalNode(system: ActorSystem, val journal: JournalAdapter, repo: Repository, idSpace: NodeIDSpace) extends Logger {
+class LocalNode(system: ActorSystem, val journal: JournalCollector, repo: Repository, idSpace: NodeIDSpace) extends Logger {
 
   implicit val dispatcher = system.dispatcher
 
@@ -150,12 +151,11 @@ class LocalNode(system: ActorSystem, val journal: JournalAdapter, repo: Reposito
     */
   def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, Driver]] = {
     logger.debug(s"spawnSomewhere on: $selfID $cell")
-    if (neighborNodes.isEmpty) {
-      async {
-        Right(this.spawnLocally(cell, binding, returnTo, parent))
-      }
+    val neighbors = neighborNodes.filter(_._1 > 1)
+    if (neighbors.isEmpty) async {
+      Right(this.spawnLocally(cell, binding, returnTo, parent))
     } else {
-      val (_, spawnNode) = neighborNodes.filter(_._1 > 1).head
+      val (_, spawnNode) = neighbors.head
       spawnNode.spawn(cell.asHeader, binding, returnTo, parent) andThen {
         case Success(Right(drv)) => {
           remoteMapping += cell.id -> drv
@@ -171,8 +171,8 @@ class LocalNode(system: ActorSystem, val journal: JournalAdapter, repo: Reposito
     * Spawns a driver in this node.
     */
   def spawnLocally(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Driver = {
-    journal(Journal.CellSpawn(cell.id, selfID))
     val drv = chassis.createDriver(cell, returnTo, parent)
+    journal(Journal.CellSpawn(cell.id, exchanger.packAll(cell), returnTo, selfID))
     logger.debug(s"LOCAL SPAWN on: $selfID $cell $binding $returnTo $parent ID: ${drv.id}")
     drv
   }
@@ -197,10 +197,10 @@ object LocalNode {
     * Creates a new LcoalNode with "DebugSys" `ActorSystem` and a logging `JournalAdapter`
     */
   def apply() = {
-    new LocalNode(debugSys, JournalAdapter.loggingAdapter(0), Repository(), NodeIDSpace.global)
+    new LocalNode(debugSys, JournalCollector.loggingAdapter(0), Repository(), NodeIDSpace.global)
   }
 
-  def apply(sys: ActorSystem, journal: JournalAdapter, repo: Repository, space: NodeIDSpace) = {
+  def apply(sys: ActorSystem, journal: JournalCollector, repo: Repository, space: NodeIDSpace) = {
     new LocalNode(sys, journal, repo, space)
   }
 
@@ -209,6 +209,6 @@ object LocalNode {
     * Creates a new LcoalNode with given `ActorSystem` and a logging `JournalAdapter`
     */
   def apply(sys: ActorSystem) = {
-    new LocalNode(sys, JournalAdapter.loggingAdapter(0), Repository(), NodeIDSpace.global)
+    new LocalNode(sys, JournalCollector.loggingAdapter(0), Repository(), NodeIDSpace.global)
   }
 }

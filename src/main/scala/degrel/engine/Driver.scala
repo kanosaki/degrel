@@ -2,8 +2,9 @@ package degrel.engine
 
 import akka.actor.ActorRef
 import degrel.Logger
-import degrel.cluster.{Journal, LocalNode}
+import degrel.cluster.journal.Journal
 import degrel.cluster.messages.{DriverInfo, DriverParameter}
+import degrel.cluster.{DDriverState, LocalNode}
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
 import degrel.engine.sphere.Sphere
@@ -12,6 +13,8 @@ import scala.async.Async.async
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 trait Driver extends Logger {
+  implicit val executionContext: ExecutionContext
+
   var activeThread: Future[Int] = null
   val finValue: Promise[Vertex] = Promise[Vertex]()
 
@@ -23,7 +26,7 @@ trait Driver extends Logger {
     require(state != null)
     if (stateVar == state || stateVar.isStopped) return
     val old = this.stateVar
-    node.journal(Journal.DriverStateUpdate(this.id, old, state))
+    node.journal(Journal.DriverStateUpdate(this.id, DDriverState.pack(old, node, this), DDriverState.pack(state, node, this)))
     this.stateVar = state
     this.onStageChanged(old, state)
     import DriverState._
@@ -52,7 +55,8 @@ trait Driver extends Logger {
   }
 
   def onStopping(): Unit = {
-    this.finValue.success(this.header)
+    // Re-check
+    this.start()
   }
 
   def onStopped(): Unit = {
@@ -84,7 +88,7 @@ trait Driver extends Logger {
 
   def removeRoot(v: Vertex): Unit
 
-  def dispatch(target: VertexHeader, value: Vertex)(implicit ec: ExecutionContext): Future[Unit]
+  def dispatch(target: VertexHeader, value: Vertex): Future[Unit]
 
   def binding: Binding
 
@@ -109,7 +113,7 @@ trait Driver extends Logger {
 
   def parent: Option[Driver]
 
-  def send(msg: Vertex)(implicit ec: ExecutionContext): Future[Unit] = {
+  def send(msg: Vertex): Future[Unit] = {
     this.dispatch(this.header, msg)
   }
 
@@ -135,7 +139,7 @@ trait Driver extends Logger {
     case _ => false
   }
 
-  def start()(implicit ec: ExecutionContext): Future[Int] = {
+  def start(): Future[Int] = {
     // TODO: be thread safe
     val fut = if (activeThread == null) {
       async {

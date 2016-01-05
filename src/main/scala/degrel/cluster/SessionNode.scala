@@ -2,8 +2,9 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
+import degrel.cluster.journal.{JournalCollector, JournalCollector$}
 import degrel.core.transformer.{GraphVisitor, TransferOwnerVisitor}
-import degrel.core.{NodeIDSpace, ID, Vertex, VertexPin}
+import degrel.core._
 import degrel.engine.Driver
 import degrel.engine.rewriting.Binding
 
@@ -13,7 +14,7 @@ import scala.concurrent.Future
 class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitializeParam) extends SessionMember {
 
   val repo = RemoteRepository(manager)
-  val journal = JournalAdapter(manager, self, param.id)
+  val journal = JournalCollector(manager, self, param.id)
   val localNode = LocalNode(context.system, journal, repo, NodeIDSpace(param.id))
 
   def driverFactory = localNode.driverFactory
@@ -23,16 +24,20 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
   import context.dispatcher
   import messages._
 
+  def registerNeighbors(nodes: Seq[(NodeID, ActorRef)]) = {
+    nodes.foreach { case (id, ref) =>
+      if (ref != self) {
+        localNode.registerNode(id, ref)
+      }
+    }
+  }
+
   def updateNeighbors(): Future[Unit] = async {
     implicit val timeout = Timeouts.short
     localNode.registerNode(1, manager)
     await(manager ? QueryStatus()) match {
       case SessionState(nodes) => {
-        nodes.foreach { case (id, ref) =>
-          if (ref != self) {
-            localNode.registerNode(id, ref)
-          }
-        }
+        this.registerNeighbors(nodes)
       }
     }
   }
@@ -57,11 +62,7 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       sender() ! NodeState(localNode.selfID, manager)
     }
     case SessionState(nodes) => {
-      nodes.foreach { case (id, ref) =>
-        if (ref != self) {
-          localNode.registerNode(id, ref)
-        }
-      }
+      this.registerNeighbors(nodes)
     }
     case SpawnDriver(graph, binding, returnTo, parent) => {
       log.debug(s"SpawnDriver on: ${localNode.selfID}")

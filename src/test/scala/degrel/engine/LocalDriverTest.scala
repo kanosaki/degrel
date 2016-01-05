@@ -4,7 +4,10 @@ import degrel.core.Cell
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
+import scala.concurrent.ExecutionContext
+
 class LocalDriverTest extends FlatSpec {
+  implicit val context = ExecutionContext.Implicits.global
 
   val MAX_STEP = 100
 

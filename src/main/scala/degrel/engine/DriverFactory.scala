@@ -11,6 +11,7 @@ trait DriverFactory {
   protected def createDriver(chassis: Chassis, cell: VertexHeader, reutrnTo: VertexPin, parent: Driver): Driver
 
   protected def createLocalDriver(chassis: Chassis, cell: VertexHeader, node: LocalNode, returnTo: VertexPin, parent: Driver): LocalDriver = {
+    implicit val dispatcher = node.dispatcher
     if (parent == null) {
       new RootLocalDriver(cell, chassis, node)
     } else {

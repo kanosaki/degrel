@@ -11,7 +11,8 @@ class Fin extends Rewriter {
 
   override def rewrite(rt: RewritingTarget): RewriteResult = {
     val target = rt.target
-    if (target.isCell) {
+    val driver = rt.self
+    if (target.isCell && !driver.hasActiveChild) {
       target.thru(Label.E.cellItem).find(_.label == finLabel) match {
         case Some(finV) => {
           val finValue = finV.thru(0).headOption.getOrElse(Cell())

@@ -17,7 +17,7 @@ case class RewritingTarget(target: VertexHeader, root: VertexHeader, self: Local
 }
 
 object RewritingTarget {
-  def alone(v: Vertex, self: LocalDriver = LocalDriver()): RewritingTarget = {
+  def alone(v: Vertex, self: LocalDriver): RewritingTarget = {
     RewritingTarget(v.asHeader, v.asHeader, self)
   }
 

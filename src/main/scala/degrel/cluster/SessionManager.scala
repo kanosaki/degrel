@@ -2,7 +2,8 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern._
-import degrel.core.{NodeIDSpace, NodeID, Label}
+import degrel.cluster.journal.{Journal, JournalCollector, JournalPayload, JsonJournalSink}
+import degrel.core.{Label, NodeID, NodeIDSpace}
 import degrel.engine.namespace.Repository
 import degrel.engine.rewriting.Binding
 import degrel.engine.{Chassis, LocalDriver}
@@ -28,7 +29,8 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
   // first node id == 2
   var currentId: NodeID = 1
   var streamJournal = false
-  val journal = JournalAdapter(self, self, 1)
+  val journal = JournalCollector(self, self, 1)
+  val journalSink = JsonJournalSink("log/journal")
   var repo = Repository()
   var chassis: Chassis = null
   val localNode = LocalNode(context.system, journal, repo, NodeIDSpace(1))
@@ -59,6 +61,7 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
     this.requestNewNode(nodeId) map {
       case Right(newNode) => {
         nodes += nodeId -> newNode
+        localNode.registerNode(nodeId, newNode)
         Right(newNode)
       }
       case Left(v) => Left(v)
@@ -72,16 +75,9 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
     }
   }
 
-  def prepareInitialNode(): Future[Unit] = {
-    if (nodes.isEmpty) {
-      this.allocateNextNode() map {
-        case Left(msg) => {
-          log.error("Cannot allocate initial node")
-        }
-        case _ =>
-      }
-    } else {
-      Future {}
+  def broadcastStatus(): Unit = {
+    this.nodes.foreach { case (_, nodeRef) =>
+      nodeRef ! SessionState(this.nodes.toSeq)
     }
   }
 
@@ -95,16 +91,23 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
     case StartInterpret(msg, controller) => {
       ctrlr = sender()
       async {
+        await(this.allocateMaxNodes())
+        this.broadcastStatus()
+        this.logSessionStatus()
         val unpacked = localNode.exchanger.unpack(msg)
         // own vertices as program
         repo.register(Label.N.main, localNode.spawnLocally(unpacked, Binding.empty(), null, null))
         chassis = Chassis.create(repo, localNode)
         localNode.registerDriver(chassis.main.header.id.ownerID, chassis.main.asInstanceOf[LocalDriver])
         val packed = localNode.exchanger.packAll(unpacked, move = true)
-        await(allocateMaxNodes())
-        this.logSessionStatus()
-        val (_, rootNode) = nodes.head
-        rootNode ! Run(packed)
+        journal(Journal.Load(localNode.selfID, packed, "__main__"))
+        chassis.main.start()
+        async {
+          val result = await(chassis.main.finValue.future)
+          log.info(s"RUNNING FINISHED: $result")
+          val packed = localNode.exchanger.packAll(result)
+          ctrlr ! messages.Fin(packed)
+        }
       }
     }
     case Fin(msg) => {
@@ -112,7 +115,7 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
     }
     case jp: JournalPayload => {
       journals += jp
-      log.info(jp.item.repr)
+      journalSink.sink(jp)
       if (streamJournal) {
         ctrlr ! jp
       }
@@ -122,6 +125,7 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
       sender() ! Right(journals.toVector)
     }
   }
+
   def logSessionStatus(): Unit = {
     log.info("------------- Session Status Report ----------------")
     log.info("Nodes:")

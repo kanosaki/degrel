@@ -2,7 +2,8 @@ package degrel.cluster
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import degrel.cluster.Journal.CellSpawn
+import degrel.cluster.journal.{JournalPayload, Journal}
+import Journal.CellSpawn
 import degrel.cluster.messages._
 import degrel.utils.TestUtils._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
@@ -65,9 +66,7 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
       }
-      println(spawns)
-      assert(spawns(0).spawnAt != spawns(1).spawnAt) // manager spawn != first spawn
-      assert(spawns(1).spawnAt != spawns(2).spawnAt) // first spawn != child spawn
+      assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
     }
 
     "Interprets script (multi spawns) with journal assertion" in {
@@ -100,8 +99,8 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
       }
-      assert(spawns(0).spawnAt != spawns(1).spawnAt) // manager spawn != first spawn
-      assert(spawns(1).spawnAt != spawns(2).spawnAt) // first spawn != child spawn
+      assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
+      assert(spawns(1).spawnAt !== spawns(2).spawnAt) // first spawn != child spawn
     }
 
     "Interprets script (multi spawns, binding) with journal assertion" in {
@@ -134,8 +133,8 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
       }
-      assert(spawns(0).spawnAt != spawns(1).spawnAt) // manager spawn != first spawn
-      assert(spawns(1).spawnAt != spawns(2).spawnAt) // first spawn != child spawn
+      assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
+      assert(spawns(1).spawnAt !== spawns(2).spawnAt) // first spawn != child spawn
     }
   }
 }

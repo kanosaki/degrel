@@ -21,3 +21,6 @@ __pycache__/
 # Benchmark files
 benchmark/results/*
 benchmark/working/*
+
+log/
+!log/.gitkeep

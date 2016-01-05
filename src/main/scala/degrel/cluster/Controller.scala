@@ -3,6 +3,7 @@ package degrel.cluster
 import akka.actor.ActorRef
 import akka.pattern.ask
 import akka.util.Timeout
+import degrel.cluster.journal.{JournalPrinter, JournalPayload}
 import degrel.core.{Cell, Vertex}
 
 import scala.concurrent.Future
