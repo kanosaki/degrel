@@ -2,14 +2,13 @@ package degrel.cluster
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-import degrel.cluster.journal.{JournalPayload, Journal}
-import Journal.CellSpawn
+import degrel.cluster.journal.Journal.CellSpawn
+import degrel.cluster.journal.JournalPayload
 import degrel.cluster.messages._
 import degrel.utils.TestUtils._
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
-import scala.concurrent.duration._
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
 class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpecLike with Matchers with BeforeAndAfterAll {
   def this() = this(ActorSystem("SessionManagerTest"))
@@ -24,24 +23,35 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
     }
   }
 
+  def runScript(before: String, after: String, nodeNum: Int): Seq[JournalPayload] = {
+    val session = ClusterTestUtils.newSession(nodeNum)
+    val code = degrel.parseVertex(before)
+    val expected = degrel.parseVertex(after)
+    val node = LocalNode(system)
+    val dCode = node.exchanger.packAll(code)
+    session ! StartInterpret(dCode, self)
+    val packed = expectMsgPF(7.seconds) {
+      case Fin(gr) => gr
+    }
+    val unpacked = node.exchanger.unpack(packed)
+    assert(expected ===~ unpacked)
+
+    session ! FetchJournal(false)
+    expectMsgPF() {
+      case Right(js) => js.asInstanceOf[Vector[JournalPayload]]
+    }
+  }
+
+
   "SessionManager" must {
     "Interprets simple script" in {
-      val session = ClusterTestUtils.newSession()
-      val code = degrel.parseVertex("{fin a}")
-      val expected = degrel.parseVertex("a")
-      val node = LocalNode(system)
-      val dCode = node.exchanger.packAll(code)
-      session ! StartInterpret(dCode, self)
-      val packed = expectMsgPF(5.seconds) {
-        case Fin(gr) => gr
-      }
-      val unpacked = node.exchanger.unpack(packed)
-      assert(expected ===~ unpacked)
+      val before = "{fin a}"
+      val after = "a"
+      this.runScript(before, after, 1)
     }
 
-    "Interprets script (a spawn) with journal assertion" in {
-      val session = ClusterTestUtils.newSession(2)
-      val code = degrel.parseVertex(
+    "Interprets script (no chain spawn) with journal assertion" in {
+      val before =
         """{
           | a
           | a
@@ -49,54 +59,26 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
           |   fin b
           | }
           |}
-        """.stripMargin)
-      val expected = degrel.parseVertex("{b; b; a -> {fin b}}")
-      val node = LocalNode(system)
-      val dCode = node.exchanger.packAll(code)
-      session ! StartInterpret(dCode, self)
-      val packed = expectMsgPF(7.seconds) {
-        case Fin(gr) => gr
-      }
-      val unpacked = node.exchanger.unpack(packed)
-      assert(expected ===~ unpacked)
-
-      session ! FetchJournal(false)
-      val journals = expectMsgPF() {
-        case Right(js) => js.asInstanceOf[Vector[JournalPayload]]
-      }
+        """.stripMargin
+      val after = "{b; b; a -> {fin b}}"
+      val journals = this.runScript(before, after, 2)
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
       }
       assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
     }
 
-    "Interprets script (multi spawns) with journal assertion" in {
-      val session = ClusterTestUtils.newSession(2)
-      val code = degrel.parseVertex(
+    "Interprets script (multi non-chain spawns) with journal assertion" in {
+      val before =
         """{
-          | a
+          | fin pack(a, a)
           | a -> {
           |   fin b
           | }
-          | b -> {
-          |   fin c
-          | }
           |}
-        """.stripMargin)
-      val expected = degrel.parseVertex("{c; a -> {fin b}; b -> {fin c}}")
-      val node = LocalNode(system)
-      val dCode = node.exchanger.packAll(code)
-      session ! StartInterpret(dCode, self)
-      val packed = expectMsgPF(7.seconds) {
-        case Fin(gr) => gr
-      }
-      val unpacked = node.exchanger.unpack(packed)
-      assert(expected ===~ unpacked)
-
-      session ! FetchJournal(false)
-      val journals = expectMsgPF() {
-        case Right(js) => js.asInstanceOf[Vector[JournalPayload]]
-      }
+        """.stripMargin
+      val after = "pack(b, b)"
+      val journals = runScript(before, after, 2)
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
       }
@@ -104,9 +86,46 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       assert(spawns(1).spawnAt !== spawns(2).spawnAt) // first spawn != child spawn
     }
 
+    "Interprets script (multi chain spawns) with journal assertion" in {
+      val before =
+        """{
+          | fin pack(a, a)
+          | a -> {
+          |   fin b
+          | }
+          | b -> {
+          |   fin c
+          | }
+          |}
+        """.stripMargin
+      val after = "pack(c, c)"
+      val journals = runScript(before, after, 2)
+      val spawns = journals.map(_.item).collect {
+        case cs: CellSpawn => cs
+      }
+      assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
+      assert(spawns(1).spawnAt !== spawns(2).spawnAt) // first spawn != child spawn
+    }
+
+    "Interprets script (single spawn, binding) with journal assertion" in {
+      val before =
+        """{
+          | fin a(hoge)
+          | a(@X) -> {
+          |   fin b(X)
+          | }
+          |}
+        """.stripMargin
+      val after = "b(hoge)"
+      val journals = runScript(before, after, 2)
+      val spawns = journals.map(_.item).collect {
+        case cs: CellSpawn => cs
+      }
+      assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
+    }
+
     "Interprets script (multi spawns, binding) with journal assertion" in {
-      val session = ClusterTestUtils.newSession(2)
-      val code = degrel.parseVertex(
+      val before =
         """{
           | fin a(hoge)
           | a(@X) -> {
@@ -116,21 +135,9 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
           |   fin c(X)
           | }
           |}
-        """.stripMargin)
-      val expected = degrel.parseVertex("c(hoge)")
-      val node = LocalNode(system)
-      val dCode = node.exchanger.packAll(code)
-      session ! StartInterpret(dCode, self)
-      val packed = expectMsgPF(7.seconds) {
-        case Fin(gr) => gr
-      }
-      val unpacked = node.exchanger.unpack(packed)
-      assert(expected ===~ unpacked)
-
-      session ! FetchJournal(false)
-      val journals = expectMsgPF() {
-        case Right(js) => js.asInstanceOf[Vector[JournalPayload]]
-      }
+        """.stripMargin
+      val after = "c(hoge)"
+      val journals = runScript(before, after, 2)
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
       }
