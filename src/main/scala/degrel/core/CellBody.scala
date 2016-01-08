@@ -19,9 +19,9 @@ class CellBody(private val _roots: mutable.ListBuffer[Vertex],
   override def bases: Seq[Cell] = _bases.map(_.unref[Cell])
 
   override def edges: Iterable[Edge] =
-    roots.map(Edge(this, Label.E.cellItem, _)) ++
-      rules.map(Edge(this, Label.E.cellRule, _)) ++
-      bases.map(Edge(this, Label.E.cellBase, _)) ++
+    _roots.map(Edge(this, Label.E.cellItem, _)) ++
+      _rules.map(Edge(this, Label.E.cellRule, _)) ++
+      _bases.map(Edge(this, Label.E.cellBase, _)) ++
       otherEdges
 
   override def attributes: Map[Label, String] = Map()

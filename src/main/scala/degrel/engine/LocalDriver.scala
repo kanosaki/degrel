@@ -2,7 +2,6 @@ package degrel.engine
 
 import degrel.DegrelException
 import degrel.cluster.{LocalNode, Timeouts}
-import degrel.core.DriverState.Active
 import degrel.core._
 import degrel.core.transformer.{FixIDVisitor, GraphVisitor, TransferOwnerVisitor}
 import degrel.engine.rewriting._
@@ -26,7 +25,6 @@ class LocalDriver(val header: VertexHeader,
   private var children = new mutable.HashMap[ID, Driver]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
   val idSpace = node.nextIDSpace()
-  chassis.verbose = true
   this.init()
 
   def isValid: Boolean = {
