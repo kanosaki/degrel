@@ -99,8 +99,6 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
         repo.register(Label.N.main, localNode.spawnLocally(unpacked, Binding.empty(), null, null))
         chassis = Chassis.create(repo, localNode)
         localNode.registerDriver(chassis.main.header.id.ownerID, chassis.main.asInstanceOf[LocalDriver])
-        val packed = localNode.exchanger.packAll(unpacked, move = true)
-        journal(Journal.Load(localNode.selfID, packed, "__main__"))
         chassis.main.start()
         async {
           val result = await(chassis.main.finValue.future)

@@ -5,14 +5,14 @@ import degrel.engine.rewriting.Binding
 import scala.collection.mutable
 
 class CellBody(private val _roots: mutable.ListBuffer[Vertex],
-               private val _rules: mutable.ListBuffer[Rule],
+               private val _rules: mutable.ListBuffer[Vertex],
                private val _bases: mutable.ListBuffer[Vertex],
                val otherEdges: Seq[Edge],
                override val binding: Binding) extends VertexBody with Cell {
   //private lazy val _rules =
   //private lazy val _roots =
 
-  override def rules: Seq[Rule] = _rules
+  override def rules: Seq[Rule] = _rules.map(_.asRule)
 
   override def roots: Seq[Vertex] = _roots
 
@@ -74,7 +74,7 @@ object CellBody {
             binding: Binding = Binding.empty()): CellBody = {
     new CellBody(
       mutable.ListBuffer(initRoots.toSeq: _*),
-      mutable.ListBuffer(initRules.map(_.toRule).toSeq: _*),
+      mutable.ListBuffer(initRules.toSeq: _*),
       mutable.ListBuffer(initBases.toSeq: _*),
       otherEdges,
       binding

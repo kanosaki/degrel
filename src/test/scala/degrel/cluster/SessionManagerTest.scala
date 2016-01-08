@@ -44,12 +44,13 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       val code = degrel.parseVertex(
         """{
           | a
+          | a
           | a -> {
           |   fin b
           | }
           |}
         """.stripMargin)
-      val expected = degrel.parseVertex("{b; a -> {fin b}}")
+      val expected = degrel.parseVertex("{b; b; a -> {fin b}}")
       val node = LocalNode(system)
       val dCode = node.exchanger.packAll(code)
       session ! StartInterpret(dCode, self)
@@ -107,7 +108,7 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       val session = ClusterTestUtils.newSession(2)
       val code = degrel.parseVertex(
         """{
-          | a(hoge)
+          | fin a(hoge)
           | a(@X) -> {
           |   fin b(X)
           | }
@@ -116,7 +117,7 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
           | }
           |}
         """.stripMargin)
-      val expected = degrel.parseVertex("{c(hoge); a -> {fin b}; b -> {fin c}}")
+      val expected = degrel.parseVertex("c(hoge)")
       val node = LocalNode(system)
       val dCode = node.exchanger.packAll(code)
       session ! StartInterpret(dCode, self)

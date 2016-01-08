@@ -23,6 +23,7 @@ class GraphPacker(root: Vertex, move: Boolean = false) {
 
   def +=(v: Vertex): this.type = {
     assignDID(v)
+    v.neighbors.foreach(this.assignDID)
     vertices += mapToDElement(v)
     this
   }

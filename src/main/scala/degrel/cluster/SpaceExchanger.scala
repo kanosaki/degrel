@@ -24,6 +24,14 @@ class SpaceExchanger(implicit val node: LocalNode) {
     packer.pack()
   }
 
+  def packCell(root: Vertex, move: Boolean = false): DGraph = {
+    val packer = new GraphPacker(root, move)
+    packer ++= root.edges.collect {
+      case e if e.label != Label.E.cellRule => e.dst
+    }
+    packer.pack()
+  }
+
   def packForQuery(root: Vertex, queryOption: QueryOption): DGraph = {
     import QueryOption._
     queryOption match {
