@@ -28,7 +28,6 @@ class LocalDriver(val header: VertexHeader,
   private val _pendingSpawns = stm.Ref(0)
   def pendingSpawns: Int = _pendingSpawns.single.get
   val idSpace = node.nextIDSpace()
-  chassis.verbose = true
   this.init()
 
 

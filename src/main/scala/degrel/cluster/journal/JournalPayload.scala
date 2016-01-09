@@ -94,6 +94,17 @@ object Journal {
     }
   }
 
+  case class SessionFinished(elapsedMs: Long) extends Journal {
+    override def repr: String = {
+      s"FINISHED elapsed: $elapsedMs(ms)"
+    }
+
+    override def toJson: JObject = {
+      ("type" -> "session_finished") ~
+        ("elapsed_ms" -> elapsedMs)
+    }
+  }
+
   object Filters {
     val none = new WhiteListJournalFilter()
 

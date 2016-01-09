@@ -2,6 +2,7 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern._
+import degrel.cluster.journal.Journal.{SessionFinished, Load}
 import degrel.cluster.journal.{Journal, JournalCollector, JournalPayload, JsonJournalSink}
 import degrel.core.{Label, NodeID, NodeIDSpace}
 import degrel.engine.namespace.Repository
@@ -94,16 +95,19 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
         await(this.allocateMaxNodes())
         this.broadcastStatus()
         this.logSessionStatus()
+        journal(Load(localNode.selfID, msg, "__main__"))
         val unpacked = localNode.exchanger.unpack(msg)
         // own vertices as program
         repo.register(Label.N.main, localNode.spawnLocally(unpacked, Binding.empty(), null, null))
         chassis = Chassis.create(repo, localNode)
         localNode.registerDriver(chassis.main.header.id.ownerID, chassis.main.asInstanceOf[LocalDriver])
+        val startTime = System.currentTimeMillis()
         chassis.main.start()
         async {
           val result = await(chassis.main.finValue.future)
           log.info(s"RUNNING FINISHED: $result")
           val packed = localNode.exchanger.packAll(result)
+          journal(SessionFinished(System.currentTimeMillis() - startTime))
           ctrlr ! messages.Fin(packed)
         }
       }
