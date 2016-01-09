@@ -1,12 +1,18 @@
 package degrel.engine.rewriting
 
+import degrel.engine.LocalDriver
 import degrel.front.ParserUtils
 import degrel.utils.TestUtils._
 import org.scalatest.FlatSpec
 
+import scala.concurrent.ExecutionContext
+
 class RewriterTest extends FlatSpec {
+  implicit val ec = ExecutionContext.Implicits.global
   val vertex = degrel.parseVertex _
   val parseDot = ParserUtils.parseDot _
+  val chassis = LocalDriver()
+
 
   def rewriter(s: String) = Rewriter(vertex(s).asRule)
 
@@ -85,7 +91,7 @@ class RewriterTest extends FlatSpec {
         val targetV = vertex(target)
         val rw = rewriter(rule)
         val expectedV = vertex(expected)
-        val rc = RewritingTarget.alone(targetV, null)
+        val rc = RewritingTarget.alone(targetV, chassis)
         rw.rewrite(rc) match {
           case RewriteResult.Write(_, v) => {
             assert(v ===~ expectedV)

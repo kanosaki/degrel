@@ -71,25 +71,25 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
     "Interprets script (multi non-chain spawns) with journal assertion" in {
       val before =
         """{
-          | fin pack(a, a)
-          | a -> {
+          | foo(a)
+          | a -> c
+          | c -> {
           |   fin b
           | }
           |}
         """.stripMargin
-      val after = "pack(b, b)"
+      val after = "{foo(b); a -> c; c -> {fin b}}"
       val journals = runScript(before, after, 2)
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
       }
       assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
-      assert(spawns(1).spawnAt !== spawns(2).spawnAt) // first spawn != child spawn
     }
 
     "Interprets script (multi chain spawns) with journal assertion" in {
       val before =
         """{
-          | fin pack(a, a)
+          | fin a
           | a -> {
           |   fin b
           | }
@@ -98,7 +98,7 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
           | }
           |}
         """.stripMargin
-      val after = "pack(c, c)"
+      val after = "c"
       val journals = runScript(before, after, 2)
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs
@@ -143,6 +143,21 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       }
       assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
       assert(spawns(1).spawnAt !== spawns(2).spawnAt) // first spawn != child spawn
+    }
+
+    "Simple send message" in {
+      val before =
+        """{
+          |  hoge
+          |  {foo} ! bar
+          |}
+        """.stripMargin
+      val after = "{hoge; {foo; bar}}"
+      val journals = runScript(before, after, 2)
+      val spawns = journals.map(_.item).collect {
+        case cs: CellSpawn => cs
+      }
+      assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
     }
   }
 }
