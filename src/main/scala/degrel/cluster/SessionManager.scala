@@ -2,8 +2,8 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern._
-import degrel.cluster.journal.Journal.{SessionFinished, Load}
-import degrel.cluster.journal.{Journal, JournalCollector, JournalPayload, JsonJournalSink}
+import degrel.cluster.journal.Journal.{Load, SessionFinished}
+import degrel.cluster.journal.{JournalCollector, JournalPayload, JsonJournalSink}
 import degrel.core.{Label, NodeID, NodeIDSpace}
 import degrel.engine.namespace.Repository
 import degrel.engine.rewriting.Binding
@@ -65,14 +65,16 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
         localNode.registerNode(nodeId, newNode)
         Right(newNode)
       }
-      case Left(v) => Left(v)
+      case Left(v) => {
+        Left(v)
+      }
     }
   }
 
   def allocateMaxNodes(): Future[Unit] = {
     this.allocateNextNode() flatMap {
       case Right(_) => this.allocateMaxNodes()
-      case Left(_) => Future {}
+      case Left(_) => Future { }
     }
   }
 

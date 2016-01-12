@@ -4,12 +4,11 @@ import java.io.File
 
 import akka.actor.{ActorSystem, AddressFromURIString}
 import com.typesafe.config.{Config, ConfigFactory}
-import degrel.cluster.{LocalNode, ClusterInterpreter}
-import degrel.control.cluster.{ClusterConsole, ControllerFacade, WorkerFacade}
+import degrel.cluster.{Roles, MemberRole, ClusterInterpreter}
+import degrel.control.cluster.{ClusterConsole, ControllerFacade, LobbyFacade, WorkerFacade}
 import degrel.control.console.ConsoleHandle
-import degrel.core.{Cell, Label}
-import degrel.engine.namespace.Repository
-import degrel.engine.{Chassis, DriverFactory}
+import degrel.core.Cell
+import degrel.engine.Chassis
 import org.apache.commons.io.FileUtils
 
 // TODO: DI?
@@ -43,9 +42,12 @@ class Bootstrapper(val args: BootArguments) {
     chassis
   }
 
-  def initConfig(): Config = {
+  def initConfig(roles: Seq[MemberRole]): Config = {
     val primConfig = ConfigFactory.parseString(
-      s"akka.cluster.seed-nodes = [${args.seeds.map(str => "\"" + str + "\"").mkString(",")}]"
+      s"""akka.cluster.seed-nodes = [${args.seeds.map(str => "\"" + str + "\"").mkString(",")}]
+         |akka.remote.netty.tcp.port = ${args.port.getOrElse(0)}
+         |akka.cluster.roles = [${roles.map(_.name).mkString(",")}]
+       """.stripMargin
     )
 
     args.config match {
@@ -54,15 +56,15 @@ class Bootstrapper(val args: BootArguments) {
     }
   }
 
-  def createActorSystem(): ActorSystem = {
-    val config = this.initConfig()
+  def createActorSystem(roles: Seq[MemberRole]): ActorSystem = {
+    val config = this.initConfig(roles)
     // "default" is a default Akka's ActorSystem name
     val name = args.name.getOrElse("default")
     ActorSystem(name, config)
   }
 
   def createClusterController(): ControllerFacade = {
-    val system = this.createActorSystem()
+    val system = this.createActorSystem(Seq(Roles.Controller))
     val lobbyAddr = AddressFromURIString(args.seeds.head)
     ControllerFacade(system, lobbyAddr)
   }
@@ -73,7 +75,7 @@ class Bootstrapper(val args: BootArguments) {
 
   def initInterpreter(): Interpreter = {
     val chassis = this.createChassis()
-    if (args.cluster) {
+    if (args.seeds.nonEmpty) {
       val cluster = this.createClusterController()
       new ClusterInterpreter(chassis, cluster)
     } else {
@@ -83,7 +85,8 @@ class Bootstrapper(val args: BootArguments) {
 
   def initConsole(): ConsoleHandle = {
     val chassis = this.createChassis()
-    if (args.cluster) {
+    chassis.main.preventStop = true
+    if (args.seeds.nonEmpty) {
       val cluster = this.createClusterController()
       new ClusterConsole(chassis, cluster)
     } else {
@@ -106,9 +109,18 @@ class Bootstrapper(val args: BootArguments) {
 
   def startWorker() = {
     val lobbyAddr = AddressFromURIString(args.seeds.head)
-    val system = this.createActorSystem()
+    val system = this.createActorSystem(Seq(Roles.Worker))
     val facade = WorkerFacade(system, lobbyAddr)
     facade.start()
+  }
+
+  def startLobby() = {
+    val system = this.createActorSystem(Seq(Roles.Lobby))
+    val lobby = LobbyFacade(system)
+    lobby.start()
+    println("====================================")
+    println(s"Address: ${lobby.address}")
+    println("====================================")
   }
 }
 

@@ -77,8 +77,8 @@ class LocalDriver(val header: VertexHeader,
       count += 1
       if (!rewrote) {
         state = this.state match {
-          case DriverState.Stopping() => DriverState.Stopped()
-          case _ if !this.hasActiveChild => DriverState.Stopped()
+          case DriverState.Stopping() if !this.preventStop => DriverState.Stopped()
+          case _ if !this.hasActiveChild && !this.preventStop => DriverState.Stopped()
           case _ => DriverState.Paused(count)
         }
         return count

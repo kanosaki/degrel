@@ -8,6 +8,7 @@ case class BootArguments(script: Option[File] = None,
                          name: Option[String] = None,
                          config: Option[String] = None,
                          seeds: Seq[String] = Seq(),
+                         port: Option[Int] = None,
                          cmd: CLICommand = CLICommand.Plain,
                          options: Map[String, String] = Map()) {
   def rewriteeSetName: String = {
@@ -44,6 +45,9 @@ object BootArguments {
       }
       opt[String]("config").abbr("n").optional().action { (n, c) =>
         c.copy(name = Some(n))
+      }
+      opt[Int]("port").abbr("p").optional().action { (n, c) =>
+        c.copy(port = Some(n))
       }
       opt[Seq[String]]("seeds").abbr("s").valueName("host1,host2,...").action((x, c) => {
         c.copy(seeds = x)
@@ -85,8 +89,11 @@ object BootArguments {
       // -------------------------------------------------------------------------------
       // Cluster node subcommand
       // -------------------------------------------------------------------------------
-      cmd("cluster").text("degrel Cluster").action { (_, c) =>
-        c.copy(cmd = CLICommand.Cluster())
+      cmd("worker").text("degrel Cluster worker").action { (_, c) =>
+        c.copy(cmd = CLICommand.WorkerMode())
+      }
+      cmd("lobby").text("degrel Cluster lobby").action { (_, c) =>
+        c.copy(cmd = CLICommand.LobbyMode())
       }
     }
   }

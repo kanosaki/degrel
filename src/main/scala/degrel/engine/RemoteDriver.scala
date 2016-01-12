@@ -123,7 +123,7 @@ object RemoteDriver {
   }
 
   def localPhantom(root: VertexHeader, info: DriverParameter, node: LocalNode)(implicit ec: ExecutionContext): RemoteDriver = {
-    localPhantom(root, info.hostedOn, node, info.binding, info.returnTo, info.parentPin)
+    localPhantom(root, info.hostedOn, node, info.binding.unpack(), info.returnTo, info.parentPin)
   }
 
   def localPhantom(root: VertexHeader, hostedOn: ActorRef, node: LocalNode, binding: Binding, returnTo: VertexPin, parentPin: Option[VertexPin])(implicit ec: ExecutionContext): RemoteDriver = {

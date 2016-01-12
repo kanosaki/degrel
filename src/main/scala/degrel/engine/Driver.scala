@@ -4,7 +4,7 @@ import akka.actor.ActorRef
 import degrel.Logger
 import degrel.cluster.journal.Journal
 import degrel.cluster.messages.{DriverInfo, DriverParameter}
-import degrel.cluster.{DDriverState, LocalNode}
+import degrel.cluster.{DBinding, DDriverState, LocalNode}
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
 import degrel.engine.sphere.Sphere
@@ -17,6 +17,7 @@ trait Driver extends Logger {
 
   var activeThread: Future[Int] = null
   val finValue: Promise[Vertex] = Promise[Vertex]()
+  var preventStop = false
 
   protected var stateVar: DriverState = DriverState.Active()
 
@@ -118,7 +119,7 @@ trait Driver extends Logger {
   }
 
   def param(whereIsHere: ActorRef): DriverParameter = {
-    DriverParameter(this.id, this.binding, this.returnTo, this.parent.map(_.header.pin), whereIsHere)
+    DriverParameter(this.id, DBinding.pack(this.binding), this.returnTo, this.parent.map(_.header.pin), whereIsHere)
   }
 
   def info: DriverInfo = DriverInfo(this.returnTo, this.header.id, this.state)

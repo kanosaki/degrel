@@ -11,7 +11,6 @@ class ClusterConsole(chassis: Chassis,
                      val cluster: ControllerFacade,
                      commandSet: Option[Seq[ConsoleCommand]] = None) extends ConsoleHandle(chassis, commandSet) {
   override protected def evalLine(line: String): Unit = {
-    import scala.concurrent.ExecutionContext.Implicits.global
     try {
       val input = degrel.parseVertex(line)
       Await.result(this.current.send(input), 10.seconds)

@@ -14,8 +14,7 @@ class WorkerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSen
   "Worker" must {
     "Spawns Session Node" in {
       val lobby = system.actorOf(Props[Lobby])
-      val worker = system.actorOf(Props[Worker])
-      worker ! JoinLobby(lobby)
+      val worker = system.actorOf(Worker.props(lobby.path.address, lobby))
       lobby ! NewSession()
       var session: ActorRef = null
       within(1.seconds) {

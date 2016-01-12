@@ -1,13 +1,24 @@
 package degrel.cluster
 
-import akka.actor.{ActorRef, Address}
+import akka.actor.{ActorRef, Address, Props}
 
 /**
   * Worker actor for cluster
   */
-class Worker extends MemberBase {
+class Worker(lobbyAddr: Address, lobbyRef: ActorRef) extends MemberBase {
 
   import messages._
+
+  if (lobbyRef != null) {
+    this.joinLobby(lobbyRef)
+  } else {
+    if (lobbyAddr != null) {
+      this.joinLobby(lobbyAddr)
+    } else {
+      throw new RuntimeException("no join method")
+    }
+  }
+
 
   def spawnNode(manager: ActorRef, param: NodeInitializeParam): ActorRef = {
     context.actorOf(SessionNode.props(self, manager, param))
@@ -19,11 +30,9 @@ class Worker extends MemberBase {
     }
   }
 
-  override protected def onLobbyJoined(addr: Address): Unit = {
-  }
-
   override def role: MemberRole = Roles.Worker
 }
 
 object Worker {
+  def props(lobbyAddr: Address, lobbyRef: ActorRef) = Props(new Worker(lobbyAddr, lobbyRef))
 }

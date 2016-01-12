@@ -69,11 +69,16 @@ object CLICommand {
     * degrel クラスタの独立nodeとして稼働するモード
     * マスタ側は，Plainのオプションとして実行する
     */
-  case class Cluster() extends CLICommand {
+  case class WorkerMode() extends CLICommand {
     override def start(arg: BootArguments): Unit = {
       Bootstrapper(arg).startWorker()
     }
   }
 
+  case class LobbyMode() extends CLICommand {
+    override def start(arg: BootArguments): Unit = {
+      Bootstrapper(arg).startLobby()
+    }
+  }
 }
 

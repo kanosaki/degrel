@@ -1,7 +1,7 @@
 package degrel.engine.rewriting
 
 import degrel.core
-import degrel.core.{Edge, Element, Vertex}
+import degrel.core.{ID, Edge, Element, Vertex}
 
 object Binding {
   def apply(bridges: Seq[MatchBridge[Element]], parent: Binding = null): Binding = {

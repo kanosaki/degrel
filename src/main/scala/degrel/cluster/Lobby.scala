@@ -1,6 +1,6 @@
 package degrel.cluster
 
-import akka.actor.ActorRef
+import akka.actor.{Props, ActorRef}
 import akka.pattern.ask
 
 import scala.collection.mutable
@@ -61,7 +61,7 @@ class Lobby extends MemberBase {
       context.stop(sess)
     }
     case NodeAllocateRequest(manager, param) => {
-      log.debug(s"Allocating node for: $manager param: $param")
+      log.info(s"Allocating node for: $manager param: $param")
       val origin = sender()
       allocateNode(manager, param).onSuccess {
         case Some(node) => {

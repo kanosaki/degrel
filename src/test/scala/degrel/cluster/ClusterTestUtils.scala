@@ -24,8 +24,7 @@ object ClusterTestUtils {
     import system.dispatcher
     val lobby = system.actorOf(Props[Lobby])
     (0 to workerNum).foreach { i => // plus one for master node
-      val worker = system.actorOf(Props[Worker])
-      worker ! JoinLobby(lobby)
+      system.actorOf(Worker.props(lobby.path.address, lobby))
     }
     val sessionFuture = (lobby ? NewSession()) map {
       case Right(ref: ActorRef) => ref

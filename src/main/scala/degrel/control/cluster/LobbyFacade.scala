@@ -39,6 +39,15 @@ class LobbyFacade(system: ActorSystem) {
       current = ref
     }
   }
+
+  def address: String = {
+    current match {
+      case null => throw new RuntimeException("Non initialized Lobby")
+      case _ => {
+        current.path.toStringWithAddress(current.path.address)
+      }
+    }
+  }
 }
 
 object LobbyFacade {

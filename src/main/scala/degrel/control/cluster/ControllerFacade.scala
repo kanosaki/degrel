@@ -1,36 +1,35 @@
 package degrel.control.cluster
 
-import akka.actor.{Address, ActorSystem, Props}
+import akka.actor.{ActorSystem, Address}
 import akka.pattern.ask
-import akka.util.Timeout
-import degrel.cluster.messages.{ControllerState, LobbyState, QueryStatus, TellLobby}
-import degrel.cluster.{Timeouts, Roles, Controller, Controller$}
+import degrel.cluster.messages.{ControllerState, QueryStatus}
+import degrel.cluster.{Controller, Timeouts}
 import degrel.core.{Cell, Vertex}
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.async.Async.{async, await}
 import scala.language.postfixOps
 
 // Adapter class for degrel cluster controller
 class ControllerFacade(val system: ActorSystem, lobbyAddr: Address) {
-  implicit val timeout = Timeouts.short
-
-  import system.dispatcher
   import Controller.messages._
+  import system.dispatcher
 
-  val ctrlr = system.actorOf(Props[Controller])
-  ctrlr ! TellLobby(lobbyAddr)
+  val ctrlr = system.actorOf(Controller.props(lobbyAddr))
 
   val lobby = LobbyFacade(system)
 
-  def isActive: Future[Boolean] = {
-    (ctrlr ? QueryStatus()) map {
+  def isActive: Future[Boolean] = async {
+    implicit val timeout = Timeouts.short
+    await(ctrlr ? QueryStatus()) match {
       case ControllerState(active) => active
     }
   }
 
-  def interpret(cell: Cell): Future[Vertex] = {
-    (ctrlr ? Interpret(cell)).map {
+  def interpret(cell: Cell): Future[Vertex] = async {
+    implicit val timeout = Timeouts.long
+    await(ctrlr ? Interpret(cell)) match {
       case Result(v) => v
     }
   }

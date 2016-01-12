@@ -1,8 +1,7 @@
 package degrel.cluster
 
 import akka.actor.{ActorRef, Address}
-import degrel.core.{NodeID, DriverState, ID, VertexPin}
-import degrel.engine.rewriting.Binding
+import degrel.core.{DriverState, ID, NodeID, VertexPin}
 
 import scala.concurrent.duration.Duration
 
@@ -49,7 +48,7 @@ object messages {
     * Driver initialization parameter
     * It is permanent as long as hosted in same node.
     */
-  case class DriverParameter(root: ID, binding: Binding, returnTo: VertexPin, parentPin: Option[VertexPin], hostedOn: ActorRef)
+  case class DriverParameter(root: ID, binding: DBinding, returnTo: VertexPin, parentPin: Option[VertexPin], hostedOn: ActorRef)
 
 
   /**
@@ -80,8 +79,6 @@ object messages {
   case class SpawnNode(manager: ActorRef, param: NodeInitializeParam)
 
   case class TellLobby(addr: Address)
-
-  case class JoinLobby(lobby: ActorRef)
 
   // control
   case class MemberRegistration(role: MemberRole, ref: ActorRef)

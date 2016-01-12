@@ -51,6 +51,7 @@ class LocalNode(system: ActorSystem, val journal: JournalCollector, repo: Reposi
   }
 
   def registerNode(nodeID: Int, node: ActorRef) = {
+    logger.info(s"Node received ID: $nodeID acotr: $node")
     neighborNodes += nodeID -> RemoteNode(nodeID, node, this)
   }
 
@@ -150,8 +151,8 @@ class LocalNode(system: ActorSystem, val journal: JournalCollector, repo: Reposi
     * @return A Driver reference of spawned driver, or Throwable when some problem occurs.
     */
   def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, Driver]] = {
-    logger.debug(s"spawnSomewhere on: $selfID $cell")
     val neighbors = neighborNodes.filter(_._1 > 1)
+    logger.info(s"spawnSomewhere on: $selfID $cell (nodes: ${neighbors.size})")
     if (neighbors.isEmpty) async {
       Right(this.spawnLocally(cell, binding, returnTo, parent))
     } else {

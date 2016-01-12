@@ -38,8 +38,7 @@ class LobbyTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSend
   "Lobby with a worker" must {
     "ready" in {
       val lobby = system.actorOf(Props[Lobby])
-      val worker = system.actorOf(Props[Worker])
-      worker ! JoinLobby(lobby)
+      val worker = system.actorOf(Worker.props(lobby.path.address, lobby))
       within(1.seconds) {
         awaitCond {
           lobby ! QueryStatus()
