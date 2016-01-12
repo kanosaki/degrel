@@ -3,14 +3,14 @@ package degrel.engine
 import degrel.DegrelException
 import degrel.cluster.{LocalNode, Timeouts}
 import degrel.core._
-import degrel.core.transformer.{FixIDVisitor, GraphVisitor, TransferOwnerVisitor}
+import degrel.core.transformer.{FixIDVisitor, GraphVisitor}
 import degrel.engine.rewriting._
 import degrel.engine.sphere.Sphere
 import degrel.utils.PrettyPrintOptions
 
 import scala.async.Async.{async, await}
 import scala.collection.mutable
-import scala.concurrent.{stm, Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext, Future, stm}
 
 /**
   * Cellの実行をします
@@ -26,7 +26,9 @@ class LocalDriver(val header: VertexHeader,
   private val spawnInfo = mutable.HashMap[ID, SpawnInfo]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
   private val _pendingSpawns = stm.Ref(0)
+
   def pendingSpawns: Int = _pendingSpawns.single.get
+
   val idSpace = node.nextIDSpace()
   this.init()
 
@@ -252,7 +254,7 @@ class LocalDriver(val header: VertexHeader,
     if (target.id == this.header.id) {
       state = DriverState.Finished(this.returnTo, value)
     } else {
-      val tryOwn = GraphVisitor(new TransferOwnerVisitor(this.header))
+      val tryOwn = GraphVisitor(new FixIDVisitor(this.idSpace))
       tryOwn.visit(value)
       target.write(value)
     }
@@ -264,7 +266,7 @@ class LocalDriver(val header: VertexHeader,
 
   override def dispatch(target: VertexHeader, value: Vertex): Future[Unit] = {
     if (target.id == this.header.id) {
-      val transfer = GraphVisitor(Traverser.cell _, new TransferOwnerVisitor(this.header))
+      val transfer = GraphVisitor(new FixIDVisitor(this.idSpace))
       transfer.visit(value)
       if (value.isCell) {
         this.spawn(value.asCell)
