@@ -35,9 +35,8 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
     }
     val unpacked = node.exchanger.unpack(packed)
     assert(expected ===~ unpacked)
-
     session ! FetchJournal(false)
-    expectMsgPF() {
+    expectMsgPF(3.seconds) {
       case Right(js) => js.asInstanceOf[Vector[JournalPayload]]
     }
   }
@@ -55,12 +54,15 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
         """{
           | a
           | a
+          | a
+          | a
+          | a
           | a -> {
           |   fin b
           | }
           |}
         """.stripMargin
-      val after = "{b; b; a -> {fin b}}"
+      val after = "{b; b; b; b; b;  a -> {fin b}}"
       val journals = this.runScript(before, after, 2)
       val spawns = journals.map(_.item).collect {
         case cs: CellSpawn => cs

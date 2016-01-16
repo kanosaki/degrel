@@ -28,7 +28,7 @@ object messages {
 
   case class SessionState(nodes: Seq[(NodeID, ActorRef)])
 
-  case class NodeState(id: NodeID, manager: ActorRef)
+  case class NodeState(id: NodeID, manager: ActorRef, vacancies: Int)
 
   case class ControllerState(active: Boolean)
 
@@ -54,7 +54,7 @@ object messages {
   /**
     * Driver current status and statistics.
     */
-  case class DriverInfo(originPin: VertexPin, actualID: ID, state: DriverState)
+  case class DriverInfo(originPin: VertexPin, actualID: ID, state: DDriverState)
 
   case class TellDriverInfo(info: DriverInfo)
 

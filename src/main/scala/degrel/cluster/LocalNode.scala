@@ -12,10 +12,9 @@ import degrel.engine.{Chassis, Driver, LocalDriver, RemoteDriver}
 
 import scala.async.Async.{async, await}
 import scala.collection.mutable
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.language.postfixOps
-import scala.util.Success
 
 
 /**
@@ -150,20 +149,30 @@ class LocalNode(system: ActorSystem, val journal: JournalCollector, repo: Reposi
     * @param parent A primary parent of spawning driver.
     * @return A Driver reference of spawned driver, or Throwable when some problem occurs.
     */
-  def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[Either[Throwable, Driver]] = {
+  def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[SpawnResult] = {
+    import SpawnResult._
     val neighbors = neighborNodes.filter(_._1 > 1)
     logger.info(s"spawnSomewhere on: $selfID $cell (nodes: ${neighbors.size})")
     if (neighbors.isEmpty) async {
-      Right(this.spawnLocally(cell, binding, returnTo, parent))
-    } else {
-      val (_, spawnNode) = neighbors.head
-      spawnNode.spawn(cell.asHeader, binding, returnTo, parent) andThen {
-        case Success(Right(drv)) => {
-          remoteMapping += cell.id -> drv
+      LocalSpawned(this.spawnLocally(cell, binding, returnTo, parent))
+    } else async {
+      var ret: SpawnResult = null
+      neighbors.view.find { case (nodeID, spawnNode) =>
+        Await.result(spawnNode.spawn(cell.asHeader, binding, returnTo, parent), Timeouts.short.duration) match {
+          case Right(drv) => {
+            remoteMapping += cell.id -> drv
+            ret = RemoteSpawned(drv)
+            true
+          }
+          case other => {
+            false
+          }
         }
-        case other => {
-          throw new RuntimeException(other.toString)
-        }
+      }
+      if (ret != null) {
+        ret
+      } else {
+        NoVacantNode()
       }
     }
   }

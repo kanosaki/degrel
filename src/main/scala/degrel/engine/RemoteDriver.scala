@@ -3,7 +3,7 @@ package degrel.engine
 import akka.actor.ActorRef
 import akka.pattern.ask
 import degrel.cluster.messages._
-import degrel.cluster.{DGraph, LocalNode, QueryOption, Timeouts}
+import degrel.cluster._
 import degrel.core.DriverState.Finished
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
@@ -42,7 +42,7 @@ class RemoteDriver(override val header: VertexHeader,
     Future {}
   }
 
-  override def spawn(cell: Vertex): Driver = {
+  override def spawn(cell: Vertex): Option[Driver] = {
     ???
   }
 
@@ -96,7 +96,8 @@ class RemoteDriver(override val header: VertexHeader,
 
   // receive from remote driver
   def remoteUpdated(info: DriverInfo) = {
-    info.state match {
+    val newState = info.state.unpack(this.node, this)
+    newState match {
       case Finished(pin, value) => {
         if (pin.id == this.id) {
           this.header.write(value)
@@ -104,12 +105,12 @@ class RemoteDriver(override val header: VertexHeader,
       }
       case _ =>
     }
-    this.state = info.state
+    this.state = newState
   }
 
   // proxy to remote driver
   override def onChildStateUpdated(childReturnTo: VertexPin, childID: ID, childState: DriverState): Unit = {
-    remoteNode ! TellDriverInfo(DriverInfo(childReturnTo, childID, childState))
+    remoteNode ! TellDriverInfo(DriverInfo(childReturnTo, childID, DDriverState.pack(childState, this.node, this)))
   }
 
   override def toString: String = {

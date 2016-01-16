@@ -8,6 +8,7 @@ import degrel.cluster.{DBinding, DDriverState, LocalNode}
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
 import degrel.engine.sphere.Sphere
+import degrel.utils.PrettyPrintOptions
 
 import scala.async.Async.async
 import scala.concurrent.{ExecutionContext, Future, Promise}
@@ -83,7 +84,7 @@ trait Driver extends Logger {
 
   def header: VertexHeader
 
-  def spawn(cell: Vertex): Driver
+  def spawn(cell: Vertex): Option[Driver]
 
   def writeVertex(target: VertexHeader, value: Vertex): Unit
 
@@ -122,7 +123,7 @@ trait Driver extends Logger {
     DriverParameter(this.id, DBinding.pack(this.binding), this.returnTo, this.parent.map(_.header.pin), whereIsHere)
   }
 
-  def info: DriverInfo = DriverInfo(this.returnTo, this.header.id, this.state)
+  def info: DriverInfo = DriverInfo(this.returnTo, this.header.id, DDriverState.pack(this.state, this.node, this))
 
   def returnTo: VertexPin
 
@@ -145,7 +146,11 @@ trait Driver extends Logger {
     val fut = if (activeThread == null) {
       async {
         try {
-          this.stepUntilStop()
+          if (!this.isStopped) {
+            this.stepUntilStop()
+          } else {
+            0
+          }
         } catch {
           case th: Throwable => {
             th.printStackTrace()
@@ -155,7 +160,11 @@ trait Driver extends Logger {
       }
     } else {
       activeThread.map { prevCount =>
-        this.stepUntilStop() + prevCount
+        if (!this.isStopped) {
+          this.stepUntilStop() + prevCount
+        } else {
+          0
+        }
       }
     }
     activeThread = fut

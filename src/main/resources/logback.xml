@@ -5,7 +5,7 @@
         </encoder>
     </appender>
 
-    <logger name="chapters.configuration" level="INFO"/>
+    <logger name="chapters.configuration" level="DEBUG"/>
     <logger name="akka.cluster.ClusterHeartbeatSender" level="OFF"/>
 
     <root level="debug">

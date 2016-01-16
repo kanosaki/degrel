@@ -74,7 +74,7 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
   def allocateMaxNodes(): Future[Unit] = {
     this.allocateNextNode() flatMap {
       case Right(_) => this.allocateMaxNodes()
-      case Left(_) => Future { }
+      case Left(_) => Future {}
     }
   }
 
@@ -107,9 +107,10 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
         chassis.main.start()
         async {
           val result = await(chassis.main.finValue.future)
-          log.info(s"RUNNING FINISHED: $result")
+          val elapsedMs = System.currentTimeMillis() - startTime
+          log.info(s"RUNNING FINISHED: $result elapsed: $elapsedMs(ms)")
           val packed = localNode.exchanger.packAll(result)
-          journal(SessionFinished(System.currentTimeMillis() - startTime))
+          journal(SessionFinished(elapsedMs))
           ctrlr ! messages.Fin(packed)
         }
       }

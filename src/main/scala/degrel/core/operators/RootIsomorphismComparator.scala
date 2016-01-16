@@ -3,7 +3,8 @@ package degrel.core.operators
 import degrel.core._
 
 import scala.collection.mutable
-import scalaz.Scalaz._
+import scalaz._
+import Scalaz._
 
 class RootIsomorphismComparator(self: Vertex, another: Vertex) {
   type History = mutable.Map[Vertex, Vertex]
@@ -33,7 +34,7 @@ class RootIsomorphismComparator(self: Vertex, another: Vertex) {
     val self_edges = self.edges.toSeq.sorted
     val that_edges = that.edges.toSeq.sorted
     if (self_edges.size != that_edges.size) return false
-    if (self_edges.size == 0) return true
+    if (self_edges.isEmpty) return true
     val self_grouped_edges = self_edges.groupBy(_.label).values.toSeq
     if (self_grouped_edges.forall(_.size == 1)) {
       // Without polyvalent edges

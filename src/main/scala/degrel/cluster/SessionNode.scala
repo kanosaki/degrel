@@ -2,20 +2,21 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, Props}
 import akka.pattern.ask
-import degrel.cluster.journal.{JournalCollector, JournalCollector$}
-import degrel.core.transformer.{GraphVisitor, TransferOwnerVisitor}
+import degrel.cluster.journal.JournalCollector
 import degrel.core._
 import degrel.engine.Driver
 import degrel.engine.rewriting.Binding
 
 import scala.async.Async.{async, await}
-import scala.concurrent.Future
+import scala.concurrent.{Future, stm}
 
 class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitializeParam) extends SessionMember {
 
   val repo = RemoteRepository(manager)
   val journal = JournalCollector(manager, self, param.id)
   val localNode = LocalNode(context.system, journal, repo, NodeIDSpace(param.id))
+  val runningDrivers = stm.Ref(0)
+  val driverLimit = 1 // max running drivers
 
   def driverFactory = localNode.driverFactory
 
@@ -49,17 +50,70 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
     this.updateNeighbors()
   }
 
-  def spawnDriver(unpacked: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver) = {
-    if (unpacked.isCell) {
-      localNode.spawnLocally(unpacked, binding, returnTo, parent)
+  def spawnDriver(unpacked: Vertex, binding: Binding, returnTo: VertexPin, parentPin: VertexPin): Future[Either[Throwable, Driver]] = async {
+    if (parentPin == null) {
+      Right(localNode.spawnLocally(unpacked, binding, null, null))
     } else {
-      throw new RuntimeException("Only cells can spawn on driver.")
+      await(localNode.lookupOwner(parentPin.id)) match {
+        case Right(par) => {
+          Right(localNode.spawnLocally(unpacked, binding, returnTo, par))
+        }
+        case Left(msg) => {
+          msg.printStackTrace()
+          log.error(s"Unknown return VertexPin ${msg.getMessage}")
+          Left(msg)
+        }
+      }
+    }
+  }
+
+  private def spawnStart() = stm.atomic { implicit txn =>
+    println(s"RUNNING DRIVERS: ${runningDrivers.get}")
+    if (runningDrivers.get >= driverLimit) {
+      false
+    } else {
+      runningDrivers += 1
+      true
+    }
+  }
+
+
+  def startDriver(origin: ActorRef, graph: DGraph, binding: Binding, returnTo: VertexPin, parent: VertexPin): Future[Either[Throwable, Vertex]] = {
+    val unpacked = localNode.exchanger.unpack(graph)
+    if (!unpacked.isCell) {
+      return Future {
+        Left(new RuntimeException("Only cells can spawn on driver."))
+      }
+    }
+    if (this.spawnStart() || true) async {
+      val spawnResult = await(this.spawnDriver(unpacked, binding, returnTo, parent))
+      spawnResult match {
+        case Right(driver: Driver) => {
+          driver.start()
+          origin ! Right(driver.param(self))
+          val result = await(driver.finValue.future)
+          runningDrivers.single -= 1
+          Right(result)
+        }
+        case Left(msg) => {
+          origin ! Left(msg)
+          runningDrivers.single -= 1
+          Left(msg)
+        }
+      }
+    } else {
+      log.error("Node is full! cannot spawn driver!")
+      Future {
+        val exc = new RuntimeException("Cannot spawn")
+        origin ! Left(exc)
+        Left(exc)
+      }
     }
   }
 
   override def receiveMsg: Receive = {
     case QueryStatus() => {
-      sender() ! NodeState(localNode.selfID, manager)
+      sender() ! NodeState(localNode.selfID, manager, runningDrivers.single.get)
     }
     case SessionState(nodes) => {
       this.registerNeighbors(nodes)
@@ -68,34 +122,23 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       log.debug(s"SpawnDriver on: ${localNode.selfID}")
       log.debug(graph.pp)
       val origin = sender()
-      async {
-        await(localNode.lookupOwner(parent.id)) match {
-          case Right(par) => {
-            val unpacked = localNode.exchanger.unpack(graph)
-            val driver = this.spawnDriver(unpacked, Binding.empty(), returnTo, par)
-            driver.start()
-            origin ! Right(driver.param(self))
-          }
-          case Left(msg) => {
-            msg.printStackTrace()
-            log.error(s"Unknown return VertexPin ${msg.getMessage}")
-            origin ! Left(msg)
-          }
-        }
-      }
+      this.startDriver(origin, graph, Binding.empty(), returnTo, parent)
     }
-    case Run(msg) => {
-      log.debug(s"Running: ${msg.pp}")
+    case Run(graph) => {
+      log.debug(s"Running: ${graph.pp}")
       val origin = sender()
-      this.updateNeighbors() map { _ =>
-        val unpacked = localNode.exchanger.unpack(msg)
-        val driver = this.spawnDriver(unpacked, Binding.empty(), null, null)
-        driver.start()
-        async {
-          val result = await(driver.finValue.future)
-          log.info(s"RUNNING FINISHED: $result")
-          val packed = localNode.exchanger.packAll(result)
-          origin ! messages.Fin(packed)
+      async {
+        await(this.updateNeighbors())
+        await(this.startDriver(origin, graph, Binding.empty(), null, null)) match {
+          case Right(result) => {
+            log.info(s"RUNNING FINISHED: $result")
+            val packed = localNode.exchanger.packAll(result)
+            origin ! messages.Fin(packed)
+          }
+          case Left(err) => {
+            log.error(err, "Running failed")
+            throw err
+          }
         }
       }
     }
