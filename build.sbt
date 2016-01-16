@@ -10,10 +10,10 @@ seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 resolvers += Resolver.sonatypeRepo("public")
 
-val akkaVersion = "2.4.0"
+val akkaVersion = "2.4.1"
 
 lazy val coreLibs = { 
-  val scalazVersion = "7.1.3"
+  val scalazVersion = "7.2.0"
   val sprayVersion = "1.3.3"
   Seq(
     "org.scala-lang.modules" %% "scala-async" % "0.9.5",
@@ -21,14 +21,14 @@ lazy val coreLibs = {
     "com.typesafe.scala-logging" %% "scala-logging" % "3.1.0",
     "ch.qos.logback" % "logback-classic" % "1.1.2",
     "com.github.scopt" %% "scopt" % "3.3.0",
-    "jline" % "jline" % "2.12",
+    "jline" % "jline" % "2.13",
     "commons-io" % "commons-io" % "2.4",
 //    "org.scalanlp" %% "breeze" % "0.8.1",
 //    "org.scalanlp" %% "breeze-natives" % "0.8.1",
     "org.scalafx" %% "scalafx" % "8.0.20-R6",
     "org.scalaz" %% "scalaz-core" % scalazVersion,
     "org.scalaz" %% "scalaz-effect" % scalazVersion,
-    "org.scalaz" %% "scalaz-typelevel" % scalazVersion,
+    //"org.scalaz" %% "scalaz-typelevel" % scalazVersion,
     "org.scalaz" %% "scalaz-scalacheck-binding" % scalazVersion % "test",
     "com.typesafe.akka" %% "akka-actor" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,

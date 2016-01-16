@@ -86,9 +86,8 @@ abstract class SessionMember extends ActorBase {
           }
         }
         val unpacked = localNode.exchanger.unpack(graph)
-        println(s"WriteVertex on: ${localNode.selfID} to: $id graph: $graph")
+        log.debug(s"WriteVertex on: ${localNode.selfID} to: $id graph: $graph")
         driver.writeVertex(target.asHeader, unpacked)
-        println(driver.header.pp)
       }
     }
   }

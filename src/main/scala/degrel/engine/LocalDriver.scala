@@ -192,7 +192,7 @@ class LocalDriver(val header: VertexHeader,
   }
 
   override def spawn(cell: Vertex): Option[Driver] = {
-    println(s"SPAWNING ${cell.pp}")
+    logger.debug(s"SPAWNING ${cell.pp}")
     val spawningHeader = cell.asHeader
     val originID = spawningHeader.id
     _spawnInProgressCount.single.transform(_ + 1)

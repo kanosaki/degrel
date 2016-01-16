@@ -62,7 +62,9 @@ trait Driver extends Logger {
   }
 
   def onStopped(): Unit = {
-    this.finValue.success(this.header)
+    if (!this.finValue.isCompleted) {
+      this.finValue.success(this.header)
+    }
   }
 
   def onActive(): Unit = {}

@@ -152,7 +152,7 @@ class LocalNode(system: ActorSystem, val journal: JournalCollector, repo: Reposi
   def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[SpawnResult] = {
     import SpawnResult._
     val neighbors = neighborNodes.filter(_._1 > 1)
-    logger.info(s"spawnSomewhere on: $selfID $cell (nodes: ${neighbors.size})")
+    logger.debug(s"spawnSomewhere on: $selfID $cell (nodes: ${neighbors.size})")
     if (neighbors.isEmpty) async {
       LocalSpawned(this.spawnLocally(cell, binding, returnTo, parent))
     } else async {
