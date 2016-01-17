@@ -68,11 +68,11 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
   }
 
   private def spawnStart() = stm.atomic { implicit txn =>
-    println(s"RUNNING DRIVERS: ${runningDrivers.get}")
     if (runningDrivers.get >= driverLimit) {
       false
     } else {
       runningDrivers += 1
+      log.info(s"RUNNING DRIVERS: ${runningDrivers.get} on: $self")
       true
     }
   }

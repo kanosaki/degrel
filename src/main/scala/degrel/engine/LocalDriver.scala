@@ -55,10 +55,10 @@ class LocalDriver(val header: VertexHeader,
       println(s"DRIVER_START: $id(on: ${node.selfID})>>>>>")
       println("--- Parent ---")
       println(s"$parent")
-      //System.err.println("--- Rewriters ---")
-      //this.rewriters.foreach { rw =>
-      //  System.err.println(rw.pp)
-      //}
+      System.err.println("--- Rewriters ---")
+      this.rewriters.foreach { rw =>
+        System.err.println(rw.pp)
+      }
     }
     while (!state.isStopped && this.isValid) {
       if (chassis.verbose) {

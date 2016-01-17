@@ -10,20 +10,20 @@ class Sleep extends Rewriter {
   override def rewrite(rc: RewritingTarget): RewriteResult = {
     val target = rc.target
     if (target.label == this.sleepLabel) {
-      (for {
-        sleepMsV <- target.thru(0).headOption
-        sleepMs <- sleepMsV.getValue[Int]
-      } yield sleepMs) match {
-        case Some(sleepMs) => {
-          RewriteResult.IO(driver => {
-            logger.info(s"Sleeping $sleepMs ms")
-            Thread.sleep(sleepMs)
-            driver.writeVertex(target, Vertex.vNil)
-          })
+      target.thru(0).headOption match {
+        case Some(v) => {
+          try {
+            val sleepMs = v.label.expr.toInt
+            RewriteResult.IO(driver => {
+              logger.info(s"Sleeping $sleepMs ms")
+              Thread.sleep(sleepMs)
+              driver.writeVertex(target, Vertex.vNil)
+            })
+          } catch {
+            case _: NumberFormatException => nop
+          }
         }
-        case _ => {
-          nop
-        }
+        case _ => nop
       }
     } else {
       nop
