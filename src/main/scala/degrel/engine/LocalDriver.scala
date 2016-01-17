@@ -60,7 +60,7 @@ class LocalDriver(val header: VertexHeader,
       //  System.err.println(rw.pp)
       //}
     }
-    while (!state.isStopped) {
+    while (!state.isStopped && this.isValid) {
       if (chassis.verbose) {
         print(Console.RED)
         println(s"ID: $id(on: ${node.selfID}) steps: $count")
@@ -192,6 +192,7 @@ class LocalDriver(val header: VertexHeader,
   }
 
   override def spawn(cell: Vertex): Option[Driver] = {
+    assert(cell != this.header)
     logger.debug(s"SPAWNING ${cell.pp}")
     val spawningHeader = cell.asHeader
     val originID = spawningHeader.id

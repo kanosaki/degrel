@@ -62,8 +62,8 @@ trait Driver extends Logger {
   }
 
   def onStopped(): Unit = {
-    if (!this.finValue.isCompleted) {
-      this.finValue.success(this.header)
+    if (!this.finValue.trySuccess(this.header)) {
+      logger.warn(s"Stopping already finished driver! $id")
     }
   }
 

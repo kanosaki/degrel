@@ -1,6 +1,6 @@
 package degrel.control.cluster
 
-import akka.actor.{ActorSystem, Address}
+import akka.actor.{PoisonPill, ActorSystem, Address}
 import akka.pattern.ask
 import degrel.cluster.messages.{ControllerState, QueryStatus}
 import degrel.cluster.{Controller, Timeouts}
@@ -29,9 +29,13 @@ class ControllerFacade(val system: ActorSystem, lobbyAddr: Address) {
 
   def interpret(cell: Cell): Future[Vertex] = async {
     implicit val timeout = Timeouts.long
-    await(ctrlr ? Interpret(cell)) match {
+    val res = await(ctrlr ? Interpret(cell)) match {
       case Result(v) => v
     }
+    ctrlr ! PoisonPill
+    await(system.terminate())
+    System.exit(0)
+    res
   }
 
   def isReady: Future[Boolean] = {

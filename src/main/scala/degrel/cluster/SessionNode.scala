@@ -85,7 +85,7 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
         Left(new RuntimeException("Only cells can spawn on driver."))
       }
     }
-    if (this.spawnStart() || true) async {
+    if (this.spawnStart()) async {
       val spawnResult = await(this.spawnDriver(unpacked, binding, returnTo, parent))
       spawnResult match {
         case Right(driver: Driver) => {

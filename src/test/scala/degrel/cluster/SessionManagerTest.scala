@@ -2,6 +2,7 @@ package degrel.cluster
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
+import com.typesafe.config.ConfigFactory
 import degrel.cluster.journal.Journal.CellSpawn
 import degrel.cluster.journal.JournalPayload
 import degrel.cluster.messages._
@@ -11,7 +12,7 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 import scala.concurrent.duration._
 
 class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpecLike with Matchers with BeforeAndAfterAll {
-  def this() = this(ActorSystem("SessionManagerTest"))
+  def this() = this(ActorSystem("SessionManagerTest", ConfigFactory.load("degrel").withFallback(ConfigFactory.load())))
 
   "A empty SessionManager" must {
     "returns status (also tests ClusterTestUtils.newSession)" in {

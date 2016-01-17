@@ -49,10 +49,12 @@ class Bootstrapper(val args: BootArguments) {
          |akka.cluster.roles = [${roles.map(_.name).mkString(",")}]
        """.stripMargin
     )
+    // degrel.conf -> reference.conf
+    val degrelConfig = ConfigFactory.load("degrel").withFallback(ConfigFactory.load())
 
     args.config match {
-      case Some(cfg) => primConfig.withFallback(ConfigFactory.parseFile(new File(cfg))).withFallback(ConfigFactory.load())
-      case None => primConfig.withFallback(ConfigFactory.load())
+      case Some(cfg) => primConfig.withFallback(ConfigFactory.parseFile(new File(cfg))).withFallback(degrelConfig)
+      case None => primConfig.withFallback(degrelConfig).withFallback(degrelConfig)
     }
   }
 

@@ -2,12 +2,13 @@ package degrel.cluster
 
 import akka.actor.{ActorRef, ActorSystem, Props}
 import akka.testkit.{ImplicitSender, TestKit}
+import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 
 import scala.concurrent.duration._
 
 class WorkerTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSender with WordSpecLike with Matchers with BeforeAndAfterAll {
-  def this() = this(ActorSystem("WorkerTest"))
+  def this() = this(ActorSystem("WorkerTest", ConfigFactory.load("degrel").withFallback(ConfigFactory.load())))
 
   import messages._
 

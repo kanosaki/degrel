@@ -36,7 +36,6 @@ object RewriteResult {
     override def done: Boolean = true
 
     override def exec(self: LocalDriver): Unit = {
-      import scala.concurrent.ExecutionContext.Implicits.global
       Await.result(self.dispatch(target, value), 10.seconds)
     }
   }
@@ -54,6 +53,14 @@ object RewriteResult {
 
     override def exec(self: LocalDriver): Unit = {
       this.results.foreach(_.exec(self))
+    }
+  }
+
+  case class IO(action: LocalDriver => Unit) extends RewriteResult {
+    override def done: Boolean = true
+
+    override def exec(self: LocalDriver): Unit = {
+      action(self)
     }
   }
 
