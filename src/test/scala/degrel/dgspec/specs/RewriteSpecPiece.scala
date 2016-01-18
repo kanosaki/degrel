@@ -4,7 +4,8 @@ import degrel.core.Cell
 import degrel.dgspec.{NextPiece, SpecContext, SpecPiece}
 import degrel.engine.LocalDriver
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
 
 /**
  * 現在のコンテキストで書き換えを実行します
@@ -16,7 +17,7 @@ case class RewriteSpecPiece() extends SpecPiece {
     ctx.root match {
       case ctxCell: Cell => {
         val pra = LocalDriver(ctxCell)
-        pra.stepUntilStop(RewriteSpecPiece.DEFAULT_MAX_REWRITE_COUNT)
+        Await.result(pra.start(), 5.seconds)
         NextPiece.Continue
       }
       case _ => {

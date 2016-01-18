@@ -8,15 +8,12 @@ import degrel.cluster.{DBinding, DDriverState, LocalNode}
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
 import degrel.engine.sphere.Sphere
-import degrel.utils.PrettyPrintOptions
 
-import scala.async.Async.async
 import scala.concurrent.{ExecutionContext, Future, Promise}
 
 trait Driver extends Logger {
   implicit val executionContext: ExecutionContext
 
-  var activeThread: Future[Int] = null
   val finValue: Promise[Vertex] = Promise[Vertex]()
   var preventStop = false
 
@@ -34,7 +31,7 @@ trait Driver extends Logger {
     import DriverState._
     state match {
       case Active() => this.onActive()
-      case Paused(steps) => this.onPause(steps)
+      case Paused() => this.onPause()
       case Finished(pin, v) => this.onFinished(pin, v)
       case Stopped() => this.onStopped()
       case Stopping() => this.onStopping()
@@ -61,6 +58,8 @@ trait Driver extends Logger {
     this.start()
   }
 
+  def start(): Future[Vertex]
+
   def onStopped(): Unit = {
     if (!this.finValue.trySuccess(this.header)) {
       logger.warn(s"Stopping already finished driver! $id")
@@ -69,7 +68,7 @@ trait Driver extends Logger {
 
   def onActive(): Unit = {}
 
-  def onPause(steps: Long): Unit = {}
+  def onPause(): Unit = {}
 
   def onDead(ex: Throwable): Unit = {}
 
@@ -82,11 +81,11 @@ trait Driver extends Logger {
 
   def resource: Sphere
 
-  def stepUntilStop(limit: Int = -1): Int
+  def stepUntilStop(limit: Int = -1): Future[Long]
 
   def header: VertexHeader
 
-  def spawn(cell: Vertex): Option[Driver]
+  def spawn(cell: Vertex): Unit
 
   def writeVertex(target: VertexHeader, value: Vertex): Unit
 
@@ -97,8 +96,6 @@ trait Driver extends Logger {
   def binding: Binding
 
   def getVertex(id: ID): Option[Vertex]
-
-  def stepRecursive(): Boolean
 
   def rewriters: Seq[Rewriter]
 
@@ -139,38 +136,9 @@ trait Driver extends Logger {
   def isStopped: Boolean = this.state.isStopped
 
   def isPaused: Boolean = this.state match {
-    case DriverState.Paused(_) => true
+    case DriverState.Paused() => true
     case _ => false
   }
 
-  def start(): Future[Int] = {
-    // TODO: be thread safe
-    val fut = if (activeThread == null) {
-      async {
-        try {
-          if (!this.isStopped) {
-            this.stepUntilStop()
-          } else {
-            0
-          }
-        } catch {
-          case th: Throwable => {
-            th.printStackTrace()
-            throw th
-          }
-        }
-      }
-    } else {
-      activeThread.map { prevCount =>
-        if (!this.isStopped) {
-          this.stepUntilStop() + prevCount
-        } else {
-          0
-        }
-      }
-    }
-    activeThread = fut
-    fut
-  }
 
 }

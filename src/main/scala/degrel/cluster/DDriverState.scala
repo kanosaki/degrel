@@ -23,12 +23,11 @@ object DDriverState {
     }
   }
 
-  case class DPaused(steps: Long) extends DDriverState {
-    override def unpack(node: LocalNode, driver: Driver): DriverState = Paused(steps)
+  case class DPaused() extends DDriverState {
+    override def unpack(node: LocalNode, driver: Driver): DriverState = Paused()
 
     override def toJson: JObject = {
-      ("type" -> "paused") ~
-        ("steps" -> steps)
+      "type" -> "paused"
     }
   }
 
@@ -76,7 +75,7 @@ object DDriverState {
   def pack(ds: DriverState, node: LocalNode, driver: Driver): DDriverState = {
     ds match {
       case Active() => DActive()
-      case Paused(steps) => DPaused(steps)
+      case Paused() => DPaused()
       case Stopping() => DStopping()
       case Stopped() => DStopped()
       case Finished(pin, res) => {

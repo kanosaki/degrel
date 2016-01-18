@@ -39,7 +39,7 @@ class CellTraverser(roots: Iterable[Vertex], self: LocalDriver) extends Iterable
       val next = nextItems.dequeue()
       next.edges.foreach { e =>
         val dst = e.dst
-        if (!dst.isCell && !visited.contains(dst)) {
+        if (!dst.isCell && !visited.contains(dst) && self.id.hasSameOwner(dst.id)) {
           nextItems.enqueue(dst)
           visited += dst
         }

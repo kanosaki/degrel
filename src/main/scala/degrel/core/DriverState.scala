@@ -23,7 +23,7 @@ object DriverState {
     * The driver is not Active. But no fin have been detected.
     * It will be back to Active when a new graph is delivered.
     */
-  case class Paused(steps: Long) extends DriverState {
+  case class Paused() extends DriverState {
     override def isStopped: Boolean = false
   }
 

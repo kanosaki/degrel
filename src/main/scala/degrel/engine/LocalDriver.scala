@@ -1,9 +1,13 @@
 package degrel.engine
 
+
+import java.util.concurrent.PriorityBlockingQueue
+import java.util.function.Predicate
+
 import degrel.DegrelException
 import degrel.cluster.SpawnResult.{NoVacantNode, OtherError}
-import degrel.cluster.{LocalNode, SpawnResultSuccess, Timeouts}
-import degrel.core.DriverState.{Stopped, Finished}
+import degrel.cluster.{LocalNode, SpawnResultSuccess}
+import degrel.core.DriverState._
 import degrel.core._
 import degrel.core.transformer.{FixIDVisitor, GraphVisitor}
 import degrel.engine.rewriting._
@@ -12,7 +16,7 @@ import degrel.utils.PrettyPrintOptions
 
 import scala.async.Async.{async, await}
 import scala.collection.mutable
-import scala.concurrent.{Await, ExecutionContext, Future, stm}
+import scala.concurrent._
 
 /**
   * Cellの実行をします
@@ -27,10 +31,10 @@ class LocalDriver(val header: VertexHeader,
   private var children = new mutable.HashMap[ID, Driver]()
   private val spawnInfo = mutable.HashMap[ID, SpawnInfo]()
   private var contRewriters: mutable.Buffer[ContinueRewriter] = mutable.ListBuffer()
-  private val _spawnInProgressCount = stm.Ref(0)
-  private val spawnQueue = mutable.ListBuffer[Vertex]()
-
-  def pendingSpawns: Int = _spawnInProgressCount.single.get
+  private val opQueue = new PriorityBlockingQueue[DriverOp[_]]()
+  private var activeThread: Future[Unit] = null
+  private val __startLock = new AnyRef()
+  chassis.verbose = true
 
   val idSpace = node.nextIDSpace()
   this.init()
@@ -46,7 +50,7 @@ class LocalDriver(val header: VertexHeader,
     chassis.getResourceFor(this)
   }
 
-  override def stepUntilStop(limit: Int = -1): Int = {
+  override def stepUntilStop(limit: Int = -1): Future[Long] = async {
     if (this.isStopped) {
       throw new RuntimeException("Already stopped!")
     }
@@ -55,42 +59,33 @@ class LocalDriver(val header: VertexHeader,
       println(s"DRIVER_START: $id(on: ${node.selfID})>>>>>")
       println("--- Parent ---")
       println(s"$parent")
-      System.err.println("--- Rewriters ---")
-      this.rewriters.foreach { rw =>
-        System.err.println(rw.pp)
-      }
+      //System.err.println("--- Rewriters ---")
+      //this.rewriters.foreach { rw =>
+      //  System.err.println(rw.pp)
+      //}
     }
-    while (!state.isStopped && this.isValid) {
-      if (chassis.verbose) {
-        print(Console.RED)
-        println(s"ID: $id(on: ${node.selfID}) steps: $count")
-        println("--- Graph ---")
-        println(this.header.pp)
-        print(Console.YELLOW)
-        println("--- Continuations ---")
-        this.contRewriters.foreach(rw => {
-          println(rw.pp)
-        })
-        println(Console.RESET)
-        println("--- Children ---")
-        this.children.values.foreach(c => {
-          println(c)
-        })
-      }
-      this.prepare()
-      val rewrote = this.stepRecursive()
-      this.cleanup()
-      count += 1
-      if (!rewrote) { // todo: rewrote effected by child result
-        state = this.state match {
-          case _ if !this.hasActiveChild && !this.preventStop => DriverState.Stopped()
-          case _ => DriverState.Stopping()
-        }
-        return count
-      }
-      if (limit > 0 && count > limit) {
-        throw DegrelException(s"Exec limitation exceeded. \n${cell.pp}")
-      }
+    if (chassis.verbose) {
+      print(Console.RED)
+      println(s"ID: $id(on: ${node.selfID}) steps: $count")
+      println("--- Graph ---")
+      println(this.header.pp)
+      print(Console.YELLOW)
+      println("--- Continuations ---")
+      this.contRewriters.foreach(rw => {
+        println(rw.pp)
+      })
+      println(Console.RESET)
+      println("--- Children ---")
+      this.children.values.foreach(c => {
+        println(c)
+      })
+    }
+    if (await(this.step())) {
+      this.schedule(Scan())
+    }
+    count += 1
+    if (limit > 0 && count > limit) {
+      throw DegrelException(s"Exec limitation exceeded. \n${cell.pp}")
     }
     count
   }
@@ -105,34 +100,28 @@ class LocalDriver(val header: VertexHeader,
     this.prepare()
   }
 
-  def prepare(): Unit = {
+  def checkSpawn(): Boolean = {
+    var found = false
     atoms.foreach(r => {
       if (r.isCell) {
         if (!children.contains(r.id)) {
           this.spawn(r)
+          found = true
         }
       } else {
         r.thru(0).filter(_.isCell).foreach { c =>
           if (!children.contains(c.id)) {
             this.spawn(c)
+            found = true
           }
         }
       }
     })
+    found
   }
 
-  override def stepRecursive(): Boolean = {
-    if (!this.isValid) {
-      return false
-    }
-    this.prepare()
-    this.children.values.find {
-      case ld: LocalDriver => ld.stepRecursive()
-      case _ => false
-    } match {
-      case Some(_) => true
-      case None => this.step()
-    }
+  def prepare(): Unit = {
+    this.checkSpawn()
   }
 
   /**
@@ -142,8 +131,8 @@ class LocalDriver(val header: VertexHeader,
     * 2. 探索の実行
     * 3. 書き換えの実行
     */
-  def step(): Boolean = {
-    this.atoms.exists { atom =>
+  def step(): Future[Boolean] = async {
+    val rewrote = this.atoms.exists { atom =>
       val stepFunc = this.stepFor(atom) _
       contRewriters.find(stepFunc) match {
         case Some(rw) => {
@@ -159,6 +148,14 @@ class LocalDriver(val header: VertexHeader,
       val target = RewritingTarget.alone(this.header, this)
       this.execRewrite(rw, target)
     }
+    if (!rewrote) {
+      println(s"STOPPING@$id: hasActiveChild: ${hasActiveChild}")
+      state = this.state match {
+        case _ if !this.hasActiveChild && !this.preventStop => DriverState.Stopped()
+        case _ => DriverState.Stopping()
+      }
+    }
+    rewrote
   }
 
   def stepFor(atom: Vertex)(rw: Rewriter) = {
@@ -189,36 +186,6 @@ class LocalDriver(val header: VertexHeader,
 
   def rewriteTargets: Iterable[RewritingTarget] = {
     CellTraverser(this.cell, this)
-  }
-
-  override def spawn(cell: Vertex): Option[Driver] = {
-    assert(cell != this.header)
-    logger.debug(s"SPAWNING ${cell.pp}")
-    val spawningHeader = cell.asHeader
-    val originID = spawningHeader.id
-    _spawnInProgressCount.single.transform(_ + 1)
-    this.spawnInfo += originID -> SpawnInfo(spawningHeader, originID)
-    val fut = node.spawnSomewhere(cell, this.binding, VertexPin(spawningHeader.id, 0), this)
-    val res = Await.result(fut, Timeouts.short.duration)
-    _spawnInProgressCount.single.transform(_ - 1)
-    res match {
-      case res: SpawnResultSuccess => {
-        val drv = res.result
-        this.spawnInfo.get(originID) match {
-          case Some(si) => si.spawnID = Some(drv.id)
-          case None => {
-            logger.warn(s"Cannot update SpawnInfo (maybe too short life cell?) ID:${originID}")
-          }
-        }
-        this.children += drv.id -> drv
-        Some(drv)
-      }
-      case NoVacantNode() => {
-        spawnQueue += cell
-        None
-      }
-      case OtherError(th) => throw th
-    }
   }
 
   def cleanup(): Unit = {
@@ -266,57 +233,44 @@ class LocalDriver(val header: VertexHeader,
     contRewriters += rw
   }
 
+  override def spawn(cell: Vertex): Unit = {
+    this.schedule(Spawn(cell))
+  }
+
   override def writeVertex(target: VertexHeader, value: Vertex): Unit = {
-    logger.debug(s"WRITE(on: $id) $target(${
-      target.id
-    }) <= ${
-      value.pp
-    } ")
-    if (target.id == this.header.id) {
-      state = DriverState.Finished(this.returnTo, value)
-    } else {
-      val tryOwn = GraphVisitor(new FixIDVisitor(this.idSpace))
-      tryOwn.visit(value)
-      target.write(value)
-    }
+    this.schedule(Write(target, value))
   }
 
   override def removeRoot(v: Vertex): Unit = {
-    this.cell.removeRoot(v)
+    this.schedule(RemoveRoot(v))
   }
 
   override def dispatch(target: VertexHeader, value: Vertex): Future[Unit] = {
-    if (target.id == this.header.id) {
-      val transfer = GraphVisitor(new FixIDVisitor(this.idSpace))
-      transfer.visit(value)
-      if (value.isCell) {
-        this.spawn(value.asCell)
-      }
-      this.cell.addRoot(value)
-      Future {
-      }
-    } else if (target.id.hasSameOwner(this.id)) async {
-      if (target.isCell) {
-        target.asCell.addRoot(value)
-      }
-    } else async {
-      await(node.lookupOwner(target.id)) match {
-        case Right(drv) => {
-          await(drv.dispatch(target, value))
+    val op = AddRoot(target, value)
+    this.schedule(op)
+    op.done.future
+  }
+
+  protected def schedule[T](op: DriverOp[T],
+                            intercept: Boolean = false,
+                            startOperate: Boolean = true): Future[T] = {
+    if (op.isInstanceOf[Scan]) {
+      opQueue.removeIf(new Predicate[DriverOp[_]] {
+        override def test(t: DriverOp[_]): Boolean = {
+          t.isInstanceOf[Scan]
         }
-        case Left(th) => {
-          logger.warn(s"Ignoreing Ownership! at $id != ${
-            target.id
-          }")
-          if (target.isCell) {
-            target.asCell.addRoot(value)
-          } else {
-            logger.error("Cannot add vertex to non-cell vertex")
-            throw new RuntimeException("Cannot add vertex to non-cell vertex")
-          }
-        }
-      }
+      })
     }
+    println(s"SCHED@$id: $op intercept: $intercept start: $startOperate")
+    if (intercept) {
+      opQueue.add(InterceptOp(op))
+    } else {
+      opQueue.add(op)
+    }
+    if (startOperate) {
+      this.operate()
+    }
+    op.done.future
   }
 
   override def binding: Binding = {
@@ -372,7 +326,181 @@ class LocalDriver(val header: VertexHeader,
     }>"
   }
 
-  def hasActiveChild: Boolean = children.values.exists(!_.state.isStopped) || spawnQueue.nonEmpty
+  private def consumeQueue(): Future[Unit] = async {
+    // cannot use inner function to utilize async
+    println(s"CONSUME: $opQueue state: $state")
+    var nextOp = opQueue.poll()
+    while (nextOp != null && !this.isStopped) {
+      println(s"""OP@$id: $nextOp -- $opQueue""")
+      await(nextOp.exec())
+      nextOp = opQueue.poll()
+    }
+    if (nextOp != null) {
+      opQueue.add(nextOp) // breaked by state change --> push back
+    }
+    __startLock.synchronized {
+      // re-check queue with lock and finish
+      if (!opQueue.isEmpty && !this.isStopped) {
+        this.consumeQueue()
+      }
+      activeThread = null
+    }
+  }
+
+  def operate(): Future[Unit] = {
+    __startLock.synchronized {
+      if (activeThread == null) {
+        activeThread = async {
+          await(this.consumeQueue())
+        }
+        activeThread
+      } else {
+        Future {}
+      }
+    }
+  }
+
+  override def start(): Future[Vertex] = {
+    this.schedule(Scan())
+    this.finValue.future
+  }
+
+  def hasActiveChild: Boolean = children.values.exists(!_.state.isStopped)
+
+  protected trait DriverOp[T] extends Comparable[DriverOp[_]] {
+    type OpResult = Unit
+
+    def exec(): Future[OpResult]
+
+    def self: LocalDriver = LocalDriver.this
+
+    val done: Promise[T] = Promise()
+
+
+    override def compareTo(o: DriverOp[_]): Int = {
+      Integer.compare(this.priority, o.priority)
+    }
+
+    def priority: Int = 0
+  }
+
+  case class Write(target: VertexHeader, value: Vertex) extends DriverOp[Unit] {
+    override def exec(): Future[OpResult] = async {
+      logger.debug(s"WRITE(on: $id) $target(${
+        target.id
+      }) <= ${
+        value.pp
+      } ")
+      if (target.id == self.header.id) {
+        self.state = DriverState.Finished(self.returnTo, value)
+      } else {
+        val tryOwn = GraphVisitor(new FixIDVisitor(self.idSpace))
+        tryOwn.visit(value)
+        target.write(value)
+      }
+      this.done.success(())
+    }
+  }
+
+  case class Scan() extends DriverOp[Unit] {
+    override def exec(): Future[OpResult] = async {
+      if (!self.isStopped) {
+        if (checkSpawn()) {
+          schedule(Scan())
+        } else {
+          state = Active()
+          await(self.stepUntilStop())
+        }
+      }
+      this.done.success(())
+    }
+
+    // low priority
+    override def priority: Int = 100
+  }
+
+  case class AddRoot(target: VertexHeader, value: Vertex) extends DriverOp[Unit] {
+    override def exec(): Future[OpResult] = async {
+      if (target.id == self.header.id) {
+        val transfer = GraphVisitor(new FixIDVisitor(self.idSpace))
+        transfer.visit(value)
+        self.cell.addRoot(value)
+        if (value.isCell) {
+          self.spawn(value.asCell)
+        }
+      } else if (target.id.hasSameOwner(self.id)) {
+        if (target.isCell) {
+          target.asCell.addRoot(value)
+        }
+      } else {
+        await(node.lookupOwner(target.id)) match {
+          case Right(drv) => {
+            await(drv.dispatch(target, value))
+          }
+          case Left(th) => {
+            logger.warn(s"Ignoreing Ownership! at $id != ${
+              target.id
+            }")
+            if (target.isCell) {
+              target.asCell.addRoot(value)
+            } else {
+              logger.error("Cannot add vertex to non-cell vertex")
+              throw new RuntimeException("Cannot add vertex to non-cell vertex")
+            }
+          }
+        }
+      }
+      this.done.success(())
+    }
+  }
+
+  case class RemoveRoot(v: Vertex) extends DriverOp[Unit] {
+    override def exec(): Future[OpResult] = async {
+      self.cell.removeRoot(v)
+      this.done.success(())
+    }
+  }
+
+  case class Spawn(cell: Vertex) extends DriverOp[Option[Driver]] {
+    override def exec(): Future[OpResult] = async {
+      assert(cell != self.header)
+      logger.debug(s"SPAWNING ${cell.pp}")
+      val spawningHeader = cell.asHeader
+      val originID = spawningHeader.id
+      self.spawnInfo += originID -> SpawnInfo(spawningHeader, originID)
+      val res = await(self.node.spawnSomewhere(cell, self.binding, VertexPin(spawningHeader.id, 0), self))
+      res match {
+        case res: SpawnResultSuccess => {
+          val drv = res.result
+          self.spawnInfo.get(originID) match {
+            case Some(si) => si.spawnID = Some(drv.id)
+            case None => {
+              logger.warn(s"Cannot update SpawnInfo (maybe it was a too short life cell?) ID:${originID}")
+            }
+          }
+          self.children += drv.id -> drv
+          drv.start()
+          println(s"CHILD_STATE: $drv")
+          this.done.success(Some(drv))
+        }
+        case NoVacantNode() => {
+          self.state = Paused()
+          schedule(Spawn(cell), intercept = true, startOperate = false)
+          this.done.success(None)
+        }
+        case OtherError(th) => throw th
+      }
+    }
+  }
+
+  case class InterceptOp[CT](op: DriverOp[CT]) extends DriverOp[CT] {
+    override def exec(): Future[OpResult] = {
+      op.exec()
+    }
+
+    override def priority: Int = -100
+  }
+
 }
 
 object LocalDriver {

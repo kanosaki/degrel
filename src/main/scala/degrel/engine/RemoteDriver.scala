@@ -2,8 +2,8 @@ package degrel.engine
 
 import akka.actor.ActorRef
 import akka.pattern.ask
-import degrel.cluster.messages._
 import degrel.cluster._
+import degrel.cluster.messages._
 import degrel.core.DriverState.Finished
 import degrel.core._
 import degrel.engine.rewriting.{Binding, Rewriter}
@@ -42,7 +42,9 @@ class RemoteDriver(override val header: VertexHeader,
     Future {}
   }
 
-  override def spawn(cell: Vertex): Option[Driver] = {
+  def start(): Future[Vertex] = this.finValue.future // do nothing
+
+  override def spawn(cell: Vertex): Unit = {
     ???
   }
 
@@ -62,7 +64,9 @@ class RemoteDriver(override val header: VertexHeader,
     remoteNode ! RemoveRoot(v.id)
   }
 
-  override def stepUntilStop(limit: Int): Int = 0
+  override def stepUntilStop(limit: Int): Future[Long] = Future {
+    0
+  }
 
   override def resource: Sphere = node.getSphere(this)
 
@@ -87,8 +91,6 @@ class RemoteDriver(override val header: VertexHeader,
     }
     Await.result(fut, Timeouts.short.duration)
   }
-
-  override def stepRecursive(): Boolean = false
 
   override def rewriters: Seq[Rewriter] = selfRewriters ++ baseRewriters ++ parent.map(_.rewriters).getOrElse(Seq())
 
