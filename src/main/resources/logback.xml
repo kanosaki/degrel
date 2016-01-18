@@ -8,7 +8,7 @@
     <logger name="chapters.configuration" level="INFO"/>
     <logger name="akka.cluster.ClusterHeartbeatSender" level="OFF"/>
 
-    <root level="info">
+    <root level="${root.level:-warning}">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

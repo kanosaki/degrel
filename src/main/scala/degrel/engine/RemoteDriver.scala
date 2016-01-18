@@ -6,6 +6,7 @@ import degrel.cluster._
 import degrel.cluster.messages._
 import degrel.core.DriverState.Finished
 import degrel.core._
+import degrel.core.transformer.{FixIDVisitor, GraphVisitor}
 import degrel.engine.rewriting.{Binding, Rewriter}
 import degrel.engine.sphere.Sphere
 

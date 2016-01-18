@@ -2,13 +2,13 @@ package degrel.cluster
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 
-import com.typesafe.config.ConfigFactory
 import degrel.core.{Cell, Vertex}
 import degrel.engine.LocalDriver
-import org.scalatest.FlatSpec
 import degrel.utils.TestUtils._
+import org.scalatest.FlatSpec
+import scala.concurrent.duration._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Await, ExecutionContext}
 
 class LocalNodeTest extends FlatSpec {
   implicit val context = ExecutionContext.Implicits.global
@@ -29,9 +29,9 @@ class LocalNodeTest extends FlatSpec {
   def checkSameBehavior(cell: Cell) = {
     val channeled = channelThrough(cell).asCell
     val driver1 = LocalDriver(cell)
-    driver1.stepUntilStop()
+    Await.result(driver1.start(), 10.seconds)
     val driver2 = LocalDriver(channeled)
-    driver2.stepUntilStop()
+    Await.result(driver2.start(), 10.seconds)
     assert(driver1.header ===~ driver2.header)
   }
 

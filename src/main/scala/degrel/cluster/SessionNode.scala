@@ -72,7 +72,7 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
       false
     } else {
       runningDrivers += 1
-      log.info(s"RUNNING DRIVERS: ${runningDrivers.get} on: $self")
+      log.info(s"DRIVER NEW: ${runningDrivers.get} on: $self")
       true
     }
   }
@@ -93,11 +93,13 @@ class SessionNode(baseIsland: ActorRef, manager: ActorRef, param: NodeInitialize
           origin ! Right(driver.param(self))
           val result = await(driver.finValue.future)
           runningDrivers.single -= 1
+          log.info(s"DRIVER FINISH: ${runningDrivers.single.get} on: $self")
           Right(result)
         }
         case Left(msg) => {
           origin ! Left(msg)
           runningDrivers.single -= 1
+          log.info(s"DRIVER FINISH: ${runningDrivers.single.get} on: $self")
           Left(msg)
         }
       }

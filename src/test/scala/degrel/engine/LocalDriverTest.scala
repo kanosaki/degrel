@@ -14,13 +14,6 @@ class LocalDriverTest extends FlatSpec {
 
   def toCell(s: String) = degrel.parseVertex(s).asInstanceOf[Cell]
 
-  ignore should "Do nothing for empty cell" in {
-    val cell = toCell("{}")
-    val cd = LocalDriver(cell)
-    val res = Await.result(cd.step(), 1.seconds)
-    assert(!res)
-  }
-
   Seq(
     ("Children works.",
       """{

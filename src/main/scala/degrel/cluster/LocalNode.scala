@@ -152,19 +152,22 @@ class LocalNode(system: ActorSystem, val journal: JournalCollector, repo: Reposi
   def spawnSomewhere(cell: Vertex, binding: Binding, returnTo: VertexPin, parent: Driver): Future[SpawnResult] = {
     import SpawnResult._
     val neighbors = neighborNodes.filter(_._1 > 1)
-    logger.debug(s"spawnSomewhere on: $selfID $cell (nodes: ${neighbors.size})")
+    logger.debug(s"SPAWN_SOMEWHERE on: $selfID $cell (nodes: ${neighbors.size})")
     if (neighbors.isEmpty) async {
       LocalSpawned(this.spawnLocally(cell, binding, returnTo, parent))
     } else async {
       var ret: SpawnResult = null
       neighbors.view.find { case (nodeID, spawnNode) =>
+        logger.debug(s"SPAWN_SOMEWHERE on: $selfID TRYING $nodeID")
         Await.result(spawnNode.spawn(cell.asHeader, binding, returnTo, parent), Timeouts.short.duration) match {
           case Right(drv) => {
+            logger.debug(s"SPAWN_SOMEWHERE on: $selfID TRYING $nodeID --> SUCCEED!")
             remoteMapping += cell.id -> drv
             ret = RemoteSpawned(drv)
             true
           }
           case other => {
+            logger.debug(s"SPAWN_SOMEWHERE on: $selfID TRYING $nodeID --> Failed")
             false
           }
         }

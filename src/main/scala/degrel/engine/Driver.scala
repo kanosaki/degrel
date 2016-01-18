@@ -54,8 +54,6 @@ trait Driver extends Logger {
   }
 
   def onStopping(): Unit = {
-    // Re-check
-    this.start()
   }
 
   def start(): Future[Vertex]

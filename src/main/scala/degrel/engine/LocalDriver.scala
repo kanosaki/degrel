@@ -5,7 +5,7 @@ import java.util.concurrent.PriorityBlockingQueue
 import java.util.function.Predicate
 
 import degrel.DegrelException
-import degrel.cluster.SpawnResult.{NoVacantNode, OtherError}
+import degrel.cluster.SpawnResult.{NoVacantNode, OtherError, RemoteSpawned}
 import degrel.cluster.{LocalNode, SpawnResultSuccess}
 import degrel.core.DriverState._
 import degrel.core._
@@ -103,13 +103,13 @@ class LocalDriver(val header: VertexHeader,
   def checkSpawn(): Boolean = {
     var found = false
     atoms.foreach(r => {
-      if (r.isCell) {
+      if (r.isCell && !r.isNil) {
         if (!children.contains(r.id)) {
           this.spawn(r)
           found = true
         }
       } else {
-        r.thru(0).filter(_.isCell).foreach { c =>
+        r.thru(0).filter(v => v.isCell && !v.isNil).foreach { c =>
           if (!children.contains(c.id)) {
             this.spawn(c)
             found = true
@@ -149,9 +149,8 @@ class LocalDriver(val header: VertexHeader,
       this.execRewrite(rw, target)
     }
     if (!rewrote) {
-      println(s"STOPPING@$id: hasActiveChild: ${hasActiveChild}")
       state = this.state match {
-        case _ if !this.hasActiveChild && !this.preventStop => DriverState.Stopped()
+        case _ if !this.hasActiveChild && !this.preventStop && parent.isEmpty => DriverState.Stopped()
         case _ => DriverState.Stopping()
       }
     }
@@ -234,7 +233,9 @@ class LocalDriver(val header: VertexHeader,
   }
 
   override def spawn(cell: Vertex): Unit = {
-    this.schedule(Spawn(cell))
+    if (cell.isCell && !cell.isNil) {
+      this.schedule(Spawn(cell))
+    }
   }
 
   override def writeVertex(target: VertexHeader, value: Vertex): Unit = {
@@ -261,7 +262,7 @@ class LocalDriver(val header: VertexHeader,
         }
       })
     }
-    println(s"SCHED@$id: $op intercept: $intercept start: $startOperate")
+    logger.debug(s"SCHED@$id: $op intercept: $intercept start: $startOperate queue: $opQueue")
     if (intercept) {
       opQueue.add(InterceptOp(op))
     } else {
@@ -291,11 +292,13 @@ class LocalDriver(val header: VertexHeader,
       case Finished(retTo, result) => {
         this.spawnInfo.get(retTo.id) match {
           case Some(sInfo) => {
+            logger.debug(s"CHILD_STATE_UPDATE(Finished): $childReturnTo $id $state on ${this.id} ${this.children.get(id)}")
             sInfo.header.updateID(sInfo.originID)
             sInfo.header.write(result)
             spawnInfo -= retTo.id
             // re-check
-            this.start()
+            this.state = Active()
+            schedule(Scan())
           }
           case None => {
             println(s"$retTo ${
@@ -307,15 +310,13 @@ class LocalDriver(val header: VertexHeader,
         }
       }
       case Stopped() => {
-        this.start()
+        logger.debug(s"CHILD_STATE_UPDATE(Stopped): $childReturnTo $id $state on ${this.id} ${this.children.get(id)}")
+        schedule(Scan())
       }
-      case _ =>
+      case other => {
+        logger.debug(s"CHILD_STATE_UPDATE($other): $childReturnTo $id $state on ${this.id} ${this.children.get(id)}")
+      }
     }
-    logger.debug(s"CHILD_STATE_UPDATE: $childReturnTo $id $state on ${
-      this.id
-    } ${
-      this.children.get(id)
-    }")
   }
 
   override def toString: String = {
@@ -328,19 +329,20 @@ class LocalDriver(val header: VertexHeader,
 
   private def consumeQueue(): Future[Unit] = async {
     // cannot use inner function to utilize async
-    println(s"CONSUME: $opQueue state: $state")
+    logger.debug(s"CONSUMING@$id state: $state $opQueue")
     var nextOp = opQueue.poll()
-    while (nextOp != null && !this.isStopped) {
-      println(s"""OP@$id: $nextOp -- $opQueue""")
+    while (nextOp != null && !this.isStopped && !this.state.isInstanceOf[Paused]) {
+      logger.debug(s"OP@$id: $nextOp -- $opQueue")
       await(nextOp.exec())
       nextOp = opQueue.poll()
     }
     if (nextOp != null) {
       opQueue.add(nextOp) // breaked by state change --> push back
     }
+    logger.debug(s"CONSUMING_DONE@$id $opQueue")
     __startLock.synchronized {
       // re-check queue with lock and finish
-      if (!opQueue.isEmpty && !this.isStopped) {
+      if (!opQueue.isEmpty && !this.isStopped && !this.state.isInstanceOf[Paused]) {
         this.consumeQueue()
       }
       activeThread = null
@@ -397,6 +399,7 @@ class LocalDriver(val header: VertexHeader,
         val tryOwn = GraphVisitor(new FixIDVisitor(self.idSpace))
         tryOwn.visit(value)
         target.write(value)
+        schedule(Scan())
       }
       this.done.success(())
     }
@@ -428,10 +431,12 @@ class LocalDriver(val header: VertexHeader,
         if (value.isCell) {
           self.spawn(value.asCell)
         }
+        schedule(Scan())
       } else if (target.id.hasSameOwner(self.id)) {
         if (target.isCell) {
           target.asCell.addRoot(value)
         }
+        schedule(Scan())
       } else {
         await(node.lookupOwner(target.id)) match {
           case Right(drv) => {
@@ -467,24 +472,31 @@ class LocalDriver(val header: VertexHeader,
       logger.debug(s"SPAWNING ${cell.pp}")
       val spawningHeader = cell.asHeader
       val originID = spawningHeader.id
-      self.spawnInfo += originID -> SpawnInfo(spawningHeader, originID)
+      self.spawnInfo += originID -> SpawnInfo(spawningHeader, spawningHeader.body, originID)
       val res = await(self.node.spawnSomewhere(cell, self.binding, VertexPin(spawningHeader.id, 0), self))
       res match {
         case res: SpawnResultSuccess => {
+          val isRemote = res.isInstanceOf[RemoteSpawned]
+          if (isRemote) {
+            spawningHeader.write(Vertex("__remote__", Seq(), Map()))
+          }
           val drv = res.result
           self.spawnInfo.get(originID) match {
-            case Some(si) => si.spawnID = Some(drv.id)
+            case Some(si) => {
+              si.isRemote = isRemote
+              si.spawnID = Some(drv.id)
+            }
             case None => {
               logger.warn(s"Cannot update SpawnInfo (maybe it was a too short life cell?) ID:${originID}")
             }
           }
           self.children += drv.id -> drv
           drv.start()
-          println(s"CHILD_STATE: $drv")
           this.done.success(Some(drv))
         }
         case NoVacantNode() => {
           self.state = Paused()
+          logger.info(s"Execution paused due to worker full! on $id")
           schedule(Spawn(cell), intercept = true, startOperate = false)
           this.done.success(None)
         }
@@ -494,8 +506,9 @@ class LocalDriver(val header: VertexHeader,
   }
 
   case class InterceptOp[CT](op: DriverOp[CT]) extends DriverOp[CT] {
-    override def exec(): Future[OpResult] = {
-      op.exec()
+    override def exec(): Future[OpResult] = async {
+      println("INTERCEPT_OP")
+      await(op.exec())
     }
 
     override def priority: Int = -100
@@ -518,7 +531,8 @@ object LocalDriver {
 class RootLocalDriver(_header: VertexHeader, _chassis: Chassis, _node: LocalNode)(implicit executionContext: ExecutionContext) extends LocalDriver(_header, _chassis, _node, _header.pin, None) {
 }
 
-case class SpawnInfo(header: VertexHeader, originID: ID) {
+case class SpawnInfo(header: VertexHeader, prevBody: VertexBody, originID: ID) {
   var spawnID: Option[ID] = None
+  var isRemote = false
 }
 

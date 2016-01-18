@@ -69,6 +69,8 @@ trait Vertex extends Element with Comparable[Vertex] {
 
   def getValue[T: TypeTag]: Option[T] = None
 
+  def isNil = this.label == Label.V.cell && this.edges.isEmpty
+
   def thruSingle(label: Label): Vertex = {
     val candidates = this.edgesWith(label)
     candidates.size match {
