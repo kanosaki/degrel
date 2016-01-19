@@ -17,7 +17,7 @@ import scala.concurrent.Future
   * Interpreter 1回の実行で使用するデータを保持します
   * 具体的にはIDやロードされたグラフを管理します．
   */
-class SessionManager(val lobby: ActorRef) extends SessionMember {
+class SessionManager(val lobby: ActorRef, val controller: ActorRef) extends SessionMember {
 
   import context.dispatcher
   import messages._
@@ -25,7 +25,6 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
   val nodes = mutable.HashMap[NodeID, ActorRef]()
   val journals = mutable.ListBuffer[JournalPayload]()
   var ctrlr: ActorRef = null
-  val controllers = mutable.Seq[ActorRef]()
 
   // first node id == 2
   var currentId: NodeID = 1
@@ -88,10 +87,10 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
     case QueryStatus() => {
       sender() ! SessionState(nodes.toSeq)
     }
-    case StartInterpret(msg, controller) if ctrlr != null => {
+    case StartInterpret(msg, reqController) if ctrlr != null => {
       log.error(s"Already occupied by $ctrlr")
     }
-    case StartInterpret(msg, controller) => {
+    case StartInterpret(msg, reqController) => {
       ctrlr = sender()
       async {
         await(this.allocateMaxNodes())
@@ -143,7 +142,7 @@ class SessionManager(val lobby: ActorRef) extends SessionMember {
 }
 
 object SessionManager {
-  def props(lobby: ActorRef): Props = Props(new SessionManager(lobby))
+  def props(lobby: ActorRef, controller: ActorRef): Props = Props(new SessionManager(lobby, controller))
 
   sealed trait State
 

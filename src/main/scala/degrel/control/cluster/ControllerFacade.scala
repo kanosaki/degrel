@@ -1,18 +1,19 @@
 package degrel.control.cluster
 
-import akka.actor.{PoisonPill, ActorSystem, Address}
+import akka.actor.{ActorSystem, Address}
 import akka.pattern.ask
-import degrel.cluster.messages.{ControllerState, QueryStatus}
+import degrel.cluster.messages.{ControllerState, Halt, QueryStatus}
 import degrel.cluster.{Controller, Timeouts}
 import degrel.core.{Cell, Vertex}
 
+import scala.async.Async.{async, await}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.async.Async.{async, await}
 import scala.language.postfixOps
 
 // Adapter class for degrel cluster controller
 class ControllerFacade(val system: ActorSystem, lobbyAddr: Address) {
+
   import Controller.messages._
   import system.dispatcher
 
@@ -32,9 +33,8 @@ class ControllerFacade(val system: ActorSystem, lobbyAddr: Address) {
     val res = await(ctrlr ? Interpret(cell)) match {
       case Result(v) => v
     }
-    ctrlr ! PoisonPill
+    Await.ready(ctrlr ? Halt, 5.seconds)
     await(system.terminate())
-    System.exit(0)
     res
   }
 

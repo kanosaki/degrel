@@ -26,7 +26,8 @@ object ClusterTestUtils {
     (0 to workerNum).foreach { i => // plus one for master node
       system.actorOf(Worker.props(lobby.path.address, lobby))
     }
-    val sessionFuture = (lobby ? NewSession()) map {
+    val ctrlr = system.actorOf(Controller.props(lobby.path.address))
+    val sessionFuture = (lobby ? NewSession(ctrlr)) map {
       case Right(ref: ActorRef) => ref
       case _ => throw new RuntimeException("Cannot allocate session")
     }

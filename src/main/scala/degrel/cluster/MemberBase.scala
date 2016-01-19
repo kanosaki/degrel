@@ -4,7 +4,7 @@ import akka.actor._
 import akka.cluster.ClusterEvent._
 import akka.cluster.{Cluster, Member}
 import akka.util.Timeout
-import degrel.cluster.messages.{MemberRegistration, TellLobby}
+import degrel.cluster.messages.{Halt, MemberRegistration, TellLobby}
 
 import scala.collection.mutable
 import scala.concurrent.Promise
@@ -79,7 +79,10 @@ trait MemberBase extends ActorBase {
       addressMapping.get(member.address).foreach(_.foreach(ref => lobbies -= ref))
       addressMapping -= member.address
     }
+    this.onUnregistered(member)
   }
+
+  def onUnregistered(member: Member) = { }
 
   protected def actorOfRole(addr: Address, role: MemberRole) = {
     context.actorSelection(actorPath(addr, role))
@@ -91,10 +94,15 @@ trait MemberBase extends ActorBase {
 
   override def postStop(): Unit = {
     println(s"!!!!!!!!!!! Stopped $self")
-    cluster.unsubscribe(self)
   }
 
   def receiveMemberMsg: Receive = {
+    case Halt => {
+      cluster.unsubscribe(self)
+      cluster.leave(cluster.selfAddress)
+      context.stop(self)
+      sender() ! Success(())
+    }
     case TellLobby(addr) => this.joinLobby(addr)
     case MemberRegistration(role, ref) => {
       addressMapping.addBinding(ref.path.address, ref)
@@ -116,6 +124,7 @@ trait MemberBase extends ActorBase {
     }
     case MemberRemoved(member, previousStatus) => {
       log.info("Member is Removed: {} after {}", member.address, previousStatus)
+      this.unregister(member)
     }
     case e: MemberEvent => log.info(s"******************** MemberEvent: $e")
   }

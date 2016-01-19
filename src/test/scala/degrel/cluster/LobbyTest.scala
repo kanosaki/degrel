@@ -25,7 +25,8 @@ class LobbyTest(_system: ActorSystem) extends TestKit(_system) with ImplicitSend
 
     "spawns session" in {
       val lobby = system.actorOf(Props[Lobby])
-      lobby ! NewSession()
+      val ctrlr = system.actorOf(Controller.props(lobby.path.address))
+      lobby ! NewSession(ctrlr)
       val session = expectMsgPF() {
         case Right(sess: ActorRef) => sess
       }

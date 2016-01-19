@@ -25,8 +25,6 @@ class Controller(lobbyAddr: Address) extends MemberBase {
     val journalRes = await(sess ? FetchJournal(streamReq = false))
     journalRes match {
       case Right(jps: Vector[JournalPayload]) => {
-        println(jps)
-        JournalPrinter(jps).printTo(System.out)
         lobby ! CloseSession(sess)
       }
       case v => {
@@ -49,7 +47,7 @@ class Controller(lobbyAddr: Address) extends MemberBase {
         val lobby = lobbies.head
         val packed = node.exchanger.packAll(cell)
         for {
-          session <- (lobby ? NewSession()) map {
+          session <- (lobby ? NewSession(self)) map {
             case Right(ref: ActorRef) => ref
             case Left(msg: Throwable) => {
               log.error(msg, "Cannot allocate session")

@@ -17,7 +17,7 @@ object messages {
   // SessionManager -> Ocean
   case class NodeAllocateRequest(manager: ActorRef, param: NodeInitializeParam)
 
-  case class NewSession()
+  case class NewSession(controller: ActorRef)
 
   case class CloseSession(sess: ActorRef)
 
@@ -82,5 +82,7 @@ object messages {
 
   // control
   case class MemberRegistration(role: MemberRole, ref: ActorRef)
+
+  case object Halt
 
 }

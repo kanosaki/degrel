@@ -120,9 +120,6 @@ class Bootstrapper(val args: BootArguments) {
     val system = this.createActorSystem(Seq(Roles.Lobby))
     val lobby = LobbyFacade(system)
     lobby.start()
-    println("====================================")
-    println(s"Address: ${lobby.address}")
-    println("====================================")
   }
 }
 
