@@ -99,3 +99,19 @@ case class DCell(id: DID,
 }
 
 
+
+case class DValueVertex(val id: DID, val get: Any) extends DVertex {
+  override def edges: Seq[DEdge] = Seq()
+
+  override def attributes: Seq[(String, String)] = Seq()
+
+  override def toJson: JObject = {
+    ("type" -> "value") ~
+      ("get" -> get.toString)
+  }
+
+  override def label: String = this.get match {
+    case str: String => "\"" + str + "\""
+    case other => other.toString
+  }
+}

@@ -8,6 +8,8 @@ import java.util.Calendar
 import org.json4s.JsonAST.{JObject, JString}
 import org.json4s.native.JsonMethods
 
+import java.io.File
+
 class JsonJournalSink(outputStream: OutputStream) extends JournalSink {
   val writer = new OutputStreamWriter(outputStream)
 
@@ -31,6 +33,7 @@ object JsonJournalSink {
   def apply(logDir: String): JsonJournalSink = {
     val now = Calendar.getInstance()
     val fileName = logFileFormat.format(now.getTime)
+    new File(logDir).mkdirs()
     val outputFile = Paths.get(logDir, fileName).toFile
     new JsonJournalSink(new FileOutputStream(outputFile))
   }

@@ -42,6 +42,10 @@ class GraphPacker(root: Vertex, move: Boolean = false) {
   }
 
   protected def mapToDElement(v: Vertex): DVertex = {
+    if (v.isValue) {
+      val value = v.asHeader.body.asInstanceOf[ValueVertex[Any]].get
+      return DValueVertex(assignDID(v), value)
+    }
     def dEdges(): Seq[DEdge] = {
       v.edges.map(mapEdges).toVector
     }

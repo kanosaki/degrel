@@ -6,7 +6,17 @@ package degrel.core
   * (Active|Pause) --> Dead
   */
 trait DriverState {
+  /**
+    * The state might be back to Active
+    */
+  def isActive: Boolean = !this.isStopped
+
+  /**
+    * No more changes occurs in this driver
+    */
   def isStopped: Boolean
+
+  def isStopping: Boolean = false
 }
 
 object DriverState {
@@ -27,6 +37,10 @@ object DriverState {
     override def isStopped: Boolean = false
   }
 
+  case class Intercepted() extends DriverState {
+    override def isStopped: Boolean = false
+  }
+
   /**
     * The driver is not active.
     * Because fin statement is detected.
@@ -43,6 +57,8 @@ object DriverState {
     */
   case class Stopping() extends DriverState {
     override def isStopped: Boolean = false
+
+    override def isStopping: Boolean = true
   }
 
   /**

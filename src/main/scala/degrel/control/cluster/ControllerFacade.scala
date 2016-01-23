@@ -35,6 +35,7 @@ class ControllerFacade(val system: ActorSystem, lobbyAddr: Address) {
     }
     Await.ready(ctrlr ? Halt, 5.seconds)
     await(system.terminate())
+    System.exit(0)
     res
   }
 

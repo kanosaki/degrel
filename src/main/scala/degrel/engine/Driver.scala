@@ -23,7 +23,11 @@ trait Driver extends Logger {
 
   def state_=(state: DriverState): Unit = {
     require(state != null)
-    if (stateVar == state || stateVar.isStopped) return
+    if (stateVar == state) return
+    if (stateVar.isStopped) {
+      logger.error(s"Invalid state update! Already stopped! $stateVar --> $state")
+      return
+    }
     val old = this.stateVar
     node.journal(Journal.DriverStateUpdate(this.id, DDriverState.pack(old, node, this), DDriverState.pack(state, node, this)))
     this.stateVar = state
@@ -32,6 +36,7 @@ trait Driver extends Logger {
     state match {
       case Active() => this.onActive()
       case Paused() => this.onPause()
+      case Intercepted() => this.onIntercepted()
       case Finished(pin, v) => this.onFinished(pin, v)
       case Stopped() => this.onStopped()
       case Stopping() => this.onStopping()
@@ -54,6 +59,9 @@ trait Driver extends Logger {
   }
 
   def onStopping(): Unit = {
+  }
+
+  def onIntercepted(): Unit = {
   }
 
   def start(): Future[Vertex]

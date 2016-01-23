@@ -51,6 +51,14 @@ object DDriverState {
     }
   }
 
+  case class DIntercepted() extends DDriverState {
+    override def unpack(node: LocalNode, driver: Driver): DriverState = Intercepted()
+
+    override def toJson: JObject = {
+      "type" -> "intercepted"
+    }
+  }
+
   case class DStopped() extends DDriverState {
     override def unpack(node: LocalNode, driver: Driver): DriverState = Stopped()
 
@@ -78,6 +86,7 @@ object DDriverState {
       case Paused() => DPaused()
       case Stopping() => DStopping()
       case Stopped() => DStopped()
+      case Intercepted() => DIntercepted()
       case Finished(pin, res) => {
         DFinished(pin, node.exchanger.packAll(res))
       }

@@ -3,9 +3,6 @@ package degrel.engine.rewriting
 import degrel.core._
 import degrel.engine.LocalDriver
 
-import scala.concurrent.Await
-import scala.concurrent.duration._
-
 trait RewriteResult {
   def done: Boolean
 
@@ -36,7 +33,7 @@ object RewriteResult {
     override def done: Boolean = true
 
     override def exec(self: LocalDriver): Unit = {
-      Await.result(self.dispatch(target, value), 10.seconds)
+      self.dispatch(target, value)
     }
   }
 

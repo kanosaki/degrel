@@ -121,7 +121,7 @@ class LocalDriverTest extends FlatSpec {
         val beforeCell = toCell(before)
         val afterCell = toCell(after)
         val cd = LocalDriver(beforeCell)
-        Await.result(cd.start(), 5.seconds)
+        Await.result(cd.start(), 10.seconds)
         assert(cd.cell ===~ afterCell)
       }
     }
