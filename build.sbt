@@ -1,8 +1,10 @@
 
 import com.typesafe.sbt.SbtMultiJvm.MultiJvmKeys.MultiJvm
-import com.typesafe.sbt.SbtStartScript
+//import com.typesafe.sbt.SbtStartScript
 
-seq(SbtStartScript.startScriptForClassesSettings: _*)
+enablePlugins(JDKPackagerPlugin)
+
+//seq(SbtStartScript.startScriptForClassesSettings: _*)
 
 //resolvers += "Twitter Repository" at "http://maven.twitter.com"
 
