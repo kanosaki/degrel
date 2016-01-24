@@ -274,7 +274,7 @@ class LocalDriver(val header: VertexHeader,
     } else {
       opQueue.add(op)
     }
-    logger.debug(s"SCHED@$id: $op intercept: $intercept start: $startOperate queue: $opQueue")
+    //logger.debug(s"SCHED@$id: $op intercept: $intercept start: $startOperate queue: $opQueue")
     if (startOperate) {
       this.operate()
     }
@@ -340,10 +340,10 @@ class LocalDriver(val header: VertexHeader,
 
   private def consumeQueue(): Future[Unit] = async {
     // cannot use inner function to utilize async
-    logger.debug(s"CONSUMING@$id state: $state $opQueue")
+    //logger.debug(s"CONSUMING@$id state: $state $opQueue")
     var nextOp = opQueue.poll()
     while (nextOp != null && !this.isStopped && !this.state.isInstanceOf[Intercepted]) {
-      logger.debug(s"OP@$id: $nextOp -- $opQueue")
+      //logger.debug(s"OP@$id: $nextOp -- $opQueue")
       await(nextOp.exec())
       nextOp = opQueue.poll()
     }

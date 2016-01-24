@@ -147,37 +147,5 @@ class SessionManagerTest(_system: ActorSystem) extends TestKit(_system) with Imp
       assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
       assert(spawns(1).spawnAt !== spawns(2).spawnAt) // first spawn != child spawn
     }
-
-    "Calc simple math ops" in {
-      val before =
-        """{
-          | fin result(a(1) + a(2))
-          | a(@X) -> {
-          |   fin X
-          | }
-          |}
-        """.stripMargin
-      val after = "result(3)"
-      val journals = runScript(before, after, 2)
-      val spawns = journals.map(_.item).collect {
-        case cs: CellSpawn => cs
-      }
-      assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
-    }
-
-    "Simple send message" in {
-      val before =
-        """{
-          |  hoge
-          |  {foo} ! bar
-          |}
-        """.stripMargin
-      val after = "{hoge; {foo; bar}}"
-      val journals = runScript(before, after, 2)
-      val spawns = journals.map(_.item).collect {
-        case cs: CellSpawn => cs
-      }
-      assert(spawns(0).spawnAt !== spawns(1).spawnAt) // manager spawn != first spawn
-    }
   }
 }

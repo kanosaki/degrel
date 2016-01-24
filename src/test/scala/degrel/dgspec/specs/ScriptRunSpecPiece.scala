@@ -4,14 +4,17 @@ import java.io.File
 
 import com.fasterxml.jackson.databind.JsonNode
 import degrel.control.{BootArguments, Bootstrapper}
-import scala.collection.JavaConversions._
 import degrel.dgspec._
 import org.apache.commons.io.FilenameUtils
+
+import scala.collection.JavaConversions._
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class ScriptRunSpecPiece(bootsrapper: Bootstrapper) extends SpecPiece {
   override def evaluate(ctx: SpecContext): NextPiece = {
     val interpreter = new SpecInterpreter(bootsrapper.createChassis())
-    interpreter.start()
+    Await.ready(interpreter.start(), 1.minute)
     ctx.lastOutput = interpreter.lastOutput
     NextPiece.Continue
   }

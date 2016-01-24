@@ -24,7 +24,7 @@
     <logger name="chapters.configuration" level="INFO"/>
     <logger name="akka.cluster.ClusterHeartbeatSender" level="OFF"/>
 
-    <root level="${root.level:-warning}">
+    <root level="${root.level:-WARNING}">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
     </root>

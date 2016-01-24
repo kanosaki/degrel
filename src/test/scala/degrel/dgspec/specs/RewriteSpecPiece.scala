@@ -17,7 +17,7 @@ case class RewriteSpecPiece() extends SpecPiece {
     ctx.root match {
       case ctxCell: Cell => {
         val pra = LocalDriver(ctxCell)
-        Await.result(pra.start(), 5.seconds)
+        Await.result(pra.start(), 1.minute)
         NextPiece.Continue
       }
       case _ => {

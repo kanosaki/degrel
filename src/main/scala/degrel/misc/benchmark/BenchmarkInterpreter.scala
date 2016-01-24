@@ -11,7 +11,6 @@ import scala.async.Async.{async, await}
 import scala.concurrent.{ExecutionContext, Future}
 
 class BenchmarkInterpreter(ch: Chassis, quiet: Boolean = false) extends Interpreter(ch) {
-  implicit val ec = ExecutionContext.Implicits.global
   var startTime: LocalDateTime = null
   var finishTime: LocalDateTime = null
   val initialSize = Traverser(chassis.main.header).size
